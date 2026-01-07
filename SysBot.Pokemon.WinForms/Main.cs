@@ -1,6 +1,5 @@
 using PKHeX.Core;
 using SysBot.Base;
-using SysBot.Pokemon.Discord;
 using SysBot.Pokemon.Helpers;
 using SysBot.Pokemon.WinForms.Properties;
 using SysBot.Pokemon.WinForms.Helpers;
@@ -13,9 +12,7 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -35,9 +32,6 @@ namespace SysBot.Pokemon.WinForms
         
         // Performance optimization flags
         private bool _suspendLayout = false;
-        private bool _deferredInvalidate = false;
-        private DateTime _lastInvalidate = DateTime.MinValue;
-        private const int INVALIDATE_THROTTLE_MS = 16; // 60 FPS max
         private readonly List<PokeBotState> Bots = [];
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -59,12 +53,6 @@ namespace SysBot.Pokemon.WinForms
         private bool _isRestoringFromTray = false;
         private LinearGradientBrush? _logoBrush;
         private Image? _currentModeImage = null;
-
-        private readonly Color CuztomBackground = Color.FromArgb(27, 40, 56);
-        private readonly Color CuztomDarkBackground = Color.FromArgb(22, 32, 45);
-        private readonly Color CuztomAccent = Color.FromArgb(102, 192, 244);
-        private readonly Color CuztomText = Color.FromArgb(239, 239, 239);
-        private readonly Color CuztomSubText = Color.FromArgb(139, 179, 217);
 
         public Main()
         {
@@ -758,7 +746,7 @@ namespace SysBot.Pokemon.WinForms
             }
         }
 
-        private void SetButtonActiveState(Button button, bool isActive)
+        private static void SetButtonActiveState(Button button, bool isActive)
         {
             if (button?.Tag is EnhancedButtonAnimationState state)
             {
@@ -1070,11 +1058,7 @@ namespace SysBot.Pokemon.WinForms
             Text = $"{(string.IsNullOrEmpty(Config.Hub.Global.BotName) ? "NexusRisen PokeBot" : Config.Hub.Global.BotName)} {PokeBot.Version} ({Config.Mode})";
         }
 
-        private void UpdateStatusIndicatorPulse()
-        {
-            // Animation removed - just update color
-            UpdateStatusIndicatorColor();
-        }
+
 
         private void UpdateStatusIndicatorColor()
         {
@@ -1343,35 +1327,6 @@ namespace SysBot.Pokemon.WinForms
         }
 
         #region Performance Optimization Methods
-
-        private void InvalidateThrottled(Control control, Rectangle? rect = null)
-        {
-            if (_suspendLayout) return;
-            
-            var now = DateTime.Now;
-            if ((now - _lastInvalidate).TotalMilliseconds < INVALIDATE_THROTTLE_MS)
-            {
-                _deferredInvalidate = true;
-                return;
-            }
-
-            _lastInvalidate = now;
-            if (rect.HasValue)
-                control.Invalidate(rect.Value);
-            else
-                control.Invalidate();
-                
-            if (_deferredInvalidate)
-            {
-                _deferredInvalidate = false;
-                // Schedule deferred invalidation
-                BeginInvoke((System.Windows.Forms.MethodInvoker)(() =>
-                {
-                    if (!_suspendLayout)
-                        control.Invalidate();
-                }));
-            }
-        }
 
         protected override void WndProc(ref Message m)
         {

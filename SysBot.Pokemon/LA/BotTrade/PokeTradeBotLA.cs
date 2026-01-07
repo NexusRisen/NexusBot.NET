@@ -481,7 +481,7 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
                     }
                 }
 
-                var partnerCheck = CheckPartnerReputation(this, poke, trainerNID, tradePartner.TrainerName, AbuseSettings, token);
+                var partnerCheck = CheckPartnerReputation(poke, trainerNID, tradePartner.TrainerName, AbuseSettings);
                 if (partnerCheck != PokeTradeResult.Success)
                 {
                     if (startingDetail.TotalBatchTrades > 1)
@@ -738,7 +738,7 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
 #pragma warning restore CS8604 // Possible null reference argument.
         }
 
-        var partnerCheck = CheckPartnerReputation(this, poke, trainerNID, tradePartner.TrainerName, AbuseSettings, token);
+        var partnerCheck = CheckPartnerReputation(poke, trainerNID, tradePartner.TrainerName, AbuseSettings);
         if (partnerCheck != PokeTradeResult.Success)
         {
             await ExitTrade(false, token).ConfigureAwait(false);

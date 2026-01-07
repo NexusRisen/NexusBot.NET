@@ -389,7 +389,7 @@ public static class Helpers<T> where T : PKM, new()
     }
 
     public static async Task AddTradeToQueueAsync(SocketCommandContext context, int code, string trainerName, T? pk, RequestSignificance sig,
-        SocketUser usr, bool isBatchTrade = false, int batchTradeNumber = 1, int totalBatchTrades = 1,
+        SocketUser usr, int batchTradeNumber = 1, int totalBatchTrades = 1,
         bool isHiddenTrade = false, bool isMysteryEgg = false, List<Pictocodes>? lgcode = null,
         PokeTradeType tradeType = PokeTradeType.Specific, bool ignoreAutoOT = false, bool setEdited = false,
         bool isNonNative = false)
@@ -466,7 +466,7 @@ public static class Helpers<T> where T : PKM, new()
         }
 
         await QueueHelper<T>.AddToQueueAsync(context, code, trainerName, sig, pk!, PokeRoutineType.LinkTrade,
-            tradeType, usr, isBatchTrade, batchTradeNumber, totalBatchTrades, isHiddenTrade, isMysteryEgg,
+            tradeType, usr, batchTradeNumber, totalBatchTrades, isHiddenTrade, isMysteryEgg,
             lgcode: lgcode, ignoreAutoOT: ignoreAutoOT, setEdited: setEdited, isNonNative: isNonNative).ConfigureAwait(false);
     }
 }

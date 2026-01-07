@@ -4,12 +4,13 @@ using System.Drawing;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SysBot.Pokemon.WinForms
 {
-    public class UpdateForm : Form
+    public partial class UpdateForm : Form
     {
         private Button buttonDownload;
         private Label labelUpdateInfo;
@@ -145,7 +146,7 @@ namespace SysBot.Pokemon.WinForms
             webBrowserChangelog.DocumentText = html;
         }
 
-        private string ConvertMarkdownToHtml(string markdown)
+        private static string ConvertMarkdownToHtml(string markdown)
         {
             if (string.IsNullOrWhiteSpace(markdown)) return "<html><body><p>No changelog available.</p></body></html>";
 
@@ -157,34 +158,25 @@ namespace SysBot.Pokemon.WinForms
                 .Replace("\r\n", "\n");
 
             // Headers
-            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"^### (.*)$", "<h3>$1</h3>", System.Text.RegularExpressions.RegexOptions.Multiline);
-            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"^## (.*)$", "<h2>$1</h2>", System.Text.RegularExpressions.RegexOptions.Multiline);
-            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"^# (.*)$", "<h1>$1</h1>", System.Text.RegularExpressions.RegexOptions.Multiline);
+            htmlBody = Header3Regex().Replace(htmlBody, "<h3>$1</h3>");
+            htmlBody = Header2Regex().Replace(htmlBody, "<h2>$1</h2>");
+            htmlBody = Header1Regex().Replace(htmlBody, "<h1>$1</h1>");
 
             // Bold
-            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"\*\*(.*?)\*\*", "<strong>$1</strong>");
+            htmlBody = BoldRegex().Replace(htmlBody, "<strong>$1</strong>");
             
             // Lists
-            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"^\s*-\s+(.*)$", "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+            htmlBody = ListRegex().Replace(htmlBody, "<li>$1</li>");
             
             // Wrap lists (simplified)
             htmlBody = htmlBody.Replace("</li>\n<li>", "</li><li>");
-            // Note: This simple regex doesn't handle nested lists perfectly or wrap <ul> properly without more complex logic, 
-            // but for release notes it's usually sufficient to just style li. 
-            // Better approach: wrap contiguous li lines in ul.
             
             // Code blocks (inline)
-            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"`(.*?)`", "<code>$1</code>");
+            htmlBody = CodeRegex().Replace(htmlBody, "<code>$1</code>");
 
             // Line breaks
             htmlBody = htmlBody.Replace("\n", "<br/>");
 
-            // Cleanup <ul> wrapping (hacky but works for simple lists)
-            // A better way is to style the <li> to not need a parent <ul> strictly if we just want bullet points, 
-            // or do a proper pass. Let's just use CSS to style <li> if they aren't in <ul> (browsers handle this okay-ish) 
-            // or just rely on <br> for newlines.
-            // Actually, let's just make it a list if it starts with -
-            
             string css = @"
                 <style>
                     body { font-family: 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: #333; padding: 15px; background-color: #ffffff; }
@@ -199,6 +191,24 @@ namespace SysBot.Pokemon.WinForms
 
             return $"<!DOCTYPE html><html><head>{css}</head><body>{htmlBody}</body></html>";
         }
+
+        [GeneratedRegex(@"^### (.*)$", RegexOptions.Multiline)]
+        private static partial Regex Header3Regex();
+
+        [GeneratedRegex(@"^## (.*)$", RegexOptions.Multiline)]
+        private static partial Regex Header2Regex();
+
+        [GeneratedRegex(@"^# (.*)$", RegexOptions.Multiline)]
+        private static partial Regex Header1Regex();
+
+        [GeneratedRegex(@"\*\*(.*?)\*\*", RegexOptions.None)]
+        private static partial Regex BoldRegex();
+
+        [GeneratedRegex(@"^\s*-\s+(.*)$", RegexOptions.Multiline)]
+        private static partial Regex ListRegex();
+
+        [GeneratedRegex(@"`(.*?)`", RegexOptions.None)]
+        private static partial Regex CodeRegex();
 
         private async void ButtonDownload_Click(object? sender, EventArgs? e)
         {
@@ -250,47 +260,42 @@ namespace SysBot.Pokemon.WinForms
                     Console.WriteLine($"Retrying download attempt {retry + 1}/{maxRetries}...");
                 }
 
-                using (var client = new HttpClient())
-                {
-                    client.Timeout = TimeSpan.FromMinutes(10); // 10 minute timeout for downloads on slow connections
-                    client.DefaultRequestHeaders.Add("User-Agent", "PokeBot");
-                    // No auth token needed for public repo
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
+                using var client = new HttpClient();
+                client.Timeout = TimeSpan.FromMinutes(10); // 10 minute timeout for downloads on slow connections
+                client.DefaultRequestHeaders.Add("User-Agent", "PokeBot");
+                // No auth token needed for public repo
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
 
-                    try
+                try
+                {
+                    var response = await client.GetAsync(downloadUrl);
+                    response.EnsureSuccessStatusCode();
+                    
+                    // Download with progress tracking for large files
+                    using var stream = await response.Content.ReadAsStreamAsync();
+                    var totalBytes = response.Content.Headers.ContentLength ?? 0;
+                    var bytesRead = 0;
+                    var buffer = new byte[8192];
+                    
+                    using var ms = new MemoryStream();
+                    int read;
+                    while ((read = await stream.ReadAsync(buffer)) > 0)
                     {
-                        var response = await client.GetAsync(downloadUrl);
-                        response.EnsureSuccessStatusCode();
+                        await ms.WriteAsync(buffer.AsMemory(0, read));
+                        bytesRead += read;
                         
-                        // Download with progress tracking for large files
-                        using (var stream = await response.Content.ReadAsStreamAsync())
+                        if (totalBytes > 0)
                         {
-                            var totalBytes = response.Content.Headers.ContentLength ?? 0;
-                            var bytesRead = 0;
-                            var buffer = new byte[8192];
-                            
-                            using (var ms = new MemoryStream())
-                            {
-                                int read;
-                                while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
-                                {
-                                    await ms.WriteAsync(buffer, 0, read);
-                                    bytesRead += read;
-                                    
-                                    if (totalBytes > 0)
-                                    {
-                                        var progress = (int)((bytesRead * 100L) / totalBytes);
-                                        Console.WriteLine($"Download progress: {progress}%");
-                                    }
-                                }
-                                
-                                var fileBytes = ms.ToArray();
-                                await File.WriteAllBytesAsync(tempPath, fileBytes);
-                            }
+                            var progress = (int)((bytesRead * 100L) / totalBytes);
+                            Console.WriteLine($"Download progress: {progress}%");
                         }
-                        Console.WriteLine($"Successfully downloaded update to {tempPath}");
-                        return tempPath;
                     }
+                    
+                    var fileBytes = ms.ToArray();
+                    await File.WriteAllBytesAsync(tempPath, fileBytes);
+                    Console.WriteLine($"Successfully downloaded update to {tempPath}");
+                    return tempPath;
+                }
                     catch (TaskCanceledException ex)
                     {
                         Console.WriteLine($"Download timed out on attempt {retry + 1}: {ex.Message}");
@@ -312,7 +317,6 @@ namespace SysBot.Pokemon.WinForms
                         if (File.Exists(tempPath))
                             File.Delete(tempPath);
                     }
-                }
             }
 
             // All retries failed
@@ -357,7 +361,7 @@ namespace SysBot.Pokemon.WinForms
                 File.WriteAllText(batchPath, batchContent);
 
                 // Start the update batch file
-                ProcessStartInfo startInfo = new ProcessStartInfo
+                ProcessStartInfo startInfo = new()
                 {
                     FileName = batchPath,
                     CreateNoWindow = true,

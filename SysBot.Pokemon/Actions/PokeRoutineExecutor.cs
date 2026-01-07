@@ -141,8 +141,8 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
 
     // Tesla Menu
     // dmnt used for cheats
-    protected PokeTradeResult CheckPartnerReputation(PokeRoutineExecutor<T> bot, PokeTradeDetail<T> poke, ulong TrainerNID, string TrainerName,
-        TradeAbuseSettings AbuseSettings, CancellationToken token)
+    protected PokeTradeResult CheckPartnerReputation(PokeTradeDetail<T> poke, ulong TrainerNID, string TrainerName,
+        TradeAbuseSettings AbuseSettings)
     {
         bool quit = false;
         var user = poke.Trainer;
@@ -151,7 +151,7 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
         {
             quit = true;
             if (AbuseSettings.AutoBanOnExceedDistinctIDs && !AbuseSettings.BannedRemoteUsers.Contains(user.ID))
-                AbuseSettings.BannedRemoteUsers.AddIfNew(new[] { new RemoteControlAccess { ID = user.ID, Name = user.TrainerName, Comment = "Exceeded distinct Nintendo ID limit" } });
+                AbuseSettings.BannedRemoteUsers.AddIfNew([new RemoteControlAccess { ID = user.ID, Name = user.TrainerName, Comment = "Exceeded distinct Nintendo ID limit" }]);
         }
         var isDistribution = poke.Type == PokeTradeType.Random;
         var list = isDistribution ? PreviousUsersDistribution : PreviousUsers;

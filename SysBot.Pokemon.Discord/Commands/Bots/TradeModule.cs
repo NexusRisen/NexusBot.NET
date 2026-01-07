@@ -280,7 +280,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         var lgcode = Info.GetRandomLGTradeCode();
 
         await QueueHelper<T>.AddToQueueAsync(Context, code, trainerName, sig, new T(),
-            PokeRoutineType.FixOT, PokeTradeType.FixOT, Context.User, false, 1, 1, false, false, lgcode: lgcode).ConfigureAwait(false);
+            PokeRoutineType.FixOT, PokeTradeType.FixOT, Context.User, 1, 1, false, false, lgcode: lgcode).ConfigureAwait(false);
 
         if (Context.Message is IUserMessage userMessage)
             _ = Helpers<T>.DeleteMessagesAfterDelayAsync(userMessage, null, 2);

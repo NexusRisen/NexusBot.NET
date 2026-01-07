@@ -21,7 +21,7 @@ namespace SysBot.Pokemon.WinForms
 
         private static HttpClient CreateGitHubClient()
         {
-            var client = new HttpClient();
+            HttpClient client = new();
             client.Timeout = TimeSpan.FromMinutes(5); // 5 minute timeout for slow connections
             client.DefaultRequestHeaders.Add("User-Agent", "PokeBot");
             // No auth token needed for public repo
@@ -58,7 +58,7 @@ namespace SysBot.Pokemon.WinForms
 
                 if (forceShow)
                 {
-                    var updateForm = new UpdateForm(updateRequired, newVersion, updateAvailable);
+                    UpdateForm updateForm = new(updateRequired, newVersion, updateAvailable);
                     updateForm.ShowDialog();
                 }
 
@@ -93,7 +93,7 @@ namespace SysBot.Pokemon.WinForms
             try
             {
                 ReleaseInfo? latestRelease = await FetchLatestReleaseAsync();
-                if (latestRelease?.Assets == null || !latestRelease.Assets.Any())
+                if (latestRelease?.Assets == null || latestRelease.Assets.Count == 0)
                 {
                     Console.WriteLine("No assets found in the release");
                     return null;

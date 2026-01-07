@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Windows.Forms;
 
+[assembly: System.Runtime.Versioning.SupportedOSPlatform("windows")]
+
 namespace SysBot.Pokemon.WinForms;
 
 internal static class Program

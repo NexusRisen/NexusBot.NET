@@ -28,7 +28,7 @@ public static class LogUtil
     // Key: Connection IP/USB identifier, Value: List of buffered log entries
     private static readonly ConcurrentDictionary<string, List<BufferedLogEntry>> LogBuffer = new();
 
-    private static readonly string WorkingDirectory = Path.GetDirectoryName(Environment.ProcessPath)!;
+    private static readonly string WorkingDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
     private record BufferedLogEntry(LogLevel Level, string Message, DateTime Timestamp);
 

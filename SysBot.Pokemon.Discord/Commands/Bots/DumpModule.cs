@@ -31,7 +31,6 @@ public class DumpModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
             PokeRoutineType.Dump,
             PokeTradeType.Dump,
             Context.User,
-            isBatchTrade: false,
             batchTradeNumber: 1,
             totalBatchTrades: 1,
             isMysteryEgg: false,

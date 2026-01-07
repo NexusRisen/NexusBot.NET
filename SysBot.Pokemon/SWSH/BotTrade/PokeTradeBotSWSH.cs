@@ -216,7 +216,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
         int completedTrades = 0;
         var startingDetail = poke;
         var originalTrainerID = startingDetail.Trainer.ID;
-        byte[] lastOffered = new byte[8]; // Track the last offered Pokemon between trades
+        // byte[] lastOffered = new byte[8]; // Track the last offered Pokemon between trades
 
         var tradesToProcess = poke.BatchTrades ?? [poke.TradeData];
         var totalBatchTrades = tradesToProcess.Count;
@@ -342,10 +342,10 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
         poke.SendNotification(this, $"Found Link Trade partner: {trainerName}. **TID**: {trainerTID} **SID**: {trainerSID}");
 
         // Initialize lastOffered state for tracking between trades
-        lastOffered = await Connection.ReadBytesAsync(LinkTradePartnerPokemonOffset, 8, token).ConfigureAwait(false);
+        // lastOffered = await Connection.ReadBytesAsync(LinkTradePartnerPokemonOffset, 8, token).ConfigureAwait(false);
 
         // Partner reputation check
-        var partnerCheck = CheckPartnerReputation(this, poke, trainerNID, trainerName, AbuseSettings, token);
+        var partnerCheck = CheckPartnerReputation(poke, trainerNID, trainerName, AbuseSettings);
         if (partnerCheck != PokeTradeResult.Success)
         {
             poke.SendNotification(this, $"Suspicious activity detected. Canceling the batch trades.");
@@ -765,7 +765,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
 #pragma warning restore CS8604 // Possible null reference argument.
         }
 
-        var partnerCheck = CheckPartnerReputation(this, poke, trainerNID, trainerName, AbuseSettings, token);
+        var partnerCheck = CheckPartnerReputation(poke, trainerNID, trainerName, AbuseSettings);
         if (partnerCheck != PokeTradeResult.Success)
         {
             await ExitSeedCheckTrade(token).ConfigureAwait(false);
@@ -1273,34 +1273,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
         return PokeTradeResult.Success;
     }
 
-    private async Task<PokeTradeResult> EndSeedCheckTradeAsync(PokeTradeDetail<PK8> detail, PK8 pk, CancellationToken token)
-    {
-        await ExitSeedCheckTrade(token).ConfigureAwait(false);
 
-        detail.TradeFinished(this, pk);
-
-        if (DumpSetting.Dump && !string.IsNullOrEmpty(DumpSetting.DumpFolder))
-            DumpPokemon(DumpSetting.DumpFolder, "seed", pk);
-
-        // Send results from separate thread; the bot doesn't need to wait for things to be calculated.
-#pragma warning disable 4014
-        Task.Run(() =>
-        {
-            try
-            {
-                ReplyWithSeedCheckResults(detail, pk);
-            }
-            catch (Exception ex)
-            {
-                detail.SendNotification(this, $"Unable to calculate seeds: {ex.Message}\r\n{ex.StackTrace}");
-            }
-        }, token);
-#pragma warning restore 4014
-
-        TradeSettings.CountStatsSettings.AddCompletedSeedCheck();
-
-        return PokeTradeResult.Success;
-    }
 
     private void ReplyWithSeedCheckResults(PokeTradeDetail<PK8> detail, PK8 result)
     {

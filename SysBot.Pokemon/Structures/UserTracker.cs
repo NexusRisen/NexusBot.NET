@@ -8,7 +8,7 @@ public class TrackedUserLog
 {
     private const int Capacity = 1000;
 
-    private readonly object _sync = new();
+    private readonly System.Threading.Lock _sync = new();
 
     private readonly List<TrackedUser> Users = new(Capacity);
 

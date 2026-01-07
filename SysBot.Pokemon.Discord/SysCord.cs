@@ -28,12 +28,11 @@ public static class SysCordSettings
 public sealed class SysCord<T> where T : PKM, new()
 {
     public readonly PokeTradeHub<T> Hub;
-    private readonly ProgramConfig _config;
     private readonly Dictionary<ulong, ulong> _announcementMessageIds = [];
     private readonly DiscordSocketClient _client;
     private readonly CommandService _commands;
     private readonly HashSet<ITradeBot> _connectedBots = [];
-    private readonly object _botConnectionLock = new object();
+    private readonly object _botConnectionLock = new();
 
     private readonly IServiceProvider _services;
 
@@ -55,7 +54,6 @@ public sealed class SysCord<T> where T : PKM, new()
         Runner = runner;
         Hub = runner.Hub;
         Manager = new DiscordManager(Hub.Config.Integration.Discord);
-        _config = config;
 
         foreach (var bot in runner.Hub.Bots.ToArray())
         {
