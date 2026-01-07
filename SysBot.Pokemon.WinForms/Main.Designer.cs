@@ -55,6 +55,22 @@ namespace SysBot.Pokemon.WinForms
             btnNavBots = new Button();
             btnNavHub = new Button();
             btnNavLogs = new Button();
+            btnNavDev = new Button();
+
+            devPanel = new Panel();
+            lblDevTitle = new Label();
+            grpScanner = new GroupBox();
+            txtPattern = new TextBox();
+            lblPattern = new Label();
+            cbRegion = new ComboBox();
+            lblRegion = new Label();
+            txtStart = new TextBox();
+            lblStart = new Label();
+            txtLength = new TextBox();
+            lblLength = new Label();
+            btnScan = new Button();
+            rtbResults = new RichTextBox();
+            lblScanStatus = new Label();
             sidebarBottomPanel = new Panel();
             btnUpdate = new Button();
             statusIndicator = new Panel();
@@ -107,6 +123,8 @@ namespace SysBot.Pokemon.WinForms
             hubPanel.SuspendLayout();
             logsPanel.SuspendLayout();
             logsHeaderPanel.SuspendLayout();
+            devPanel.SuspendLayout();
+            grpScanner.SuspendLayout();
             searchPanel.SuspendLayout();
             searchOptionsPanel.SuspendLayout();
             SuspendLayout();
@@ -179,6 +197,7 @@ namespace SysBot.Pokemon.WinForms
             navButtonsPanel.Controls.Add(btnNavBots);
             navButtonsPanel.Controls.Add(btnNavHub);
             navButtonsPanel.Controls.Add(btnNavLogs);
+            navButtonsPanel.Controls.Add(btnNavDev);
             navButtonsPanel.Dock = DockStyle.Fill;
             navButtonsPanel.FlowDirection = FlowDirection.TopDown;
             navButtonsPanel.Location = new Point(0, 60);
@@ -262,6 +281,7 @@ namespace SysBot.Pokemon.WinForms
             contentPanel.Controls.Add(botsPanel);
             contentPanel.Controls.Add(hubPanel);
             contentPanel.Controls.Add(logsPanel);
+            contentPanel.Controls.Add(devPanel);
             contentPanel.Controls.Add(headerPanel);
             contentPanel.Dock = DockStyle.Fill;
             contentPanel.Location = new Point(240, 0);
@@ -600,6 +620,150 @@ namespace SysBot.Pokemon.WinForms
             logsHeaderPanel.Controls.Add(searchStatusLabel);
             logsHeaderPanel.Controls.Add(btnClearLogs);
 
+            // Dev Nav Button
+            ConfigureNavButton(btnNavDev, "DEVELOPER", 3, "Memory Scanner & Tools", Color.FromArgb(255, 255, 0)); // Yellow
+
+            // Dev Panel
+            devPanel.Dock = DockStyle.Fill;
+            devPanel.BackColor = Color.FromArgb(27, 40, 56);
+            devPanel.Name = "devPanel";
+            devPanel.Visible = false; // Hidden by default
+
+            // Dev Title
+            lblDevTitle.AutoSize = true;
+            lblDevTitle.Font = ScaleFont(new Font("Segoe UI", 16F, FontStyle.Bold));
+            lblDevTitle.ForeColor = Color.White;
+            lblDevTitle.Location = new Point(20, 20);
+            lblDevTitle.Name = "lblDevTitle";
+            lblDevTitle.Text = "Developer Tools";
+            devPanel.Controls.Add(lblDevTitle);
+
+            // Scanner Group
+            grpScanner.Text = "Memory Scanner";
+            grpScanner.ForeColor = Color.White;
+            grpScanner.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
+            grpScanner.Location = new Point(20, 60);
+            grpScanner.Size = new Size(800, 250);
+            grpScanner.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            devPanel.Controls.Add(grpScanner);
+
+            // Pattern Input
+            lblPattern.Text = "Pattern (Hex):";
+            lblPattern.Location = new Point(20, 30);
+            lblPattern.AutoSize = true;
+            grpScanner.Controls.Add(lblPattern);
+
+            txtPattern.Location = new Point(120, 27);
+            txtPattern.Size = new Size(300, 25);
+            txtPattern.BackColor = Color.FromArgb(32, 38, 48);
+            txtPattern.ForeColor = Color.White;
+            grpScanner.Controls.Add(txtPattern);
+
+            // Region Selector
+            lblRegion.Text = "Region:";
+            lblRegion.Location = new Point(450, 30);
+            lblRegion.AutoSize = true;
+            grpScanner.Controls.Add(lblRegion);
+
+            cbRegion.Items.AddRange(new object[] { "Heap", "Main" });
+            cbRegion.SelectedIndex = 0;
+            cbRegion.Location = new Point(510, 27);
+            cbRegion.BackColor = Color.FromArgb(32, 38, 48);
+            cbRegion.ForeColor = Color.White;
+            grpScanner.Controls.Add(cbRegion);
+
+            // Scan Button
+            btnScan.Text = "Scan";
+            btnScan.Location = new Point(650, 25);
+            btnScan.Size = new Size(100, 30);
+            btnScan.BackColor = Color.FromArgb(45, 125, 200);
+            btnScan.ForeColor = Color.White;
+            btnScan.FlatStyle = FlatStyle.Flat;
+            grpScanner.Controls.Add(btnScan);
+
+            // Status Label
+            lblScanStatus.Text = "Ready";
+            lblScanStatus.Location = new Point(20, 60);
+            lblScanStatus.AutoSize = true;
+            lblScanStatus.ForeColor = Color.Gray;
+            grpScanner.Controls.Add(lblScanStatus);
+
+            // Results Box
+            rtbResults.Location = new Point(20, 90);
+            rtbResults.Size = new Size(760, 140);
+            rtbResults.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            rtbResults.BackColor = Color.FromArgb(32, 38, 48);
+            rtbResults.ForeColor = Color.White;
+            rtbResults.ReadOnly = true;
+            grpScanner.Controls.Add(rtbResults);
+
+            // Monitor Group
+            grpMonitor = new GroupBox();
+            grpMonitor.Text = "Memory Monitor & Pointer Tools";
+            grpMonitor.ForeColor = Color.White;
+            grpMonitor.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
+            grpMonitor.Location = new Point(20, 320);
+            grpMonitor.Size = new Size(800, 200);
+            grpMonitor.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            devPanel.Controls.Add(grpMonitor);
+
+            // Monitor Address Input
+            lblMonitorAddr = new Label();
+            lblMonitorAddr.Text = "Address (Hex):";
+            lblMonitorAddr.Location = new Point(20, 30);
+            lblMonitorAddr.AutoSize = true;
+            grpMonitor.Controls.Add(lblMonitorAddr);
+
+            txtMonitorAddr = new TextBox();
+            txtMonitorAddr.Location = new Point(140, 27);
+            txtMonitorAddr.Size = new Size(150, 25);
+            txtMonitorAddr.BackColor = Color.FromArgb(32, 38, 48);
+            txtMonitorAddr.ForeColor = Color.White;
+            grpMonitor.Controls.Add(txtMonitorAddr);
+
+            // Monitor Toggle
+            btnMonitorToggle = new Button();
+            btnMonitorToggle.Text = "Start Monitor";
+            btnMonitorToggle.Location = new Point(310, 25);
+            btnMonitorToggle.Size = new Size(120, 30);
+            btnMonitorToggle.BackColor = Color.FromArgb(45, 125, 200);
+            btnMonitorToggle.ForeColor = Color.White;
+            btnMonitorToggle.FlatStyle = FlatStyle.Flat;
+            grpMonitor.Controls.Add(btnMonitorToggle);
+
+            // Monitor Value
+            lblMonitorValue = new Label();
+            lblMonitorValue.Text = "Value (Hex):";
+            lblMonitorValue.Location = new Point(20, 70);
+            lblMonitorValue.AutoSize = true;
+            grpMonitor.Controls.Add(lblMonitorValue);
+
+            txtMonitorValue = new TextBox();
+            txtMonitorValue.Location = new Point(140, 67);
+            txtMonitorValue.Size = new Size(300, 25);
+            txtMonitorValue.BackColor = Color.FromArgb(32, 38, 48);
+            txtMonitorValue.ForeColor = Color.White;
+            txtMonitorValue.ReadOnly = true;
+            grpMonitor.Controls.Add(txtMonitorValue);
+
+            // Pointer Info
+            lblPointerInfo = new Label();
+            lblPointerInfo.Text = "Pointer Info:";
+            lblPointerInfo.Location = new Point(20, 110);
+            lblPointerInfo.AutoSize = true;
+            grpMonitor.Controls.Add(lblPointerInfo);
+
+            txtPointerInfo = new TextBox();
+            txtPointerInfo.Location = new Point(140, 107);
+            txtPointerInfo.Size = new Size(400, 25);
+            txtPointerInfo.BackColor = Color.FromArgb(32, 38, 48);
+            txtPointerInfo.ForeColor = Color.White;
+            txtPointerInfo.ReadOnly = true;
+            grpMonitor.Controls.Add(txtPointerInfo);
+
+            monitorTimer = new System.Windows.Forms.Timer(this.components);
+            monitorTimer.Interval = 500; // 500ms update rate
+
             // Hidden tab control for compatibility
             TC_Main = new TabControl { Visible = false };
             Tab_Bots = new TabPage();
@@ -804,7 +968,7 @@ namespace SysBot.Pokemon.WinForms
                     0 => "\uE77B", // Bots icon
                     1 => "\uE713", // Settings icon
                     2 => "\uE7C3", // Logs icon
-                    3 => "\uE74A", // Down arrow icon (minimize to tray)
+                    3 => "\uE90F", // Developer icon (Tools)
                     _ => "\uE700"
                 };
 
@@ -822,7 +986,7 @@ namespace SysBot.Pokemon.WinForms
             };
 
             btn.Click += (s, e) => {
-                if (index >= 3) return; // Don't select tray button
+                if (index > 3) return; // Don't select tray button
 
                 // Update all nav buttons
                 foreach (Button navBtn in navButtonsPanel.Controls.OfType<Button>())
@@ -846,6 +1010,7 @@ namespace SysBot.Pokemon.WinForms
                     0 => "Bot Management",
                     1 => "Configuration",
                     2 => "System Logs",
+                    3 => "Developer Tools",
                     _ => "PokéBot"
                 };
             };
@@ -1382,6 +1547,7 @@ namespace SysBot.Pokemon.WinForms
             botsPanel.Visible = false;
             hubPanel.Visible = false;
             logsPanel.Visible = false;
+            devPanel.Visible = false;
             
             // Fix z-order to ensure headerPanel is on top
             contentPanel.Controls.SetChildIndex(headerPanel, contentPanel.Controls.Count - 1);
@@ -1408,6 +1574,11 @@ namespace SysBot.Pokemon.WinForms
                     logsPanel.Dock = DockStyle.None;
                     logsPanel.Dock = DockStyle.Fill;
                     logsPanel.Visible = true;
+                    break;
+                case 3:
+                    devPanel.Dock = DockStyle.None;
+                    devPanel.Dock = DockStyle.Fill;
+                    devPanel.Visible = true;
                     break;
             }
             
@@ -1579,6 +1750,32 @@ namespace SysBot.Pokemon.WinForms
         private Panel statusIndicator;
         // Animation timer removed
         private ComboBox comboBox1;
+
+        private System.Windows.Forms.Button btnNavDev;
+        private System.Windows.Forms.Panel devPanel;
+        private System.Windows.Forms.Label lblDevTitle;
+        private System.Windows.Forms.GroupBox grpScanner;
+        private System.Windows.Forms.TextBox txtPattern;
+        private System.Windows.Forms.Label lblPattern;
+        private System.Windows.Forms.ComboBox cbRegion;
+        private System.Windows.Forms.Label lblRegion;
+        private System.Windows.Forms.TextBox txtStart;
+        private System.Windows.Forms.Label lblStart;
+        private System.Windows.Forms.TextBox txtLength;
+        private System.Windows.Forms.Label lblLength;
+        private System.Windows.Forms.Button btnScan;
+        private System.Windows.Forms.RichTextBox rtbResults;
+        private System.Windows.Forms.Label lblScanStatus;
+
+        private System.Windows.Forms.GroupBox grpMonitor;
+        private System.Windows.Forms.Label lblMonitorAddr;
+        private System.Windows.Forms.TextBox txtMonitorAddr;
+        private System.Windows.Forms.Button btnMonitorToggle;
+        private System.Windows.Forms.Label lblMonitorValue;
+        private System.Windows.Forms.TextBox txtMonitorValue;
+        private System.Windows.Forms.Label lblPointerInfo;
+        private System.Windows.Forms.TextBox txtPointerInfo;
+        private System.Windows.Forms.Timer monitorTimer;
 
         private NotifyIcon trayIcon;
         private ContextMenuStrip trayContextMenu;
