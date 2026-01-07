@@ -12,7 +12,7 @@ namespace SysBot.Pokemon.WinForms
 {
     public class UpdateChecker
     {
-        private static string RepositoryOwner = "hexbyt3";
+        private static string RepositoryOwner = "NexusRisen";
         private static string RepositoryName = "PokeBot";
 
         // Reuse HttpClient to prevent socket exhaustion and memory leaks

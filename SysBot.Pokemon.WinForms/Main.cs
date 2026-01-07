@@ -107,17 +107,6 @@ namespace SysBot.Pokemon.WinForms
             string discordName = string.Empty;
 
             PokeTradeBotSWSH.SeedChecker = new Z3SeedSearchHandler<PK8>();
-            UpdateChecker updateChecker = new();
-
-            try
-            {
-                var (updateAvailable, _, _) = await UpdateChecker.CheckForUpdatesAsync();
-                hasUpdate = updateAvailable;
-            }
-            catch (Exception ex)
-            {
-                LogUtil.LogError($"Update check failed: {ex.Message}", "Update");
-            }
 
             if (File.Exists(Program.ConfigPath))
             {
@@ -199,6 +188,16 @@ namespace SysBot.Pokemon.WinForms
             else
             {
                 CreateNewConfig();
+            }
+
+            try
+            {
+                var (updateAvailable, _, _) = await UpdateChecker.CheckForUpdatesAsync();
+                hasUpdate = updateAvailable;
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogError($"Update check failed: {ex.Message}", "Update");
             }
 
             RTB_Logs.MaxLength = 2_000_000; // Limit to 2MB of text to prevent memory issues
