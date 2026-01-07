@@ -45,17 +45,5 @@ public class GlobalSettings
     [Category("Debug"), Description("Skips creating bots when the program is started; helpful for testing integrations.")]
     public bool SkipConsoleBotCreation { get; set; }
 
-    [Category(Operation), Description("GitHub repository owner used for in-app updates.")]
-    public string UpdateRepoOwner { get; set; } = "NexusRisen";
-
-    [Category(Operation), Description("GitHub repository name used for in-app updates.")]
-    public string UpdateRepoName { get; set; } = "PokeBot";
-
-    [Category(Integration), Description("Discord Webhook URL for sending crash reports.")]
-    public string? BugReportWebhookUrl { get; set; }
-
-    [Category(Integration), Description("User ID to ping in crash reports.")]
-    public ulong? BugReportUserIdToPing { get; set; }
-
     public override string ToString() => "Global Settings";
 }

@@ -97,7 +97,6 @@ namespace SysBot.Pokemon.WinForms
             Config = new ProgramConfig();
             RunningEnvironment = GetRunner(Config);
             Config.Hub.Global.Folder.CreateDefaults(Program.WorkingDirectory);
-            UpdateChecker.SetRepository(Config.Hub.Global.UpdateRepoOwner, Config.Hub.Global.UpdateRepoName);
         }
 
         private async Task InitializeAsync()
@@ -122,20 +121,12 @@ namespace SysBot.Pokemon.WinForms
 
                     Config = JsonSerializer.Deserialize(lines, ProgramConfigContext.Default.ProgramConfig) ?? new ProgramConfig();
                     
-                    // Migration: Ensure UpdateRepoOwner is correct if it matches the old default
-                    if (Config.Hub.Global.UpdateRepoOwner == "hexbyt3")
-                    {
-                        Config.Hub.Global.UpdateRepoOwner = "NexusRisen";
-                        Config.Hub.Global.UpdateRepoName = "PokeBot";
-                    }
-
                     LogConfig.MaxArchiveFiles = Config.Hub.Global.MaxArchiveFiles;
                     LogConfig.LoggingEnabled = Config.Hub.Global.LoggingEnabled;
                     Config.Hub.TradeSystem.Distribution.CurrentMode = Config.Mode;
                     comboBox1.SelectedValue = (int)Config.Mode;
 
                     RunningEnvironment = GetRunner(Config);
-                    UpdateChecker.SetRepository(Config.Hub.Global.UpdateRepoOwner, Config.Hub.Global.UpdateRepoName);
                     foreach (var bot in Config.Bots)
                     {
                         bot.Initialize();
@@ -165,7 +156,6 @@ namespace SysBot.Pokemon.WinForms
                             comboBox1.SelectedValue = (int)Config.Mode;
 
                             RunningEnvironment = GetRunner(Config);
-                            UpdateChecker.SetRepository(Config.Hub.Global.UpdateRepoOwner, Config.Hub.Global.UpdateRepoName);
                             foreach (var bot in Config.Bots)
                             {
                                 bot.Initialize();
