@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SysBot.Base;
 
 namespace SysBot.Pokemon.WinForms
 {
@@ -14,8 +15,12 @@ namespace SysBot.Pokemon.WinForms
     {
         private Button buttonDownload;
         private Label labelUpdateInfo;
-        private readonly Label labelChangelogTitle = new();
+        private Label labelChangelogTitle;
         private WebBrowser webBrowserChangelog;
+        private ProgressBar progressBarDownload;
+        private Label labelDownloadStatus;
+        private Panel panelHeader;
+        
         private readonly bool isUpdateRequired;
         private readonly bool isUpdateAvailable;
         private readonly string newVersion;
@@ -34,116 +39,126 @@ namespace SysBot.Pokemon.WinForms
 
         private void InitializeComponent()
         {
+            // Initialize controls
+            panelHeader = new Panel();
             labelUpdateInfo = new Label();
             buttonDownload = new Button();
+            labelChangelogTitle = new Label();
+            webBrowserChangelog = new WebBrowser();
+            progressBarDownload = new ProgressBar();
+            labelDownloadStatus = new Label();
 
-            ClientSize = new Size(600, 450); // Increased size for better readability
+            // Form settings
+            ClientSize = new Size(700, 550);
+            MinimumSize = new Size(600, 500);
+            Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            BackColor = Color.White;
+            ForeColor = Color.FromArgb(50, 50, 50);
 
-            labelUpdateInfo.AutoSize = true;
-            labelUpdateInfo.Location = new Point(12, 20);
-            labelUpdateInfo.Size = new Size(560, 60);
-            labelUpdateInfo.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
+            // Header Panel
+            panelHeader.Dock = DockStyle.Top;
+            panelHeader.Height = 80;
+            panelHeader.BackColor = Color.FromArgb(240, 244, 248);
+            panelHeader.Padding = new Padding(20);
 
+            // Update Info Label
+            labelUpdateInfo.AutoSize = false;
+            labelUpdateInfo.Dock = DockStyle.Fill;
+            labelUpdateInfo.TextAlign = ContentAlignment.MiddleLeft;
+            labelUpdateInfo.Font = new Font("Segoe UI", 12F, FontStyle.Regular);
+            labelUpdateInfo.ForeColor = Color.FromArgb(30, 30, 30);
+            
             if (isUpdateRequired)
             {
-                labelUpdateInfo.Text = "A required update is available. You must update to continue using this application.";
-                ControlBox = false;
+                labelUpdateInfo.Text = "⚠️ A required update is available.\nYou must update to continue using PokeBot.";
+                labelUpdateInfo.ForeColor = Color.FromArgb(200, 0, 0);
+                ControlBox = false; // Prevent closing if required
             }
             else if (isUpdateAvailable)
             {
-                labelUpdateInfo.Text = "A new version is available! Check out what's new below.";
+                labelUpdateInfo.Text = $"✨ A new version ({newVersion}) is available!\nCheck out the improvements below.";
             }
             else
             {
-                labelUpdateInfo.Text = "You are on the latest version.";
-                buttonDownload.Text = "Re-Download Latest Version";
+                labelUpdateInfo.Text = "✅ You are using the latest version of PokeBot.";
+                buttonDownload.Text = "Re-Install Current Version";
             }
+            
+            panelHeader.Controls.Add(labelUpdateInfo);
 
-            buttonDownload.Size = new Size(160, 35);
-            buttonDownload.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            // Changelog Title
+            labelChangelogTitle.AutoSize = true;
+            labelChangelogTitle.Location = new Point(20, 100);
+            labelChangelogTitle.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            labelChangelogTitle.ForeColor = Color.FromArgb(0, 120, 215);
+            labelChangelogTitle.Text = $"What's New in {newVersion}";
+
+            // WebBrowser (Changelog)
+            webBrowserChangelog.Location = new Point(20, 130);
+            webBrowserChangelog.Size = new Size(660, 320);
+            webBrowserChangelog.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right;
+            webBrowserChangelog.ScriptErrorsSuppressed = true;
+            webBrowserChangelog.ScrollBarsEnabled = true;
+            webBrowserChangelog.IsWebBrowserContextMenuEnabled = false;
+
+            // Progress Bar
+            progressBarDownload.Location = new Point(20, 465);
+            progressBarDownload.Size = new Size(660, 20);
+            progressBarDownload.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            progressBarDownload.Visible = false;
+            progressBarDownload.Style = ProgressBarStyle.Continuous;
+
+            // Download Status Label
+            labelDownloadStatus.AutoSize = true;
+            labelDownloadStatus.Location = new Point(20, 490);
+            labelDownloadStatus.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            labelDownloadStatus.Visible = false;
+            labelDownloadStatus.Text = "Initializing download...";
+
+            // Download Button
+            buttonDownload.Size = new Size(200, 45);
+            buttonDownload.Location = new Point(ClientSize.Width - 220, ClientSize.Height - 65);
+            buttonDownload.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            buttonDownload.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
             buttonDownload.BackColor = Color.FromArgb(0, 120, 215);
             buttonDownload.ForeColor = Color.White;
             buttonDownload.FlatStyle = FlatStyle.Flat;
             buttonDownload.FlatAppearance.BorderSize = 0;
-            
-            int buttonX = (ClientSize.Width - buttonDownload.Size.Width) / 2;
-            int buttonY = ClientSize.Height - buttonDownload.Size.Height - 20;
-            buttonDownload.Location = new Point(buttonX, buttonY);
-            if (string.IsNullOrEmpty(buttonDownload.Text))
-            {
-                buttonDownload.Text = "Download Update";
-            }
+            buttonDownload.Cursor = Cursors.Hand;
+            if (string.IsNullOrEmpty(buttonDownload.Text)) buttonDownload.Text = "Download & Install Update";
             buttonDownload.Click += ButtonDownload_Click;
 
-            labelChangelogTitle.AutoSize = true;
-            labelChangelogTitle.Location = new Point(12, 60);
-            labelChangelogTitle.Size = new Size(70, 15);
-            labelChangelogTitle.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-            labelChangelogTitle.Text = $"What's New in {newVersion}";
-
-            webBrowserChangelog = new WebBrowser
-            {
-                Location = new Point(12, 90),
-                Size = new Size(576, 300),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right,
-                ScriptErrorsSuppressed = true,
-                ScrollBarsEnabled = true,
-                IsWebBrowserContextMenuEnabled = false
-            };
-
-            Controls.Add(labelUpdateInfo);
-            Controls.Add(buttonDownload);
+            // Add Controls
+            Controls.Add(panelHeader);
             Controls.Add(labelChangelogTitle);
             Controls.Add(webBrowserChangelog);
+            Controls.Add(progressBarDownload);
+            Controls.Add(labelDownloadStatus);
+            Controls.Add(buttonDownload);
             
-            FormBorderStyle = FormBorderStyle.FixedDialog;
-            MaximizeBox = false;
-            MinimizeBox = false;
             Name = "UpdateForm";
             StartPosition = FormStartPosition.CenterScreen;
-            BackColor = Color.White; // Clean background
             UpdateFormText();
         }
 
         private void UpdateFormText()
         {
-            if (isUpdateAvailable)
-            {
-                Text = $"Update Available - {newVersion}";
-            }
-            else
-            {
-                Text = "Latest Version";
-            }
-        }
-
-        public async void PerformUpdate()
-        {
-            buttonDownload.Enabled = false;
-            buttonDownload.Text = "Downloading...";
-            buttonDownload.BackColor = Color.Gray;
-
-            try
-            {
-                string? downloadUrl = await UpdateChecker.FetchDownloadUrlAsync();
-                if (!string.IsNullOrWhiteSpace(downloadUrl))
-                {
-                    string downloadedFilePath = await StartDownloadProcessAsync(downloadUrl);
-                    if (!string.IsNullOrEmpty(downloadedFilePath))
-                    {
-                        InstallUpdate(downloadedFilePath);
-                    }
-                }
-            }
-            catch { }
+            Text = isUpdateAvailable ? $"Update Available - {newVersion}" : "Latest Version";
         }
 
         private async Task FetchAndDisplayChangelog()
         {
-            _ = new UpdateChecker();
-            string markdown = await UpdateChecker.FetchChangelogAsync();
-            string html = ConvertMarkdownToHtml(markdown);
-            webBrowserChangelog.DocumentText = html;
+            try
+            {
+                // We don't need to instantiate UpdateChecker, just call static methods
+                string markdown = await UpdateChecker.FetchChangelogAsync();
+                string html = ConvertMarkdownToHtml(markdown);
+                webBrowserChangelog.DocumentText = html;
+            }
+            catch (Exception ex)
+            {
+                webBrowserChangelog.DocumentText = $"<html><body><p>Error loading changelog: {ex.Message}</p></body></html>";
+            }
         }
 
         private static string ConvertMarkdownToHtml(string markdown)
@@ -180,13 +195,16 @@ namespace SysBot.Pokemon.WinForms
             string css = @"
                 <style>
                     body { font-family: 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: #333; padding: 15px; background-color: #ffffff; }
-                    h1 { font-size: 20px; color: #0078d7; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-                    h2 { font-size: 18px; color: #0078d7; margin-top: 15px; margin-bottom: 8px; }
-                    h3 { font-size: 16px; font-weight: bold; margin-top: 12px; margin-bottom: 5px; }
-                    li { margin-left: 20px; margin-bottom: 4px; list-style-type: disc; display: list-item; }
-                    code { background-color: #f0f0f0; padding: 2px 4px; border-radius: 4px; font-family: Consolas, monospace; color: #c7254e; }
-                    strong { font-weight: 600; }
+                    h1 { font-size: 22px; color: #0078d7; margin-bottom: 10px; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px; }
+                    h2 { font-size: 18px; color: #2c3e50; margin-top: 20px; margin-bottom: 10px; font-weight: 600; }
+                    h3 { font-size: 16px; font-weight: bold; margin-top: 15px; margin-bottom: 5px; }
+                    ul { margin-top: 5px; margin-bottom: 15px; padding-left: 20px; }
+                    li { margin-bottom: 5px; }
+                    code { background-color: #f6f8fa; padding: 2px 5px; border-radius: 4px; font-family: Consolas, monospace; color: #d63384; border: 1px solid #e1e4e8; }
+                    strong { font-weight: 700; color: #24292e; }
                     p { margin-bottom: 10px; }
+                    a { color: #0366d6; text-decoration: none; }
+                    a:hover { text-decoration: underline; }
                 </style>";
 
             return $"<!DOCTYPE html><html><head>{css}</head><body>{htmlBody}</body></html>";
@@ -210,19 +228,32 @@ namespace SysBot.Pokemon.WinForms
         [GeneratedRegex(@"`(.*?)`", RegexOptions.None)]
         private static partial Regex CodeRegex();
 
+        public void PerformUpdate()
+        {
+            if (!IsHandleCreated) CreateHandle();
+            ButtonDownload_Click(this, EventArgs.Empty);
+        }
+
         private async void ButtonDownload_Click(object? sender, EventArgs? e)
         {
             buttonDownload.Enabled = false;
-            buttonDownload.Text = "Downloading...";
+            buttonDownload.Text = "Preparing Download...";
+            buttonDownload.BackColor = Color.Gray;
+
+            // Show progress UI
+            progressBarDownload.Visible = true;
+            labelDownloadStatus.Visible = true;
+            progressBarDownload.Value = 0;
 
             try
             {
                 string? downloadUrl = await UpdateChecker.FetchDownloadUrlAsync();
                 if (!string.IsNullOrWhiteSpace(downloadUrl))
                 {
-                    string downloadedFilePath = await StartDownloadProcessAsync(downloadUrl);
+                    string downloadedFilePath = await DownloadUpdateAsync(downloadUrl);
                     if (!string.IsNullOrEmpty(downloadedFilePath))
                     {
+                        labelDownloadStatus.Text = "Installing update...";
                         InstallUpdate(downloadedFilePath);
                     }
                 }
@@ -230,20 +261,26 @@ namespace SysBot.Pokemon.WinForms
                 {
                     MessageBox.Show("Failed to fetch the download URL. Please check your internet connection and try again.",
                         "Download Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ResetUI();
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Update failed: {ex.Message}", "Update Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            finally
-            {
-                buttonDownload.Enabled = true;
-                buttonDownload.Text = isUpdateAvailable ? "Download Update" : "Re-Download Latest Version";
+                ResetUI();
             }
         }
 
-        private static async Task<string> StartDownloadProcessAsync(string downloadUrl)
+        private void ResetUI()
+        {
+            buttonDownload.Enabled = true;
+            buttonDownload.Text = isUpdateAvailable ? "Download & Install Update" : "Re-Install Current Version";
+            buttonDownload.BackColor = Color.FromArgb(0, 120, 215);
+            progressBarDownload.Visible = false;
+            labelDownloadStatus.Visible = false;
+        }
+
+        private async Task<string> DownloadUpdateAsync(string downloadUrl)
         {
             Main.IsUpdating = true;
             string tempPath = Path.Combine(Path.GetTempPath(), $"SysBot.Pokemon.WinForms_{Guid.NewGuid()}.exe");
@@ -255,73 +292,94 @@ namespace SysBot.Pokemon.WinForms
             {
                 if (retry > 0)
                 {
-                    // Wait before retry (exponential backoff)
+                    labelDownloadStatus.Text = $"Retrying download ({retry}/{maxRetries})...";
                     await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, retry)));
-                    Console.WriteLine($"Retrying download attempt {retry + 1}/{maxRetries}...");
                 }
 
                 using var client = new HttpClient();
-                client.Timeout = TimeSpan.FromMinutes(10); // 10 minute timeout for downloads on slow connections
+                client.Timeout = TimeSpan.FromMinutes(10);
                 client.DefaultRequestHeaders.Add("User-Agent", "PokeBot");
-                // No auth token needed for public repo
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/octet-stream"));
 
                 try
                 {
-                    var response = await client.GetAsync(downloadUrl);
+                    labelDownloadStatus.Text = "Starting download...";
+                    LogUtil.LogInfo("Update", $"Starting download from {downloadUrl}");
+                    
+                    using var response = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
                     response.EnsureSuccessStatusCode();
                     
-                    // Download with progress tracking for large files
+                    var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+                    var canReportProgress = totalBytes != -1;
+
                     using var stream = await response.Content.ReadAsStreamAsync();
-                    var totalBytes = response.Content.Headers.ContentLength ?? 0;
-                    var bytesRead = 0;
-                    var buffer = new byte[8192];
+                    using var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None);
                     
-                    using var ms = new MemoryStream();
+                    var buffer = new byte[8192];
+                    long totalRead = 0;
                     int read;
+                    int lastLoggedProgress = 0;
+                    
                     while ((read = await stream.ReadAsync(buffer)) > 0)
                     {
-                        await ms.WriteAsync(buffer.AsMemory(0, read));
-                        bytesRead += read;
+                        await fileStream.WriteAsync(buffer.AsMemory(0, read));
+                        totalRead += read;
                         
-                        if (totalBytes > 0)
+                        if (canReportProgress)
                         {
-                            var progress = (int)((bytesRead * 100L) / totalBytes);
-                            Console.WriteLine($"Download progress: {progress}%");
+                            var progress = (int)((totalRead * 100L) / totalBytes);
+                            // Log every 25%
+                            if (progress >= lastLoggedProgress + 25)
+                            {
+                                LogUtil.LogInfo("Update", $"Download progress: {progress}%");
+                                lastLoggedProgress = progress;
+                            }
+
+                            // Update UI on UI thread
+                            if (IsHandleCreated)
+                            {
+                                Invoke((MethodInvoker)delegate {
+                                    progressBarDownload.Value = progress;
+                                    labelDownloadStatus.Text = $"Downloading... {progress}% ({FormatBytes(totalRead)} / {FormatBytes(totalBytes)})";
+                                });
+                            }
+                        }
+                        else
+                        {
+                            if (IsHandleCreated)
+                            {
+                                Invoke((MethodInvoker)delegate {
+                                    labelDownloadStatus.Text = $"Downloading... {FormatBytes(totalRead)}";
+                                });
+                            }
                         }
                     }
                     
-                    var fileBytes = ms.ToArray();
-                    await File.WriteAllBytesAsync(tempPath, fileBytes);
-                    Console.WriteLine($"Successfully downloaded update to {tempPath}");
+                    LogUtil.LogInfo("Update", $"Download complete: {tempPath}");
                     return tempPath;
                 }
-                    catch (TaskCanceledException ex)
-                    {
-                        Console.WriteLine($"Download timed out on attempt {retry + 1}: {ex.Message}");
-                        lastException = ex;
-                        if (File.Exists(tempPath))
-                            File.Delete(tempPath);
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        Console.WriteLine($"Download failed on attempt {retry + 1}: {ex.Message}");
-                        lastException = ex;
-                        if (File.Exists(tempPath))
-                            File.Delete(tempPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error during download on attempt {retry + 1}: {ex.Message}");
-                        lastException = ex;
-                        if (File.Exists(tempPath))
-                            File.Delete(tempPath);
-                    }
+                catch (Exception ex)
+                {
+                    LogUtil.LogError($"Download failed (Attempt {retry + 1}): {ex.Message}", "Update");
+                    lastException = ex;
+                    if (File.Exists(tempPath)) File.Delete(tempPath);
+                }
             }
 
-            // All retries failed
-            Console.WriteLine($"Failed to download update after {maxRetries} attempts");
             throw lastException ?? new Exception("Download failed after all retry attempts");
+        }
+
+        private static string FormatBytes(long bytes)
+        {
+            string[] suffixes = { "B", "KB", "MB", "GB" };
+            int counter = 0;
+            decimal number = (decimal)bytes;
+            while (Math.Round(number / 1024) >= 1)
+            {
+                number = number / 1024;
+                counter++;
+            }
+            return string.Format("{0:n1}{1}", number, suffixes[counter]);
         }
 
         private static void InstallUpdate(string downloadedFilePath)
@@ -336,42 +394,45 @@ namespace SysBot.Pokemon.WinForms
                 // Create batch file for update process
                 string batchPath = Path.Combine(Path.GetTempPath(), "UpdateSysBot.bat");
                 string batchContent = @$"
-                                            @echo off
-                                            timeout /t 2 /nobreak >nul
-                                            echo Updating SysBot...
+@echo off
+title Updating PokeBot...
+color 0A
+echo Waiting for PokeBot to close...
+timeout /t 3 /nobreak >nul
 
-                                            rem Backup current version
-                                            if exist ""{currentExePath}"" (
-                                                if exist ""{backupPath}"" (
-                                                    del ""{backupPath}""
-                                                )
-                                                move ""{currentExePath}"" ""{backupPath}""
-                                            )
+:RETRY_DELETE
+if exist ""{currentExePath}"" (
+    echo Backing up current version...
+    if exist ""{backupPath}"" del ""{backupPath}""
+    move ""{currentExePath}"" ""{backupPath}""
+    if exist ""{currentExePath}"" (
+        echo Failed to move file. Retrying in 1 second...
+        timeout /t 1 /nobreak >nul
+        goto RETRY_DELETE
+    )
+)
 
-                                            rem Install new version
-                                            move ""{downloadedFilePath}"" ""{currentExePath}""
+echo Installing new version...
+move ""{downloadedFilePath}"" ""{currentExePath}""
 
-                                            rem Start new version
-                                            start """" ""{currentExePath}""
+echo Starting PokeBot...
+start """" ""{currentExePath}""
 
-                                            rem Clean up
-                                            del ""%~f0""
-                                            ";
+echo Cleaning up...
+del ""%~f0""
+";
 
                 File.WriteAllText(batchPath, batchContent);
 
-                // Start the update batch file
                 ProcessStartInfo startInfo = new()
                 {
                     FileName = batchPath,
-                    CreateNoWindow = true,
+                    CreateNoWindow = false, // Let the user see the update window
                     UseShellExecute = true,
-                    WindowStyle = ProcessWindowStyle.Hidden
+                    WindowStyle = ProcessWindowStyle.Normal // Show the window so they know it's working
                 };
 
                 Process.Start(startInfo);
-
-                // Exit the current instance
                 Application.Exit();
             }
             catch (Exception ex)
