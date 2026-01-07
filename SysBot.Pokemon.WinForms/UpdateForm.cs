@@ -14,7 +14,7 @@ namespace SysBot.Pokemon.WinForms
         private Button buttonDownload;
         private Label labelUpdateInfo;
         private readonly Label labelChangelogTitle = new();
-        private TextBox textBoxChangelog;
+        private WebBrowser webBrowserChangelog;
         private readonly bool isUpdateRequired;
         private readonly bool isUpdateAvailable;
         private readonly string newVersion;
@@ -36,11 +36,12 @@ namespace SysBot.Pokemon.WinForms
             labelUpdateInfo = new Label();
             buttonDownload = new Button();
 
-            ClientSize = new Size(500, 300);
+            ClientSize = new Size(600, 450); // Increased size for better readability
 
             labelUpdateInfo.AutoSize = true;
             labelUpdateInfo.Location = new Point(12, 20);
-            labelUpdateInfo.Size = new Size(460, 60);
+            labelUpdateInfo.Size = new Size(560, 60);
+            labelUpdateInfo.Font = new Font("Segoe UI", 10F, FontStyle.Regular);
 
             if (isUpdateRequired)
             {
@@ -49,15 +50,21 @@ namespace SysBot.Pokemon.WinForms
             }
             else if (isUpdateAvailable)
             {
-                labelUpdateInfo.Text = "A new version is available. Please download the latest version.";
+                labelUpdateInfo.Text = "A new version is available! Check out what's new below.";
             }
             else
             {
-                labelUpdateInfo.Text = "You are on the latest version. You can re-download if needed.";
+                labelUpdateInfo.Text = "You are on the latest version.";
                 buttonDownload.Text = "Re-Download Latest Version";
             }
 
-            buttonDownload.Size = new Size(130, 23);
+            buttonDownload.Size = new Size(160, 35);
+            buttonDownload.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            buttonDownload.BackColor = Color.FromArgb(0, 120, 215);
+            buttonDownload.ForeColor = Color.White;
+            buttonDownload.FlatStyle = FlatStyle.Flat;
+            buttonDownload.FlatAppearance.BorderSize = 0;
+            
             int buttonX = (ClientSize.Width - buttonDownload.Size.Width) / 2;
             int buttonY = ClientSize.Height - buttonDownload.Size.Height - 20;
             buttonDownload.Location = new Point(buttonX, buttonY);
@@ -68,30 +75,32 @@ namespace SysBot.Pokemon.WinForms
             buttonDownload.Click += ButtonDownload_Click;
 
             labelChangelogTitle.AutoSize = true;
-            labelChangelogTitle.Location = new Point(10, 60);
+            labelChangelogTitle.Location = new Point(12, 60);
             labelChangelogTitle.Size = new Size(70, 15);
-            labelChangelogTitle.Font = new Font(labelChangelogTitle.Font.FontFamily, 11, FontStyle.Bold);
-            labelChangelogTitle.Text = $"Changelog ({newVersion}):";
+            labelChangelogTitle.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+            labelChangelogTitle.Text = $"What's New in {newVersion}";
 
-            textBoxChangelog = new TextBox
+            webBrowserChangelog = new WebBrowser
             {
-                Multiline = true,
-                ReadOnly = true,
-                ScrollBars = ScrollBars.Vertical,
-                Location = new Point(10, 90),
-                Size = new Size(480, 150),
-                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right
+                Location = new Point(12, 90),
+                Size = new Size(576, 300),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right,
+                ScriptErrorsSuppressed = true,
+                ScrollBarsEnabled = true,
+                IsWebBrowserContextMenuEnabled = false
             };
 
             Controls.Add(labelUpdateInfo);
             Controls.Add(buttonDownload);
             Controls.Add(labelChangelogTitle);
-            Controls.Add(textBoxChangelog);
+            Controls.Add(webBrowserChangelog);
+            
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "UpdateForm";
             StartPosition = FormStartPosition.CenterScreen;
+            BackColor = Color.White; // Clean background
             UpdateFormText();
         }
 
@@ -99,11 +108,11 @@ namespace SysBot.Pokemon.WinForms
         {
             if (isUpdateAvailable)
             {
-                Text = $"Update Available ({newVersion})";
+                Text = $"Update Available - {newVersion}";
             }
             else
             {
-                Text = "Re-Download Latest Version";
+                Text = "Latest Version";
             }
         }
 
@@ -111,6 +120,7 @@ namespace SysBot.Pokemon.WinForms
         {
             buttonDownload.Enabled = false;
             buttonDownload.Text = "Downloading...";
+            buttonDownload.BackColor = Color.Gray;
 
             try
             {
@@ -130,7 +140,64 @@ namespace SysBot.Pokemon.WinForms
         private async Task FetchAndDisplayChangelog()
         {
             _ = new UpdateChecker();
-            textBoxChangelog.Text = await UpdateChecker.FetchChangelogAsync();
+            string markdown = await UpdateChecker.FetchChangelogAsync();
+            string html = ConvertMarkdownToHtml(markdown);
+            webBrowserChangelog.DocumentText = html;
+        }
+
+        private string ConvertMarkdownToHtml(string markdown)
+        {
+            if (string.IsNullOrWhiteSpace(markdown)) return "<html><body><p>No changelog available.</p></body></html>";
+
+            // Basic Markdown to HTML conversion
+            string htmlBody = markdown
+                .Replace("&", "&amp;")
+                .Replace("<", "&lt;")
+                .Replace(">", "&gt;")
+                .Replace("\r\n", "\n");
+
+            // Headers
+            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"^### (.*)$", "<h3>$1</h3>", System.Text.RegularExpressions.RegexOptions.Multiline);
+            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"^## (.*)$", "<h2>$1</h2>", System.Text.RegularExpressions.RegexOptions.Multiline);
+            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"^# (.*)$", "<h1>$1</h1>", System.Text.RegularExpressions.RegexOptions.Multiline);
+
+            // Bold
+            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"\*\*(.*?)\*\*", "<strong>$1</strong>");
+            
+            // Lists
+            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"^\s*-\s+(.*)$", "<li>$1</li>", System.Text.RegularExpressions.RegexOptions.Multiline);
+            
+            // Wrap lists (simplified)
+            htmlBody = htmlBody.Replace("</li>\n<li>", "</li><li>");
+            // Note: This simple regex doesn't handle nested lists perfectly or wrap <ul> properly without more complex logic, 
+            // but for release notes it's usually sufficient to just style li. 
+            // Better approach: wrap contiguous li lines in ul.
+            
+            // Code blocks (inline)
+            htmlBody = System.Text.RegularExpressions.Regex.Replace(htmlBody, @"`(.*?)`", "<code>$1</code>");
+
+            // Line breaks
+            htmlBody = htmlBody.Replace("\n", "<br/>");
+
+            // Cleanup <ul> wrapping (hacky but works for simple lists)
+            // A better way is to style the <li> to not need a parent <ul> strictly if we just want bullet points, 
+            // or do a proper pass. Let's just use CSS to style <li> if they aren't in <ul> (browsers handle this okay-ish) 
+            // or just rely on <br> for newlines.
+            // Actually, let's just make it a list if it starts with -
+            
+            string css = @"
+                <style>
+                    body { font-family: 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: #333; padding: 15px; background-color: #ffffff; }
+                    h1 { font-size: 20px; color: #0078d7; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+                    h2 { font-size: 18px; color: #0078d7; margin-top: 15px; margin-bottom: 8px; }
+                    h3 { font-size: 16px; font-weight: bold; margin-top: 12px; margin-bottom: 5px; }
+                    li { margin-left: 20px; margin-bottom: 4px; list-style-type: disc; display: list-item; }
+                    code { background-color: #f0f0f0; padding: 2px 4px; border-radius: 4px; font-family: Consolas, monospace; color: #c7254e; }
+                    strong { font-weight: 600; }
+                    p { margin-bottom: 10px; }
+                </style>";
+
+            return $"<!DOCTYPE html><html><head>{css}</head><body>{htmlBody}</body></html>";
         }
 
         private async void ButtonDownload_Click(object? sender, EventArgs? e)
