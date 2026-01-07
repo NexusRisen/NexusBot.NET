@@ -46,7 +46,7 @@ public class GlobalSettings
     public bool SkipConsoleBotCreation { get; set; }
 
     [Category(Operation), Description("GitHub repository owner used for in-app updates.")]
-    public string UpdateRepoOwner { get; set; } = "hexbyt3";
+    public string UpdateRepoOwner { get; set; } = "NexusRisen";
 
     [Category(Operation), Description("GitHub repository name used for in-app updates.")]
     public string UpdateRepoName { get; set; } = "PokeBot";

@@ -144,6 +144,14 @@ namespace SysBot.Pokemon.WinForms
                     }
 
                     Config = JsonSerializer.Deserialize(lines, ProgramConfigContext.Default.ProgramConfig) ?? new ProgramConfig();
+                    
+                    // Migration: Ensure UpdateRepoOwner is correct if it matches the old default
+                    if (Config.Hub.Global.UpdateRepoOwner == "hexbyt3")
+                    {
+                        Config.Hub.Global.UpdateRepoOwner = "NexusRisen";
+                        Config.Hub.Global.UpdateRepoName = "PokeBot";
+                    }
+
                     LogConfig.MaxArchiveFiles = Config.Hub.Global.MaxArchiveFiles;
                     LogConfig.LoggingEnabled = Config.Hub.Global.LoggingEnabled;
                     Config.Hub.TradeSystem.Distribution.CurrentMode = Config.Mode;
