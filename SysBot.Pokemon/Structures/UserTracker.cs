@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SysBot.Pokemon;
 
@@ -12,6 +13,12 @@ public class TrackedUserLog
     private readonly List<TrackedUser> Users = new(Capacity);
 
     private int ReplaceIndex;
+
+    public int CountDistinctNetworkIDsByRemoteID(ulong remoteID)
+    {
+        lock (_sync)
+            return Users.Where(z => z.RemoteID == remoteID).Select(z => z.NetworkID).Distinct().Count();
+    }
 
     public void RemoveAllNID(ulong networkID)
     {

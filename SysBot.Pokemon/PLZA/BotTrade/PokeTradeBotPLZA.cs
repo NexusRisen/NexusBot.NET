@@ -17,15 +17,15 @@ namespace SysBot.Pokemon;
 // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : PokeRoutineExecutor9PLZA(Config), ICountBot, ITradeBot
 {
-    public readonly TradeAbuseSettings AbuseSettings = Hub.Config.TradeAbuse;
+    public readonly TradeAbuseSettings AbuseSettings = Hub.Config.TradeSystem.Abuse;
 
     /// <summary>
     /// Folder to dump received trade data to.
     /// </summary>
     /// <remarks>If null, will skip dumping.</remarks>
-    private readonly FolderSettings DumpSetting = Hub.Config.Folder;
+    private readonly FolderSettings DumpSetting = Hub.Config.Global.Folder;
 
-    private readonly TradeSettings TradeSettings = Hub.Config.Trade;
+    private readonly TradeSettings TradeSettings = Hub.Config.TradeSystem.Settings;
 
     private uint DisplaySID;
     private uint DisplayTID;
@@ -71,7 +71,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             _consecutiveConnectionFailures = 0;
 
             Hub.Queues.Info.CleanStuckTrades();
-            await InitializeHardware(Hub.Config.Trade, token).ConfigureAwait(false);
+            await InitializeHardware(Hub.Config.TradeSystem.Settings, token).ConfigureAwait(false);
 
             Log("Connecting to console...");
             var sav = await IdentifyTrainer(token).ConfigureAwait(false);
@@ -187,7 +187,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         // Initial delay to let the game populate NID pointer in memory
         await Task.Delay(2_000, token).ConfigureAwait(false);
 
-        int maxWaitMs = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1_000;
+        int maxWaitMs = Hub.Config.TradeSystem.Settings.TradeConfiguration.TradeWaitTime * 1_000;
         int elapsed = 2_000;
 
         while (elapsed < maxWaitMs)
@@ -357,7 +357,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         await Click(A, 3_000, token).ConfigureAwait(false);
 
         bool warningSent = false;
-        int maxTime = Hub.Config.Trade.TradeConfiguration.MaxTradeConfirmTime;
+        int maxTime = Hub.Config.TradeSystem.Settings.TradeConfiguration.MaxTradeConfirmTime;
 
         for (int i = 0; i < maxTime; i++)
         {
@@ -441,7 +441,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                     return false;
                 }
             }
-            await Task.Delay(8_000 + Hub.Config.Timings.ExtraTimeConnectOnline, token).ConfigureAwait(false);
+            await Task.Delay(8_000 + Hub.Config.Global.Timings.ExtraTimeConnectOnline, token).ConfigureAwait(false);
             Log("Connected online.");
             _consecutiveConnectionFailures = 0;
 
@@ -480,7 +480,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
             detail.IsProcessing = true;
             Log($"Processing trade request...");
-            Hub.Config.Stream.StartTrade(this, detail, Hub);
+            Hub.Config.Integration.Stream.StartTrade(this, detail, Hub);
             Hub.Queues.StartTrade(this, detail);
 
             await PerformTrade(sav, detail, type, priority, token).ConfigureAwait(false);
@@ -675,8 +675,8 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             {
                 if (e.StackTrace != null)
                     Connection.LogError(e.StackTrace);
-                var attempts = Hub.Config.Timings.ReconnectAttempts;
-                var delay = Hub.Config.Timings.ExtraReconnectDelay;
+                var attempts = Hub.Config.Global.Timings.ReconnectAttempts;
+                var delay = Hub.Config.Global.Timings.ExtraReconnectDelay;
                 var protocol = Config.Connection.Protocol;
                 if (!await TryReconnect(attempts, delay, protocol, token).ConfigureAwait(false))
                     return;
@@ -809,7 +809,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                     return PokeTradeResult.RecoverStart;
                 }
 
-                Hub.Config.Stream.EndEnterCode(this);
+                Hub.Config.Integration.Stream.EndEnterCode(this);
 
                 // Wait until we're in the trade box
                 Log("Searching for trade partner...");
@@ -872,7 +872,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 poke.SendNotification(this, $"Found trade partner: {tradePartner.TrainerName}. **TID**: {tradePartner.TID7} **SID**: {tradePartner.SID7}");
 
                 // Apply AutoOT for first trade if needed
-                if (Hub.Config.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT)
+                if (Hub.Config.Global.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT)
                 {
                     toSend = await ApplyAutoOT(toSend, tradePartnerFullInfo, sav, token).ConfigureAwait(false);
                     poke.TradeData = toSend;
@@ -903,7 +903,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             }
 
             // Check if the offered Pokemon will evolve upon trade BEFORE confirming
-            if (Hub.Config.Trade.TradeConfiguration.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offeredBatch.Species, offeredBatch.Form, offeredBatch.HeldItem, toSend.Species))
+            if (Hub.Config.TradeSystem.Settings.TradeConfiguration.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offeredBatch.Species, offeredBatch.Form, offeredBatch.HeldItem, toSend.Species))
             {
                 Log($"Trade {currentTradeIndex + 1} cancelled because trainer offered a Pokémon that would evolve upon trade.");
                 poke.SendNotification(this, $"Trade cancelled for trade {currentTradeIndex + 1}. You cannot trade a Pokémon that will evolve. To prevent this, either give your Pokémon an Everstone to hold, or trade a different Pokémon.");
@@ -939,7 +939,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 var nextPokemon = tradesToProcess[currentTradeIndex + 1];
 
                 // Apply AutoOT if needed
-                if (Hub.Config.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT && cachedTradePartnerInfo != null)
+                if (Hub.Config.Global.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT && cachedTradePartnerInfo != null)
                 {
                     nextPokemon = await ApplyAutoOT(nextPokemon, cachedTradePartnerInfo, sav, token);
                     tradesToProcess[currentTradeIndex + 1] = nextPokemon;
@@ -994,7 +994,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 poke.SendNotification(this, "All batch trades completed! Thank you for trading!");
 
                 // Send back all received Pokemon if ReturnPKMs is enabled
-                if (Hub.Config.Discord.ReturnPKMs && allReceived.Count > 0)
+                if (Hub.Config.Integration.Discord.ReturnPKMs && allReceived.Count > 0)
                 {
                     poke.SendNotification(this, $"Here are the {allReceived.Count} Pokémon you traded to me:");
 
@@ -1099,7 +1099,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         // Update Barrier Settings
         UpdateBarrier(poke.IsSynchronized);
         poke.TradeInitialize(this);
-        Hub.Config.Stream.EndEnterCode(this);
+        Hub.Config.Integration.Stream.EndEnterCode(this);
 
         // Handle connection and portal entry FIRST
         if (!await EnsureConnectedAndInPortal(token).ConfigureAwait(false))
@@ -1171,7 +1171,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         // Loading code entry
         if (poke.Type != PokeTradeType.Random)
         {
-            Hub.Config.Stream.StartEnterCode(this);
+            Hub.Config.Integration.Stream.StartEnterCode(this);
         }
 
         // PLZA saves the previous Link Code after the first trade.
@@ -1256,7 +1256,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             return PokeTradeResult.RecoverStart;
         }
 
-        Hub.Config.Stream.EndEnterCode(this);
+        Hub.Config.Integration.Stream.EndEnterCode(this);
 
         // Wait until we're in the trade box
         Log("Searching for trade partner...");
@@ -1345,7 +1345,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             return result;
         }
 
-        if (Hub.Config.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT)
+        if (Hub.Config.Global.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT)
         {
             toSend = await ApplyAutoOT(toSend, tradePartnerFullInfo, sav, token);
             // Give game time to refresh trade offer display with AutoOT Pokemon
@@ -1388,7 +1388,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         }
 
         // Check if the offered Pokemon will evolve upon trade BEFORE confirming
-        if (Hub.Config.Trade.TradeConfiguration.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, toSend.Species))
+        if (Hub.Config.TradeSystem.Settings.TradeConfiguration.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, toSend.Species))
         {
             Log("Trade cancelled because trainer offered a Pokémon that would evolve upon trade.");
             poke.SendNotification(this, "Trade cancelled. You cannot trade a Pokémon that will evolve. To prevent this, either give your Pokémon an Everstone to hold, or trade a different Pokémon.");
@@ -1566,7 +1566,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 return;
             }
         }
-        await Task.Delay(8_000 + Hub.Config.Timings.ExtraTimeConnectOnline, token).ConfigureAwait(false);
+        await Task.Delay(8_000 + Hub.Config.Global.Timings.ExtraTimeConnectOnline, token).ConfigureAwait(false);
         Log("Connected online for soft ban prevention.");
 
         await Click(A, 1_000, token).ConfigureAwait(false);
@@ -1723,7 +1723,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
     private async Task<(PokeTradeResult Result, PA9? ClonedPokemon)> ProcessCloneTradeAsync(PokeTradeDetail<PA9> poke, SAV9ZA sav, PA9 offered, CancellationToken token)
     {
-        if (Hub.Config.Discord.ReturnPKMs)
+        if (Hub.Config.Integration.Discord.ReturnPKMs)
             poke.SendNotification(this, offered, "Here's what you showed me!");
 
         var la = new LegalityAnalysis(offered);
@@ -1742,7 +1742,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         }
 
         var clone = offered.Clone();
-        if (Hub.Config.Legality.ResetHOMETracker)
+        if (Hub.Config.Global.Legality.ResetHOMETracker)
             clone.Tracker = 0;
 
         poke.SendNotification(this, $"**Cloned your {GameInfo.GetStrings("en").Species[clone.Species]}!**\nNow press B to cancel your offer and trade me a Pokémon you don't want.");
@@ -1776,8 +1776,8 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
     private async Task<PokeTradeResult> ProcessDumpTradeAsync(PokeTradeDetail<PA9> detail, CancellationToken token)
     {
         int ctr = 0;
-        var maxDumps = Hub.Config.Trade.TradeConfiguration.MaxDumpsPerTrade;
-        var time = TimeSpan.FromSeconds(Hub.Config.Trade.TradeConfiguration.MaxDumpTradeTime);
+        var maxDumps = Hub.Config.TradeSystem.Settings.TradeConfiguration.MaxDumpsPerTrade;
+        var time = TimeSpan.FromSeconds(Hub.Config.TradeSystem.Settings.TradeConfiguration.MaxDumpTradeTime);
         var start = DateTime.Now;
 
         // Tell the user what to do
@@ -1843,7 +1843,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             Log($"Shown Pokémon is: {(la.Valid ? "Valid" : "Invalid")}.");
 
             ctr++;
-            var msg = Hub.Config.Trade.TradeConfiguration.DumpTradeLegalityCheck ? verbose : $"File {ctr}";
+            var msg = Hub.Config.TradeSystem.Settings.TradeConfiguration.DumpTradeLegalityCheck ? verbose : $"File {ctr}";
 
             // Include trainer data for people requesting with their own trainer data
             var ot = pk.OriginalTrainerName;
@@ -1885,11 +1885,11 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
     {
         if (!ShouldWaitAtBarrier)
             return;
-        var opt = Hub.Config.Distribution.SynchronizeBots;
+        var opt = Hub.Config.TradeSystem.Distribution.SynchronizeBots;
         if (opt == BotSyncOption.NoSync)
             return;
 
-        var timeoutAfter = Hub.Config.Distribution.SynchronizeTimeout;
+        var timeoutAfter = Hub.Config.TradeSystem.Distribution.SynchronizeTimeout;
         if (FailedBarrier == 1) // failed last iteration
             timeoutAfter *= 2; // try to re-sync in the event things are too slow.
 
@@ -1910,7 +1910,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         if (waitCounter == 0)
         {
             // Updates the assets.
-            Hub.Config.Stream.IdleAssets(this);
+            Hub.Config.Integration.Stream.IdleAssets(this);
             Log("Waiting for trade requests...");
         }
 
@@ -1919,3 +1919,4 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
     #endregion
 }
+

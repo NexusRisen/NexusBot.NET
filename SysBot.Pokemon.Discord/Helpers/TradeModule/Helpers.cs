@@ -45,15 +45,15 @@ public static class Helpers<T> where T : PKM, new()
             var sentMessage = await context.Channel.SendMessageAsync(message).ConfigureAwait(false);
 
             // Check if message deletion is enabled in settings
-            if (!Info.Hub.Config.Discord.MessageDeletionEnabled)
+            if (!Info.Hub.Config.Integration.Discord.MessageDeletionEnabled)
                 return;
 
             // Use configured delay from settings instead of hardcoded value
-            var configuredDelay = Info.Hub.Config.Discord.ErrorMessageDeleteDelaySeconds;
+            var configuredDelay = Info.Hub.Config.Integration.Discord.ErrorMessageDeleteDelaySeconds;
 
             // Determine which user message to delete based on settings
             IMessage? userMessageToDelete = null;
-            if (Info.Hub.Config.Discord.DeleteUserCommandMessages)
+            if (Info.Hub.Config.Integration.Discord.DeleteUserCommandMessages)
             {
                 userMessageToDelete = messageToDelete ?? context.Message;
             }
@@ -71,11 +71,11 @@ public static class Helpers<T> where T : PKM, new()
         try
         {
             // Check if message deletion is enabled in settings
-            if (!Info.Hub.Config.Discord.MessageDeletionEnabled)
+            if (!Info.Hub.Config.Integration.Discord.MessageDeletionEnabled)
                 return;
 
             // Use configured delay from settings
-            var configuredDelay = Info.Hub.Config.Discord.ErrorMessageDeleteDelaySeconds;
+            var configuredDelay = Info.Hub.Config.Integration.Discord.ErrorMessageDeleteDelaySeconds;
             await Task.Delay(configuredDelay * 1000);
 
             var tasks = new List<Task>();
@@ -87,7 +87,7 @@ public static class Helpers<T> where T : PKM, new()
                 // If it's a user message and DeleteUserCommandMessages is false, skip it
                 if (sentMessage is IUserMessage userMsg && userMsg.Author.IsBot == false)
                 {
-                    if (Info.Hub.Config.Discord.DeleteUserCommandMessages)
+                    if (Info.Hub.Config.Integration.Discord.DeleteUserCommandMessages)
                         tasks.Add(TryDeleteMessageAsync(sentMessage));
                 }
                 else
@@ -98,7 +98,7 @@ public static class Helpers<T> where T : PKM, new()
             }
 
             // Only delete user message if setting is enabled
-            if (messageToDelete != null && Info.Hub.Config.Discord.DeleteUserCommandMessages)
+            if (messageToDelete != null && Info.Hub.Config.Integration.Discord.DeleteUserCommandMessages)
                 tasks.Add(TryDeleteMessageAsync(messageToDelete));
 
             await Task.WhenAll(tasks);
@@ -137,7 +137,7 @@ public static class Helpers<T> where T : PKM, new()
 
         byte finalLanguage = LanguageHelper.GetFinalLanguage(
             content, set,
-            (byte)Info.Hub.Config.Legality.GenerateLanguage,
+            (byte)Info.Hub.Config.Global.Legality.GenerateLanguage,
             TradeExtensions<T>.DetectShowdownLanguage
         );
 
@@ -226,7 +226,7 @@ public static class Helpers<T> where T : PKM, new()
         PrepareForTrade(pk, set, finalLanguage);
 
         // Check for spam names
-        if (Info.Hub.Config.Trade.TradeConfiguration.EnableSpamCheck)
+        if (Info.Hub.Config.TradeSystem.Settings.TradeConfiguration.EnableSpamCheck)
         {
             if (TradeExtensions<T>.HasAdName(pk, out string ad))
             {
@@ -256,7 +256,7 @@ public static class Helpers<T> where T : PKM, new()
         pkm.HeldItem = pkm switch
         {
             PA8 => (int)HeldItem.None,
-            _ when pkm.HeldItem == 0 && !pkm.IsEgg => (int)SysCord<T>.Runner.Config.Trade.TradeConfiguration.DefaultHeldItem,
+            _ when pkm.HeldItem == 0 && !pkm.IsEgg => (int)SysCord<T>.Runner.Config.TradeSystem.Settings.TradeConfiguration.DefaultHeldItem,
             _ => pkm.HeldItem
         };
     }
@@ -435,14 +435,14 @@ public static class Helpers<T> where T : PKM, new()
             return;
         }
 
-        if (Info.Hub.Config.Legality.DisallowNonNatives && isNonNative)
+        if (Info.Hub.Config.Global.Legality.DisallowNonNatives && isNonNative)
         {
             string speciesName = SpeciesName.GetSpeciesName(pk!.Species, (int)LanguageID.English);
             _ = await context.Channel.SendMessageAsync($"This **{speciesName}** is not native to this game, and cannot be traded! Trade with the correct bot, then trade to HOME.").ConfigureAwait(false);
             return;
         }
 
-        if (Info.Hub.Config.Legality.DisallowTracked && pk is IHomeTrack { HasTracker: true })
+        if (Info.Hub.Config.Global.Legality.DisallowTracked && pk is IHomeTrack { HasTracker: true })
         {
             string speciesName = SpeciesName.GetSpeciesName(pk.Species, (int)LanguageID.English);
             _ = await context.Channel.SendMessageAsync($"This {speciesName} file is tracked by HOME, and cannot be traded!").ConfigureAwait(false);
@@ -470,3 +470,6 @@ public static class Helpers<T> where T : PKM, new()
             lgcode: lgcode, ignoreAutoOT: ignoreAutoOT, setEdited: setEdited, isNonNative: isNonNative).ConfigureAwait(false);
     }
 }
+
+
+

@@ -21,8 +21,8 @@ public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
 
     protected override void AddIntegrations()
     {
-        AddDiscordBot(Hub.Config.Discord);
-        AddTwitchBot(Hub.Config.Twitch);
+        AddDiscordBot(Hub.Config.Integration.Discord);
+        AddTwitchBot(Hub.Config.Integration.Twitch);
     }
 
     private void AddDiscordBot(DiscordSettings config)

@@ -176,13 +176,13 @@ namespace SysBot.Pokemon.Discord
 
             var position = Info.CheckPosition(context.User.Id, uniqueTradeID, PokeRoutineType.Batch);
             var botct = Info.Hub.Bots.Count;
-            var baseEta = position.Position > botct ? Info.Hub.Config.Queues.EstimateDelay(position.Position, botct) : 0;
+            var baseEta = position.Position > botct ? Info.Hub.Config.TradeSystem.Queues.EstimateDelay(position.Position, botct) : 0;
 
             // Send initial batch summary message
             await context.Channel.SendMessageAsync($"{context.User.Mention} - Added batch of {batchEggList.Count} Mystery Eggs to the queue! Position: {position.Position}. Estimated: {baseEta:F1} min(s).").ConfigureAwait(false);
 
             // Create and send embeds for each egg
-            if (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.UseEmbeds)
+            if (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.UseEmbeds)
             {
                 for (int i = 0; i < batchEggList.Count; i++)
                 {
@@ -209,8 +209,7 @@ namespace SysBot.Pokemon.Discord
                 .WithFooter($"Batch Trade {eggNumber} of {totalEggs}" + (eggNumber == 1 ? $" | Position: {queuePosition}" : ""))
                 .WithAuthor(new EmbedAuthorBuilder()
                     .WithName($"Mystery Egg for {context.User.Username}")
-                    .WithIconUrl(context.User.GetAvatarUrl() ?? context.User.GetDefaultAvatarUrl())
-                    .WithUrl("https://genpkm.com"));
+                    .WithIconUrl(context.User.GetAvatarUrl() ?? context.User.GetDefaultAvatarUrl()));
 
             return embedBuilder.Build();
         }
@@ -418,3 +417,6 @@ namespace SysBot.Pokemon.Discord
         }
     }
 }
+
+
+

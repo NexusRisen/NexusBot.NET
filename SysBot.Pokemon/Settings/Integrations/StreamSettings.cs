@@ -249,14 +249,14 @@ public class StreamSettings
 
     private void GenerateCompletedTrades<T>(PokeTradeHub<T> hub) where T : PKM, new()
     {
-        var msg = string.Format(CompletedTradesFormat, hub.Config.Trade.CountStatsSettings.CompletedTrades);
+        var msg = string.Format(CompletedTradesFormat, hub.Config.TradeSystem.Settings.CountStatsSettings.CompletedTrades);
         File.WriteAllText("completed.txt", msg);
     }
 
     private void GenerateEstimatedTime<T>(PokeTradeHub<T> hub) where T : PKM, new()
     {
         var count = hub.Queues.Info.Count;
-        var estimate = hub.Config.Queues.EstimateDelay(count, hub.Bots.Count);
+        var estimate = hub.Config.TradeSystem.Queues.EstimateDelay(count, hub.Bots.Count);
 
         // Minutes
         var wait = string.Format(EstimatedTimeFormat, estimate);
@@ -308,3 +308,4 @@ public class StreamSettings
 
     private string GetBlockFileName(PokeRoutineExecutorBase b) => string.Format(TradeBlockFormat, b.Connection.Name);
 }
+

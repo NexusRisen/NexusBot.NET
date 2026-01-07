@@ -22,7 +22,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
 
         var me = SysCord<T>.Runner;
         var hub = me.Hub;
-        hub.Config.TradeAbuse.BannedIDs.AddIfNew(objects);
+        hub.Config.TradeSystem.Abuse.BannedIDs.AddIfNew(objects);
         await ReplyAsync("Done.").ConfigureAwait(false);
     }
 
@@ -33,7 +33,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
     {
         var me = SysCord<T>.Runner;
         var hub = me.Hub;
-        var obj = hub.Config.TradeAbuse.BannedIDs.List.Find(z => z.ID == id);
+        var obj = hub.Config.TradeSystem.Abuse.BannedIDs.List.Find(z => z.ID == id);
         if (obj is null)
         {
             await ReplyAsync($"Unable to find a user with that online ID ({id}).").ConfigureAwait(false);
@@ -106,7 +106,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
     {
         var me = SysCord<T>.Runner;
         var hub = me.Hub;
-        var lines = hub.Config.TradeAbuse.BannedIDs.Summarize();
+        var lines = hub.Config.TradeSystem.Abuse.BannedIDs.Summarize();
         var msg = string.Join("\n", lines);
         await ReplyAsync(Format.Code(msg)).ConfigureAwait(false);
     }
@@ -156,7 +156,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
         var IDs = GetIDs(content);
         var me = SysCord<T>.Runner;
         var hub = me.Hub;
-        hub.Config.TradeAbuse.BannedIDs.RemoveAll(z => IDs.Any(o => o == z.ID));
+        hub.Config.TradeSystem.Abuse.BannedIDs.RemoveAll(z => IDs.Any(o => o == z.ID));
         await ReplyAsync("Done.").ConfigureAwait(false);
     }
 
@@ -213,7 +213,7 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
                 Comment = $"Banned by {Context.User.Username} on {DateTime.Now:yyyy.MM.dd-hh:mm:ss}. Reason: {banReason}"
             };
 
-            hub.Config.TradeAbuse.BannedIDs.AddIfNew([bannedUser]);
+            hub.Config.TradeSystem.Abuse.BannedIDs.AddIfNew([bannedUser]);
             await dmChannel.SendMessageAsync($"Done. User {userName} with NID {userNID} has been banned from trading.");
         }
         catch (Exception ex)
@@ -242,3 +242,4 @@ public class SudoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
         Comment = $"Added by {Context.User.Username} on {DateTime.Now:yyyy.MM.dd-hh:mm:ss}",
     };
 }
+

@@ -14,7 +14,7 @@ public class QueueMonitor<T>(PokeTradeHub<T> Hub)
     public async Task MonitorOpenQueue(CancellationToken token)
     {
         var queues = Hub.Queues.Info;
-        var settings = Hub.Config.Queues;
+        var settings = Hub.Config.TradeSystem.Queues;
         float secWaited = 0;
 
         const int sleepDelay = 0_500;
@@ -98,3 +98,4 @@ public class QueueMonitor<T>(PokeTradeHub<T> Hub)
         };
     }
 }
+

@@ -12,7 +12,7 @@ public class PokeHubTests
 
     private static void Test<T>() where T : PKM, new()
     {
-        var cfg = new PokeTradeHubConfig { Distribution = { DistributeWhileIdle = true } };
+        var cfg = new PokeTradeHubConfig { TradeSystem = { Distribution = { DistributeWhileIdle = true } } };
         var hub = new PokeTradeHub<T>(cfg);
 
         var pool = hub.Ledy.Pool;

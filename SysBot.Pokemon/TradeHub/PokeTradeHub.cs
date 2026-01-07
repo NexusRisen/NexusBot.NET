@@ -26,7 +26,7 @@ public class PokeTradeHub<T> where T : PKM, new()
         Config = config;
         var pool = new PokemonPool<T>(config);
         Ledy = new LedyDistributor<T>(pool);
-        BotSync = new BotSynchronizer(config.Distribution);
+        BotSync = new BotSynchronizer(config.TradeSystem.Distribution);
         BotSync.BarrierReleasingActions.Add(() => LogUtil.LogInfo("Barrier", $"{BotSync.Barrier.ParticipantCount} bots released."));
 
         Queues = new TradeQueueManager<T>(this);
@@ -40,3 +40,4 @@ public class PokeTradeHub<T> where T : PKM, new()
 
     #endregion Distribution Queue
 }
+

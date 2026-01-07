@@ -15,7 +15,7 @@ public class EncounterBotEggSWSH : EncounterBotSWSH
 
     public EncounterBotEggSWSH(PokeBotState Config, PokeTradeHub<PK8> hub) : base(Config, hub)
     {
-        DumpSetting = Hub.Config.Folder;
+        DumpSetting = Hub.Config.Global.Folder;
     }
 
     public async Task<bool> IsEggReady(CancellationToken token)
@@ -106,3 +106,4 @@ public class EncounterBotEggSWSH : EncounterBotSWSH
         return -1; // aborted
     }
 }
+

@@ -146,6 +146,13 @@ public abstract class PokeRoutineExecutor<T>(IConsoleBotManaged<IConsoleConnecti
     {
         bool quit = false;
         var user = poke.Trainer;
+        var distinctCount = PreviousUsers.CountDistinctNetworkIDsByRemoteID(user.ID);
+        if (distinctCount >= AbuseSettings.MaxDistinctNintendoIDsPerRemoteUser)
+        {
+            quit = true;
+            if (AbuseSettings.AutoBanOnExceedDistinctIDs && !AbuseSettings.BannedRemoteUsers.Contains(user.ID))
+                AbuseSettings.BannedRemoteUsers.AddIfNew(new[] { new RemoteControlAccess { ID = user.ID, Name = user.TrainerName, Comment = "Exceeded distinct Nintendo ID limit" } });
+        }
         var isDistribution = poke.Type == PokeTradeType.Random;
         var list = isDistribution ? PreviousUsersDistribution : PreviousUsers;
 

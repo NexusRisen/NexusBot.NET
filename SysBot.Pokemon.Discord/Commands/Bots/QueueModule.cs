@@ -20,7 +20,7 @@ public class QueueModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     [RequireSudo]
     public async Task ChangeQueueModeAsync([Summary("Queue mode")] QueueOpening mode)
     {
-        SysCord<T>.Runner.Hub.Config.Queues.QueueToggleMode = mode;
+        SysCord<T>.Runner.Hub.Config.TradeSystem.Queues.QueueToggleMode = mode;
         await ReplyAsync($"Changed queue mode to {mode}.").ConfigureAwait(false);
     }
 
@@ -322,3 +322,6 @@ public class QueueModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         return false;
     }
 }
+
+
+

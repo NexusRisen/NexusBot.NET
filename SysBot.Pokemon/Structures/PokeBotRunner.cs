@@ -89,7 +89,7 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
     {
         InitializeStart();
 
-        if (!Hub.Config.SkipConsoleBotCreation)
+        if (!Hub.Config.Global.SkipConsoleBotCreation)
             base.StartAll();
     }
 
@@ -98,7 +98,7 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
         if (RunOnce)
             return;
 
-        AutoLegalityWrapper.EnsureInitialized(Hub.Config.Legality);
+        AutoLegalityWrapper.EnsureInitialized(Hub.Config.Global.Legality);
 
         // Initialize recovery service with settings from config
         InitializeRecoveryService();
@@ -113,22 +113,22 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
     {
         var recoveryConfig = new RecoveryConfiguration
         {
-            EnableRecovery = Hub.Config.Recovery.EnableRecovery,
-            MaxRecoveryAttempts = Hub.Config.Recovery.MaxRecoveryAttempts,
-            InitialRecoveryDelaySeconds = Hub.Config.Recovery.InitialRecoveryDelaySeconds,
-            MaxRecoveryDelaySeconds = Hub.Config.Recovery.MaxRecoveryDelaySeconds,
-            BackoffMultiplier = Hub.Config.Recovery.BackoffMultiplier,
-            CrashHistoryWindowMinutes = Hub.Config.Recovery.CrashHistoryWindowMinutes,
-            MaxCrashesInWindow = Hub.Config.Recovery.MaxCrashesInWindow,
-            RecoverIntentionalStops = Hub.Config.Recovery.RecoverIntentionalStops,
-            MinimumStableUptimeSeconds = Hub.Config.Recovery.MinimumStableUptimeSeconds,
-            NotifyOnRecoveryAttempt = Hub.Config.Recovery.NotifyOnRecoveryAttempt,
-            NotifyOnRecoveryFailure = Hub.Config.Recovery.NotifyOnRecoveryFailure
+            EnableRecovery = Hub.Config.Global.Recovery.EnableRecovery,
+            MaxRecoveryAttempts = Hub.Config.Global.Recovery.MaxRecoveryAttempts,
+            InitialRecoveryDelaySeconds = Hub.Config.Global.Recovery.InitialRecoveryDelaySeconds,
+            MaxRecoveryDelaySeconds = Hub.Config.Global.Recovery.MaxRecoveryDelaySeconds,
+            BackoffMultiplier = Hub.Config.Global.Recovery.BackoffMultiplier,
+            CrashHistoryWindowMinutes = Hub.Config.Global.Recovery.CrashHistoryWindowMinutes,
+            MaxCrashesInWindow = Hub.Config.Global.Recovery.MaxCrashesInWindow,
+            RecoverIntentionalStops = Hub.Config.Global.Recovery.RecoverIntentionalStops,
+            MinimumStableUptimeSeconds = Hub.Config.Global.Recovery.MinimumStableUptimeSeconds,
+            NotifyOnRecoveryAttempt = Hub.Config.Global.Recovery.NotifyOnRecoveryAttempt,
+            NotifyOnRecoveryFailure = Hub.Config.Global.Recovery.NotifyOnRecoveryFailure
         };
 
         InitializeRecovery(recoveryConfig);
         
-        if (Hub.Config.Recovery.EnableRecovery)
+        if (Hub.Config.Global.Recovery.EnableRecovery)
         {
             LogUtil.LogInfo("Bot recovery system is enabled", "Recovery");
         }
@@ -159,13 +159,13 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
 
     public override void PauseAll()
     {
-        if (!Hub.Config.SkipConsoleBotCreation)
+        if (!Hub.Config.Global.SkipConsoleBotCreation)
             base.PauseAll();
     }
 
     public override void ResumeAll()
     {
-        if (!Hub.Config.SkipConsoleBotCreation)
+        if (!Hub.Config.Global.SkipConsoleBotCreation)
             base.ResumeAll();
     }
 
@@ -173,12 +173,12 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
     {
         Task.Run(async () => await new QueueMonitor<T>(Hub).MonitorOpenQueue(CancellationToken.None).ConfigureAwait(false));
 
-        var path = Hub.Config.Folder.DistributeFolder;
+        var path = Hub.Config.Global.Folder.DistributeFolder;
         if (!Directory.Exists(path))
             LogUtil.LogError("Hub", "The distribution folder was not found. Please verify that it exists!");
 
         var pool = Hub.Ledy.Pool;
-        if (!pool.Reload(Hub.Config.Folder.DistributeFolder))
+        if (!pool.Reload(Hub.Config.Global.Folder.DistributeFolder))
             LogUtil.LogError("Hub", "Nothing to distribute for Empty Trade Queues!");
     }
 
@@ -192,3 +192,5 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
 
     public bool SupportsRoutine(PokeRoutineType t) => Factory.SupportsRoutine(t);
 }
+
+

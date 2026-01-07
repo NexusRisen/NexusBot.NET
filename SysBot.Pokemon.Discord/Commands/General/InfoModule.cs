@@ -16,9 +16,8 @@ namespace SysBot.Pokemon.Discord;
 // Copyright 2017, Christopher F. <foxbot@protonmail.com>
 public class InfoModule : ModuleBase<SocketCommandContext>
 {
-    private const string detail = "I am an open-source Pokemon Trading Discord bot developed by hexbyt3.";
-
-    private const string repo = "https://github.com/hexbyt3/PokeBot";
+    private const string detail = "I am a custom Pokémon Trading Bot, proudly part of the NexusRisen community.";
+    private const string repo = "https://github.com/NexusRisen/PokeBot";
 
     [Command("info")]
     [Alias("about", "whoami", "owner")]
@@ -28,31 +27,43 @@ public class InfoModule : ModuleBase<SocketCommandContext>
 
         var builder = new EmbedBuilder
         {
-            Color = new Color(114, 137, 218),
+            Color = new Color(88, 101, 242), // NexusRisen Blurple
+            Title = "🤖 NexusRisen PokeBot",
             Description = detail,
+            ThumbnailUrl = "https://raw.githubusercontent.com/hexbyt3/sprites/main/pokeball.png",
+            Footer = new EmbedFooterBuilder().WithText("Powered by SysBot.NET • NexusRisen Edition")
         };
 
-        builder.AddField("Info",
-            $"- [Source Code]({repo})\n" +
-            $"- {Format.Bold("Owner")}: {app.Owner} ({app.Owner.Id})\n" +
-            $"- {Format.Bold("Library")}: Discord.Net ({DiscordConfig.Version})\n" +
-            $"- {Format.Bold("Uptime")}: {GetUptime()}\n" +
-            $"- {Format.Bold("Runtime")}: {RuntimeInformation.FrameworkDescription} {RuntimeInformation.ProcessArchitecture} " +
-            $"({RuntimeInformation.OSDescription} {RuntimeInformation.OSArchitecture})\n" +
-            $"- {Format.Bold("Buildtime")}: {GetVersionInfo("SysBot.Base", false)}\n" +
-            $"- {Format.Bold("SysBot+ Version")}: {PokeBot.Version}\n" +
-            $"- {Format.Bold("Core Version")}: {GetVersionInfo("PKHeX.Core")}\n" +
-            $"- {Format.Bold("AutoLegality Version")}: {GetVersionInfo("PKHeX.Core.AutoMod")}\n"
+        builder.AddField("📝 Information",
+            $"- **Source Code**: [GitHub Repository]({repo})\n" +
+            $"- **Community**: NexusRisen\n" +
+            $"- **Owner**: {app.Owner} ({app.Owner.Id})\n" +
+            $"- **Library**: Discord.Net ({DiscordConfig.Version})\n",
+            inline: false
         );
 
-        builder.AddField("Stats",
-            $"- {Format.Bold("Heap Size")}: {GetHeapSize()}MiB\n" +
-            $"- {Format.Bold("Guilds")}: {Context.Client.Guilds.Count}\n" +
-            $"- {Format.Bold("Channels")}: {Context.Client.Guilds.Sum(g => g.Channels.Count)}\n" +
-            $"- {Format.Bold("Users")}: {Context.Client.Guilds.Sum(g => g.MemberCount)}\n"
+        builder.AddField("⚙️ System Status",
+            $"- **Uptime**: {GetUptime()}\n" +
+            $"- **System**: {RuntimeInformation.OSDescription} ({RuntimeInformation.OSArchitecture})\n" +
+            $"- **Framework**: {RuntimeInformation.FrameworkDescription}\n",
+            inline: true
         );
 
-        await ReplyAsync("Here's a bit about me!", embed: builder.Build()).ConfigureAwait(false);
+        builder.AddField("📊 Bot Statistics",
+            $"- **Heap Size**: {GetHeapSize()} MiB\n" +
+            $"- **Guilds**: {Context.Client.Guilds.Count}\n" +
+            $"- **Users**: {Context.Client.Guilds.Sum(g => g.MemberCount):N0}\n",
+            inline: true
+        );
+
+        builder.AddField("📦 Versions",
+            $"- **SysBot+**: {PokeBot.Version}\n" +
+            $"- **Core**: {GetVersionInfo("PKHeX.Core")}\n" +
+            $"- **AutoMod**: {GetVersionInfo("PKHeX.Core.AutoMod")}\n",
+            inline: false
+        );
+
+        await ReplyAsync(embed: builder.Build()).ConfigureAwait(false);
     }
 
     private static string GetHeapSize() => Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2).ToString(CultureInfo.CurrentCulture);

@@ -35,10 +35,10 @@ public abstract class EncounterBotSWSH : PokeRoutineExecutor8SWSH, IEncounterBot
     protected EncounterBotSWSH(PokeBotState Config, PokeTradeHub<PK8> hub) : base(Config)
     {
         Hub = hub;
-        Settings = Hub.Config.EncounterSWSH;
-        DumpSetting = Hub.Config.Folder;
+        Settings = Hub.Config.EncounterSystem.EncounterSWSH;
+        DumpSetting = Hub.Config.Global.Folder;
         StopConditionSettings.InitializeTargetIVs(Hub.Config, out DesiredMinIVs, out DesiredMaxIVs);
-        StopConditionSettings.ReadUnwantedMarks(Hub.Config.StopConditions, out UnwantedMarks);
+        StopConditionSettings.ReadUnwantedMarks(Hub.Config.EncounterSystem.StopConditions, out UnwantedMarks);
     }
 
     public ICountSettings Counts => Settings;
@@ -53,7 +53,7 @@ public abstract class EncounterBotSWSH : PokeRoutineExecutor8SWSH, IEncounterBot
 
     public override async Task MainLoop(CancellationToken token)
     {
-        var settings = Hub.Config.EncounterSWSH;
+        var settings = Hub.Config.EncounterSystem.EncounterSWSH;
         Log("Identifying trainer data of the host console.");
         var sav = await IdentifyTrainer(token).ConfigureAwait(false);
         await InitializeHardware(settings, token).ConfigureAwait(false);
@@ -106,20 +106,20 @@ public abstract class EncounterBotSWSH : PokeRoutineExecutor8SWSH, IEncounterBot
         if (DumpSetting.Dump && !string.IsNullOrEmpty(DumpSetting.DumpFolder))
             DumpPokemon(DumpSetting.DumpFolder, folder, pk);
 
-        if (!StopConditionSettings.EncounterFound(pk, DesiredMinIVs, DesiredMaxIVs, Hub.Config.StopConditions, UnwantedMarks))
+        if (!StopConditionSettings.EncounterFound(pk, DesiredMinIVs, DesiredMaxIVs, Hub.Config.EncounterSystem.StopConditions, UnwantedMarks))
             return false;
 
-        if (Hub.Config.StopConditions.CaptureVideoClip)
+        if (Hub.Config.EncounterSystem.StopConditions.CaptureVideoClip)
         {
-            await Task.Delay(Hub.Config.StopConditions.ExtraTimeWaitCaptureVideo, token).ConfigureAwait(false);
+            await Task.Delay(Hub.Config.EncounterSystem.StopConditions.ExtraTimeWaitCaptureVideo, token).ConfigureAwait(false);
             await PressAndHold(CAPTURE, 2_000, 0, token).ConfigureAwait(false);
         }
 
         var mode = Settings.ContinueAfterMatch;
         var msg = $"Result found!\n{print}\n" + GetModeMessage(mode);
 
-        if (!string.IsNullOrWhiteSpace(Hub.Config.StopConditions.MatchFoundEchoMention))
-            msg = $"{Hub.Config.StopConditions.MatchFoundEchoMention} {msg}";
+        if (!string.IsNullOrWhiteSpace(Hub.Config.EncounterSystem.StopConditions.MatchFoundEchoMention))
+            msg = $"{Hub.Config.EncounterSystem.StopConditions.MatchFoundEchoMention} {msg}";
         EchoUtil.Echo(msg);
 
         if (mode == ContinueAfterMatch.StopExit)
@@ -172,3 +172,6 @@ public abstract class EncounterBotSWSH : PokeRoutineExecutor8SWSH, IEncounterBot
         return "encounters";
     }
 }
+
+
+

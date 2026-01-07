@@ -108,7 +108,8 @@ namespace SysBot.Pokemon.WinForms
         {
             Config = new ProgramConfig();
             RunningEnvironment = GetRunner(Config);
-            Config.Hub.Folder.CreateDefaults(Program.WorkingDirectory);
+            Config.Hub.Global.Folder.CreateDefaults(Program.WorkingDirectory);
+            UpdateChecker.SetRepository(Config.Hub.Global.UpdateRepoOwner, Config.Hub.Global.UpdateRepoName);
         }
 
         private async Task InitializeAsync()
@@ -143,12 +144,13 @@ namespace SysBot.Pokemon.WinForms
                     }
 
                     Config = JsonSerializer.Deserialize(lines, ProgramConfigContext.Default.ProgramConfig) ?? new ProgramConfig();
-                    LogConfig.MaxArchiveFiles = Config.Hub.MaxArchiveFiles;
-                    LogConfig.LoggingEnabled = Config.Hub.LoggingEnabled;
-                    Config.Hub.Distribution.CurrentMode = Config.Mode;
+                    LogConfig.MaxArchiveFiles = Config.Hub.Global.MaxArchiveFiles;
+                    LogConfig.LoggingEnabled = Config.Hub.Global.LoggingEnabled;
+                    Config.Hub.TradeSystem.Distribution.CurrentMode = Config.Mode;
                     comboBox1.SelectedValue = (int)Config.Mode;
 
                     RunningEnvironment = GetRunner(Config);
+                    UpdateChecker.SetRepository(Config.Hub.Global.UpdateRepoOwner, Config.Hub.Global.UpdateRepoName);
                     foreach (var bot in Config.Bots)
                     {
                         bot.Initialize();
@@ -172,12 +174,13 @@ namespace SysBot.Pokemon.WinForms
                             File.Copy(backupPath, Program.ConfigPath, true);
                             LogUtil.LogInfo("Config", "Successfully recovered configuration from backup.");
 
-                            LogConfig.MaxArchiveFiles = Config.Hub.MaxArchiveFiles;
-                            LogConfig.LoggingEnabled = Config.Hub.LoggingEnabled;
-                            Config.Hub.Distribution.CurrentMode = Config.Mode;
+                            LogConfig.MaxArchiveFiles = Config.Hub.Global.MaxArchiveFiles;
+                            LogConfig.LoggingEnabled = Config.Hub.Global.LoggingEnabled;
+                            Config.Hub.TradeSystem.Distribution.CurrentMode = Config.Mode;
                             comboBox1.SelectedValue = (int)Config.Mode;
 
                             RunningEnvironment = GetRunner(Config);
+                            UpdateChecker.SetRepository(Config.Hub.Global.UpdateRepoOwner, Config.Hub.Global.UpdateRepoName);
                             foreach (var bot in Config.Bots)
                             {
                                 bot.Initialize();
@@ -204,7 +207,7 @@ namespace SysBot.Pokemon.WinForms
 
             RTB_Logs.MaxLength = 2_000_000; // Limit to 2MB of text to prevent memory issues
             LoadControls();
-            Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "GenPKM.com" : Config.Hub.BotName)} {PokeBot.Version} ({Config.Mode})";
+            Text = $"{(string.IsNullOrEmpty(Config.Hub.Global.BotName) ? "NexusRisen PokeBot" : Config.Hub.Global.BotName)} {PokeBot.Version} ({Config.Mode})";
             trayIcon.Text = Text;
             _ = Task.Run(BotMonitor);
             InitUtil.InitializeStubs(Config.Mode);
@@ -333,7 +336,7 @@ namespace SysBot.Pokemon.WinForms
                                 totalBots = FLP_Bots.Controls.OfType<BotController>().Count();
                                 
                                 // Update tray icon text from UI thread
-                                string botTitle = string.IsNullOrWhiteSpace(Config.Hub.BotName) ? "PokéBot" : Config.Hub.BotName;
+                                string botTitle = string.IsNullOrWhiteSpace(Config.Hub.Global.BotName) ? "PokéBot" : Config.Hub.Global.BotName;
                                 trayIcon.Text = totalBots == 0
                                     ? $"{botTitle} - No bots configured"
                                     : $"{botTitle} - {runningBots}/{totalBots} bots running";
@@ -344,7 +347,7 @@ namespace SysBot.Pokemon.WinForms
                             runningBots = FLP_Bots.Controls.OfType<BotController>().Count(c => c.GetBot()?.IsRunning ?? false);
                             totalBots = FLP_Bots.Controls.OfType<BotController>().Count();
                             
-                            string botTitle = string.IsNullOrWhiteSpace(Config.Hub.BotName) ? "PokéBot" : Config.Hub.BotName;
+                            string botTitle = string.IsNullOrWhiteSpace(Config.Hub.Global.BotName) ? "PokéBot" : Config.Hub.Global.BotName;
                             trayIcon.Text = totalBots == 0
                                 ? $"{botTitle} - No bots configured"
                                 : $"{botTitle} - {runningBots}/{totalBots} bots running";
@@ -927,7 +930,7 @@ namespace SysBot.Pokemon.WinForms
             {
                 row.Remove -= removeHandler; // Unsubscribe to prevent memory leak
                 Bots.Remove(row.State);
-                RunningEnvironment.Remove(row.State, !RunningEnvironment.Config.SkipConsoleBotCreation);
+                RunningEnvironment.Remove(row.State, !RunningEnvironment.Config.Global.SkipConsoleBotCreation);
                 FLP_Bots.Controls.Remove(row);
                 row.Dispose(); // Ensure proper disposal
             };
@@ -977,7 +980,7 @@ namespace SysBot.Pokemon.WinForms
             {
                 ProgramMode newMode = (ProgramMode)selectedValue;
                 Config.Mode = newMode;
-                Config.Hub.Distribution.CurrentMode = newMode;
+                Config.Hub.TradeSystem.Distribution.CurrentMode = newMode;
                 SaveCurrentConfig();
                 UpdateRunnerAndUI();
                 UpdateBackgroundImage(newMode);
@@ -1056,7 +1059,7 @@ namespace SysBot.Pokemon.WinForms
         private void UpdateRunnerAndUI()
         {
             RunningEnvironment = GetRunner(Config);
-            Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "GenPKM.com" : Config.Hub.BotName)} {PokeBot.Version} ({Config.Mode})";
+            Text = $"{(string.IsNullOrEmpty(Config.Hub.Global.BotName) ? "NexusRisen PokeBot" : Config.Hub.Global.BotName)} {PokeBot.Version} ({Config.Mode})";
         }
 
         private void UpdateStatusIndicatorPulse()
@@ -1675,3 +1678,5 @@ namespace SysBot.Pokemon.WinForms
 
     public readonly record struct SearchMatch(int Start, int Length);
 }
+
+

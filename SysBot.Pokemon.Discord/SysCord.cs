@@ -54,7 +54,7 @@ public sealed class SysCord<T> where T : PKM, new()
     {
         Runner = runner;
         Hub = runner.Hub;
-        Manager = new DiscordManager(Hub.Config.Discord);
+        Manager = new DiscordManager(Hub.Config.Integration.Discord);
         _config = config;
 
         foreach (var bot in runner.Hub.Bots.ToArray())
@@ -252,7 +252,7 @@ public sealed class SysCord<T> where T : PKM, new()
         if (!SysCordSettings.Settings.BotEmbedStatus)
             return;
 
-        var botName = string.IsNullOrEmpty(SysCordSettings.HubConfig.BotName) ? "SysBot" : SysCordSettings.HubConfig.BotName;
+        var botName = string.IsNullOrEmpty(SysCordSettings.HubConfig.Global.BotName) ? "SysBot" : SysCordSettings.HubConfig.Global.BotName;
         var fullStatusMessage = $"**Status**: {botName} is {status}!";
         var thumbnailUrl = status == "Online"
             ? "https://raw.githubusercontent.com/hexbyt3/sprites/main/botgo.png"
@@ -357,7 +357,7 @@ public sealed class SysCord<T> where T : PKM, new()
 
     private void InitializeRecoveryNotifications()
     {
-        if (!Hub.Config.Recovery.EnableRecovery)
+        if (!Hub.Config.Global.Recovery.EnableRecovery)
             return;
 
         // Get the recovery service from the runner
@@ -374,7 +374,7 @@ public sealed class SysCord<T> where T : PKM, new()
         }
 
         // Initialize the recovery notification helper
-        var hubName = string.IsNullOrEmpty(Hub.Config.BotName) ? "SysBot" : Hub.Config.BotName;
+        var hubName = string.IsNullOrEmpty(Hub.Config.Global.BotName) ? "SysBot" : Hub.Config.Global.BotName;
         RecoveryNotificationHelper.Initialize(_client, notificationChannelId, hubName);
         
         // Hook up the recovery events
@@ -395,7 +395,7 @@ public sealed class SysCord<T> where T : PKM, new()
         }
         var modules = _commands.Modules.ToList();
 
-        var blacklist = Hub.Config.Discord.ModuleBlacklist
+        var blacklist = Hub.Config.Integration.Discord.ModuleBlacklist
             .Replace("Module", "").Split(',', StringSplitOptions.RemoveEmptyEntries)
             .Select(z => z.Trim()).ToList();
 
@@ -627,7 +627,7 @@ public sealed class SysCord<T> where T : PKM, new()
             return;
 
         // Restore Echoes
-        EchoModule.RestoreChannels(_client, Hub.Config.Discord);
+        EchoModule.RestoreChannels(_client, Hub.Config.Integration.Discord);
 
         // Subscribe to queue status changes
         QueueMonitor<T>.OnQueueStatusChanged = async (isFull, currentCount, maxCount) =>
@@ -636,14 +636,14 @@ public sealed class SysCord<T> where T : PKM, new()
         };
 
         // Restore Logging
-        LogModule.RestoreLogging(_client, Hub.Config.Discord);
+        LogModule.RestoreLogging(_client, Hub.Config.Integration.Discord);
         TradeStartModule<T>.RestoreTradeStarting(_client);
 
         // Don't let it load more than once in case of Discord hiccups.
         await Log(new LogMessage(LogSeverity.Info, "LoadLoggingAndEcho()", "Logging and Echo channels loaded!")).ConfigureAwait(false);
         MessageChannelsLoaded = true;
 
-        var game = Hub.Config.Discord.BotGameStatus;
+        var game = Hub.Config.Integration.Discord.BotGameStatus;
         if (!string.IsNullOrWhiteSpace(game))
             await _client.SetGameAsync(game).ConfigureAwait(false);
     }
@@ -658,7 +658,7 @@ public sealed class SysCord<T> where T : PKM, new()
         {
             var time = DateTime.Now;
             var lastLogged = LogUtil.LastLogged;
-            if (Hub.Config.Discord.BotColorStatusTradeOnly)
+            if (Hub.Config.Integration.Discord.BotColorStatusTradeOnly)
             {
                 var recent = Hub.Bots.ToArray()
                     .Where(z => z.Config.InitialRoutine.IsTradeBot())
@@ -710,7 +710,7 @@ public sealed class SysCord<T> where T : PKM, new()
     {
         try
         {
-            var AbuseSettings = Hub.Config.TradeAbuse;
+            var AbuseSettings = Hub.Config.TradeSystem.Abuse;
             // Check if the user is in the bannedIDs list
             if (msg.Author is SocketGuildUser user && AbuseSettings.BannedIDs.List.Any(z => z.ID == user.Id))
             {
@@ -727,7 +727,7 @@ public sealed class SysCord<T> where T : PKM, new()
 
             if (!mgr.CanUseCommandChannel(msg.Channel.Id) && msg.Author.Id != mgr.Owner)
             {
-                if (Hub.Config.Discord.ReplyCannotUseCommandInChannel)
+                if (Hub.Config.Integration.Discord.ReplyCannotUseCommandInChannel)
                     await SysCord<T>.SafeSendMessageAsync(msg.Channel, "You can't use that command here.").ConfigureAwait(false);
                 return true;
             }
@@ -768,3 +768,5 @@ public sealed class SysCord<T> where T : PKM, new()
         }
     }
 }
+
+

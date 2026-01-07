@@ -29,9 +29,9 @@ public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
 
     protected override void AddIntegrations()
     {
-        AddDiscordBot(Hub.Config.Discord.Token);
-        AddTwitchBot(Hub.Config.Twitch);
-        AddYouTubeBot(Hub.Config.YouTube);
+        AddDiscordBot(Hub.Config.Integration.Discord.Token);
+        AddTwitchBot(Hub.Config.Integration.Twitch);
+        AddYouTubeBot(Hub.Config.Integration.YouTube);
     }
 
     private void AddDiscordBot(string apiToken)
@@ -56,8 +56,8 @@ public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
         if (string.IsNullOrWhiteSpace(config.Token))
             return;
 
-        Twitch = new TwitchBot<T>(Hub.Config.Twitch, Hub);
-        if (Hub.Config.Twitch.DistributionCountDown)
+        Twitch = new TwitchBot<T>(Hub.Config.Integration.Twitch, Hub);
+        if (Hub.Config.Integration.Twitch.DistributionCountDown)
             Hub.BotSync.BarrierReleasingActions.Add(() => Twitch.StartingDistribution(config.MessageStart));
     }
 
@@ -76,7 +76,8 @@ public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
         if (string.IsNullOrWhiteSpace(config.ClientSecret))
             return;
 
-        YouTube = new YouTubeBot<T>(Hub.Config.YouTube, Hub);
+        YouTube = new YouTubeBot<T>(Hub.Config.Integration.YouTube, Hub);
         Hub.BotSync.BarrierReleasingActions.Add(() => YouTube.StartingDistribution(config.MessageStart));
     }
 }
+

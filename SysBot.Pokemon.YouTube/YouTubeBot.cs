@@ -113,7 +113,7 @@ public class YouTubeBot<T> where T : PKM, new()
 
         return cmd switch
         {
-            "pr" => (Info.Hub.Ledy.Pool.Reload(Hub.Config.Folder.DistributeFolder)
+            "pr" => (Info.Hub.Ledy.Pool.Reload(Hub.Config.Global.Folder.DistributeFolder)
                 ? $"Reloaded from folder. Pool count: {Info.Hub.Ledy.Pool.Count}"
                 : "Failed to reload from folder."),
 
@@ -123,3 +123,4 @@ public class YouTubeBot<T> where T : PKM, new()
         };
     }
 }
+

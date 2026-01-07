@@ -45,10 +45,11 @@ public class PoolModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
         var me = SysCord<T>.Runner;
         var hub = me.Hub;
 
-        var pool = hub.Ledy.Pool.Reload(hub.Config.Folder.DistributeFolder);
+        var pool = hub.Ledy.Pool.Reload(hub.Config.Global.Folder.DistributeFolder);
         if (!pool)
             await ReplyAsync("Failed to reload from folder.").ConfigureAwait(false);
         else
             await ReplyAsync($"Reloaded from folder. Pool count: {hub.Ledy.Pool.Count}").ConfigureAwait(false);
     }
 }
+

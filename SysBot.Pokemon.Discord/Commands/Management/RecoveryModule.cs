@@ -132,7 +132,7 @@ public class RecoveryModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
             return;
         }
         
-        var config = Runner.Config.Recovery;
+        var config = Runner.Config.Global.Recovery;
         config.EnableRecovery = !config.EnableRecovery;
 
         var status = config.EnableRecovery ? "enabled" : "disabled";
@@ -157,7 +157,7 @@ public class RecoveryModule<T> : ModuleBase<SocketCommandContext> where T : PKM,
             return;
         }
 
-        var config = Runner.Config.Recovery;
+        var config = Runner.Config.Global.Recovery;
         
         var embed = new EmbedBuilder()
             .WithTitle("Recovery Configuration")

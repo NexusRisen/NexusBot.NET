@@ -118,8 +118,14 @@ namespace SysBot.Pokemon.Twitch
             var userID = ulong.Parse(e.WhisperMessage.UserId);
             var name = e.WhisperMessage.DisplayName;
 
+            if (Hub.Config.TradeSystem.Abuse.BannedRemoteUsers.Contains(userID))
+            {
+                msg = $"@{name}: You are banned from trading.";
+                return false;
+            }
+
             var trainer = new PokeTradeTrainerInfo(name, ulong.Parse(e.WhisperMessage.UserId));
-            var notifier = new TwitchTradeNotifier<T>(pk, trainer, code, e.WhisperMessage.Username, client, Channel, Hub.Config.Twitch);
+            var notifier = new TwitchTradeNotifier<T>(pk, trainer, code, e.WhisperMessage.Username, client, Channel, Hub.Config.Integration.Twitch);
 
             // Block non-tradable items using PKHeX's ItemRestrictions
             if (TradeExtensions<T>.IsItemBlocked(pk))
@@ -155,7 +161,7 @@ namespace SysBot.Pokemon.Twitch
             var botct = Info.Hub.Bots.Count;
             if (position.Position > botct)
             {
-                var eta = Info.Hub.Config.Queues.EstimateDelay(position.Position, botct);
+                var eta = Info.Hub.Config.TradeSystem.Queues.EstimateDelay(position.Position, botct);
                 msg += $". Estimated: {eta:F1} minutes.";
             }
             return true;
@@ -163,7 +169,7 @@ namespace SysBot.Pokemon.Twitch
 
         private void Client_OnChatCommandReceived(object? sender, OnChatCommandReceivedArgs e)
         {
-            if (!Hub.Config.Twitch.AllowCommandsViaChannel || Hub.Config.Twitch.UserBlacklist.Contains(e.Command.ChatMessage.Username))
+            if (!Hub.Config.Integration.Twitch.AllowCommandsViaChannel || Hub.Config.Integration.Twitch.UserBlacklist.Contains(e.Command.ChatMessage.Username))
                 return;
 
             var msg = e.Command.ChatMessage;
@@ -218,7 +224,7 @@ namespace SysBot.Pokemon.Twitch
 
         private void Client_OnWhisperCommandReceived(object? sender, OnWhisperCommandReceivedArgs e)
         {
-            if (!Hub.Config.Twitch.AllowCommandsViaWhisper || Hub.Config.Twitch.UserBlacklist.Contains(e.Command.WhisperMessage.Username))
+            if (!Hub.Config.Integration.Twitch.AllowCommandsViaWhisper || Hub.Config.Integration.Twitch.UserBlacklist.Contains(e.Command.WhisperMessage.Username))
                 return;
 
             var msg = e.Command.WhisperMessage;
@@ -330,7 +336,7 @@ namespace SysBot.Pokemon.Twitch
                     return "Cleared all queues!";
 
                 case "pr":
-                    return Info.Hub.Ledy.Pool.Reload(Hub.Config.Folder.DistributeFolder) ? $"Reloaded from folder. Pool count: {Info.Hub.Ledy.Pool.Count}" : "Failed to reload from folder.";
+                    return Info.Hub.Ledy.Pool.Reload(Hub.Config.Global.Folder.DistributeFolder) ? $"Reloaded from folder. Pool count: {Info.Hub.Ledy.Pool.Count}" : "Failed to reload from folder.";
 
                 case "pc":
                     return $"The pool count is: {Info.Hub.Ledy.Pool.Count}";
@@ -348,3 +354,5 @@ namespace SysBot.Pokemon.Twitch
         }
     }
 }
+
+

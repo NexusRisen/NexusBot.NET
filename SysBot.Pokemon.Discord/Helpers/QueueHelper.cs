@@ -107,6 +107,13 @@ public static class QueueHelper<T> where T : PKM, new()
         int batchTradeNumber, int totalBatchTrades, bool isHiddenTrade, bool isMysteryEgg = false,
         List<Pictocodes>? lgcode = null, bool ignoreAutoOT = false, bool setEdited = false, bool isNonNative = false)
     {
+        var hub = SysCord<T>.Runner.Hub;
+        var abuse = hub.Config.TradeSystem.Abuse;
+        if (abuse.BannedRemoteUsers.Contains(trader.Id))
+        {
+            await context.Channel.SendMessageAsync($"{trader.Mention} - You are banned from trading.").ConfigureAwait(false);
+            return new TradeQueueResult(false);
+        }
         // Note: This method should only be called for individual trades now
         // Batch trades use AddBatchContainerToQueueAsync
 
@@ -123,7 +130,6 @@ public static class QueueHelper<T> where T : PKM, new()
             lgcode, batchTradeNumber, totalBatchTrades, isMysteryEgg, uniqueTradeID, ignoreAutoOT, setEdited);
 
         var trade = new TradeEntry<T>(detail, userID, PokeRoutineType.LinkTrade, name, uniqueTradeID);
-        var hub = SysCord<T>.Runner.Hub;
         var Info = hub.Queues.Info;
         var isSudo = sig == RequestSignificance.Owner;
         var added = Info.AddToTradeQueue(trade, userID, false, isSudo);
@@ -139,7 +145,7 @@ public static class QueueHelper<T> where T : PKM, new()
 
         int totalTradeCount = 0;
         TradeCodeStorage.TradeCodeDetails? tradeDetails = null;
-        if (SysCord<T>.Runner.Config.Trade.TradeConfiguration.StoreTradeCodes)
+        if (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeConfiguration.StoreTradeCodes)
         {
             var tradeCodeStorage = new TradeCodeStorage();
             totalTradeCount = tradeCodeStorage.GetTradeCount(trader.Id);
@@ -154,7 +160,7 @@ public static class QueueHelper<T> where T : PKM, new()
 
         if (added == QueueResultAdd.QueueFull)
         {
-            var maxCount = SysCord<T>.Runner.Config.Queues.MaxQueueCount;
+            var maxCount = SysCord<T>.Runner.Config.TradeSystem.Queues.MaxQueueCount;
             var embed = new EmbedBuilder()
                 .WithColor(DiscordColor.Red)
                 .WithTitle("🚫 Queue Full")
@@ -202,7 +208,7 @@ public static class QueueHelper<T> where T : PKM, new()
 
             var position = Info.CheckPosition(userID, uniqueTradeID, type);
             var botct = Info.Hub.Bots.Count;
-            var baseEta = position.Position > botct ? Info.Hub.Config.Queues.EstimateDelay(position.Position, botct) : 0;
+            var baseEta = position.Position > botct ? Info.Hub.Config.TradeSystem.Queues.EstimateDelay(position.Position, botct) : 0;
             var etaMessage = $"Estimated: {baseEta:F1} min(s) for trade.";
             string footerText = $"Current Position: {(position.Position == -1 ? 1 : position.Position)}";
 
@@ -219,8 +225,7 @@ public static class QueueHelper<T> where T : PKM, new()
                 .WithFooter(footerText)
                 .WithAuthor(new EmbedAuthorBuilder()
                     .WithName(embedData.AuthorName)
-                    .WithIconUrl(trader.GetAvatarUrl() ?? trader.GetDefaultAvatarUrl())
-                    .WithUrl("https://genpkm.com"));
+                    .WithIconUrl(trader.GetAvatarUrl() ?? trader.GetDefaultAvatarUrl()));
 
             DetailsExtractor<T>.AddAdditionalText(embedBuilder);
 
@@ -260,7 +265,7 @@ public static class QueueHelper<T> where T : PKM, new()
 
             DetailsExtractor<T>.AddThumbnails(embedBuilder, type == PokeRoutineType.Clone, type == PokeRoutineType.SeedCheck, embedData.HeldItemUrl);
 
-            if (!isHiddenTrade && SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.UseEmbeds)
+            if (!isHiddenTrade && SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.UseEmbeds)
             {
                 var embed = embedBuilder.Build();
                 if (embed == null)
@@ -292,7 +297,7 @@ public static class QueueHelper<T> where T : PKM, new()
             return new TradeQueueResult(false);
         }
 
-        if (SysCord<T>.Runner.Hub.Config.Trade.TradeConfiguration.StoreTradeCodes)
+        if (SysCord<T>.Runner.Hub.Config.TradeSystem.Settings.TradeConfiguration.StoreTradeCodes)
         {
             var tradeCodeStorage = new TradeCodeStorage();
             int tradeCount = tradeCodeStorage.GetTradeCount(trader.Id);
@@ -343,7 +348,7 @@ public static class QueueHelper<T> where T : PKM, new()
 
         if (added == QueueResultAdd.QueueFull)
         {
-            var maxCount = SysCord<T>.Runner.Config.Queues.MaxQueueCount;
+            var maxCount = SysCord<T>.Runner.Config.TradeSystem.Queues.MaxQueueCount;
             var embed = new EmbedBuilder()
                 .WithColor(DiscordColor.Red)
                 .WithTitle("🚫 Queue Full")
@@ -366,12 +371,12 @@ public static class QueueHelper<T> where T : PKM, new()
 
         var position = Info.CheckPosition(userID, uniqueTradeID, PokeRoutineType.Batch);
         var botct = Info.Hub.Bots.Count;
-        var baseEta = position.Position > botct ? Info.Hub.Config.Queues.EstimateDelay(position.Position, botct) : 0;
+        var baseEta = position.Position > botct ? Info.Hub.Config.TradeSystem.Queues.EstimateDelay(position.Position, botct) : 0;
 
         // Get user trade details for footer
         int totalTradeCount = 0;
         TradeCodeStorage.TradeCodeDetails? tradeDetails = null;
-        if (SysCord<T>.Runner.Config.Trade.TradeConfiguration.StoreTradeCodes)
+        if (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeConfiguration.StoreTradeCodes)
         {
             var tradeCodeStorage = new TradeCodeStorage();
             totalTradeCount = tradeCodeStorage.GetTradeCount(trader.Id);
@@ -382,7 +387,7 @@ public static class QueueHelper<T> where T : PKM, new()
         await context.Channel.SendMessageAsync($"{trader.Mention} - Added batch trade with {totalBatchTrades} Pokémon to the queue! Position: {position.Position}. Estimated: {baseEta:F1} min(s).").ConfigureAwait(false);
 
         // Create and send embeds for each Pokémon in the batch
-        if (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.UseEmbeds)
+        if (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.UseEmbeds)
         {
             for (int i = 0; i < allTrades.Count; i++)
             {
@@ -429,8 +434,7 @@ public static class QueueHelper<T> where T : PKM, new()
                         .WithFooter(footerText)
                         .WithAuthor(new EmbedAuthorBuilder()
                             .WithName(embedData.AuthorName)
-                            .WithIconUrl(trader.GetAvatarUrl() ?? trader.GetDefaultAvatarUrl())
-                            .WithUrl("https://genpkm.com"));
+                            .WithIconUrl(trader.GetAvatarUrl() ?? trader.GetDefaultAvatarUrl()));
 
                     DetailsExtractor<T>.AddAdditionalText(embedBuilder);
                     DetailsExtractor<T>.AddNormalTradeFields(embedBuilder, embedData, trader.Mention, pk);
@@ -474,7 +478,7 @@ public static class QueueHelper<T> where T : PKM, new()
         }
 
         // Send milestone embed if applicable
-        if (SysCord<T>.Runner.Hub.Config.Trade.TradeConfiguration.StoreTradeCodes)
+        if (SysCord<T>.Runner.Hub.Config.TradeSystem.Settings.TradeConfiguration.StoreTradeCodes)
         {
             var tradeCodeStorage = new TradeCodeStorage();
             int tradeCount = tradeCodeStorage.GetTradeCount(trader.Id);
@@ -529,7 +533,7 @@ public static class QueueHelper<T> where T : PKM, new()
         else
         {
             bool canGmax = pk is PK8 pk8 && pk8.CanGigantamax;
-            speciesImageUrl = TradeExtensions<T>.PokeImg(pk, canGmax, false, SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.PreferredImageSize);
+            speciesImageUrl = TradeExtensions<T>.PokeImg(pk, canGmax, false, SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.PreferredImageSize);
             embedImageUrl = speciesImageUrl;
         }
 
@@ -918,3 +922,4 @@ public static class QueueHelper<T> where T : PKM, new()
         return (filename, returnembed);
     }
 }
+

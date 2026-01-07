@@ -902,7 +902,7 @@ public partial class BotServer(Main mainForm, int port = 8080, int tcpPort = 808
         var controllers = GetBotControllers();
 
         var mode = config?.Mode.ToString() ?? "Unknown";
-        var name = config?.Hub?.BotName ?? "PokeBot";
+        var name = config?.Hub?.Global.BotName ?? "PokeBot";
 
         var version = SysBot.Pokemon.Helpers.PokeBot.Version;
 
@@ -1542,9 +1542,9 @@ public partial class BotServer(Main mainForm, int port = 8080, int tcpPort = 808
                 return JsonSerializer.Serialize(new
                 {
                     queueCount = 0,
-                    maxQueueCount = config.Hub.Queues.MaxQueueCount,
+                    maxQueueCount = config.Hub.TradeSystem.Queues.MaxQueueCount,
                     isFull = false,
-                    canQueue = config.Hub.Queues.CanQueue,
+                    canQueue = config.Hub.TradeSystem.Queues.CanQueue,
                     message = "Queue system not initialized"
                 }, JsonOptions);
             }
@@ -1555,18 +1555,18 @@ public partial class BotServer(Main mainForm, int port = 8080, int tcpPort = 808
                 return JsonSerializer.Serialize(new
                 {
                     queueCount = 0,
-                    maxQueueCount = config.Hub.Queues.MaxQueueCount,
+                    maxQueueCount = config.Hub.TradeSystem.Queues.MaxQueueCount,
                     isFull = false,
-                    canQueue = config.Hub.Queues.CanQueue,
+                    canQueue = config.Hub.TradeSystem.Queues.CanQueue,
                     message = "Queue info not available"
                 }, JsonOptions);
             }
 
             var countProperty = info.GetType().GetProperty("Count");
             var queueCount = countProperty?.GetValue(info) as int? ?? 0;
-            var maxQueueCount = config.Hub.Queues.MaxQueueCount;
+            var maxQueueCount = config.Hub.TradeSystem.Queues.MaxQueueCount;
             var isFull = queueCount >= maxQueueCount;
-            var canQueue = config.Hub.Queues.CanQueue && !isFull;
+            var canQueue = config.Hub.TradeSystem.Queues.CanQueue && !isFull;
 
             return JsonSerializer.Serialize(new
             {
@@ -1599,7 +1599,7 @@ public partial class BotServer(Main mainForm, int port = 8080, int tcpPort = 808
     private bool IsMasterInstance()
     {
         // Master is the instance hosting the web server on the configured control panel port
-        var configuredPort = _mainForm.Config?.Hub?.WebServer?.ControlPanelPort ?? 8080;
+        var configuredPort = _mainForm.Config?.Hub?.Integration.WebServer?.ControlPanelPort ?? 8080;
         return _port == configuredPort;
     }
     
@@ -2197,3 +2197,5 @@ public partial class BotServer(Main mainForm, int port = 8080, int tcpPort = 808
         GC.SuppressFinalize(this);
     }
 }
+
+

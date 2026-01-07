@@ -24,7 +24,7 @@ public class SeedCheckModule<T> : ModuleBase<SocketCommandContext> where T : PKM
 
         var seed = Util.GetHexValue64(seedString);
 
-        var r = new SeedSearchResult(Z3SearchResult.Success, seed, -1, hub.Config.SeedCheckSWSH.ResultDisplayMode);
+        var r = new SeedSearchResult(Z3SearchResult.Success, seed, -1, hub.Config.EncounterSystem.SeedCheckSWSH.ResultDisplayMode);
         var msg = r.ToString();
 
         var embed = new EmbedBuilder { Color = Color.LighterGrey };
@@ -109,3 +109,6 @@ public class SeedCheckModule<T> : ModuleBase<SocketCommandContext> where T : PKM
             await userMessage.DeleteAsync().ConfigureAwait(false);
     }
 }
+
+
+

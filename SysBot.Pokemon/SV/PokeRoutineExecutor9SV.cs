@@ -37,7 +37,7 @@ public abstract class PokeRoutineExecutor9SV : PokeRoutineExecutor<PK9>
 
     public async Task CloseGame(PokeTradeHubConfig config, CancellationToken token)
     {
-        var timing = config.Timings;
+        var timing = config.Global.Timings;
 
         // Close out of the game
         await Click(B, 0_500, token).ConfigureAwait(false);
@@ -213,7 +213,7 @@ public abstract class PokeRoutineExecutor9SV : PokeRoutineExecutor<PK9>
 
     public async Task StartGame(PokeTradeHubConfig config, CancellationToken token)
     {
-        TimingSettings timing = config.Timings;
+        TimingSettings timing = config.Global.Timings;
         int loadPro = timing.ProfileSelectionRequired ? timing.ExtraTimeLoadProfile : 0;
 
         // Menus here can go in the order: System Update Prompt -> Profile -> Checking if Game can be played (Digital Only) -> DLC check -> Unable to use DLC
@@ -278,7 +278,7 @@ public abstract class PokeRoutineExecutor9SV : PokeRoutineExecutor<PK9>
         // Enter link code using directional arrows
         foreach (var key in TradeUtil.GetPresses(code))
         {
-            int delay = config.Timings.KeypressTime;
+            int delay = config.Global.Timings.KeypressTime;
             await Click(key, delay, token).ConfigureAwait(false);
         }
     }
@@ -292,3 +292,4 @@ public abstract class PokeRoutineExecutor9SV : PokeRoutineExecutor<PK9>
         return await IsOnOverworld(offset, token).ConfigureAwait(false);
     }
 }
+

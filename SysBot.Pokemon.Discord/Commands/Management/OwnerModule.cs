@@ -62,7 +62,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     [RequireOwner]
     public async Task BlacklistServer(ulong serverId)
     {
-        var settings = SysCord<T>.Runner.Hub.Config.Discord;
+        var settings = SysCord<T>.Runner.Hub.Config.Integration.Discord;
 
         if (settings.ServerBlacklist.Contains(serverId))
         {
@@ -91,7 +91,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     [RequireOwner]
     public async Task UnblacklistServer(ulong serverId)
     {
-        var settings = SysCord<T>.Runner.Hub.Config.Discord;
+        var settings = SysCord<T>.Runner.Hub.Config.Integration.Discord;
 
         if (!settings.ServerBlacklist.Contains(serverId))
         {
@@ -508,3 +508,4 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
         Comment = $"Added by {Context.User.Username} on {DateTime.Now:yyyy.MM.dd-hh:mm:ss}",
     };
 }
+

@@ -60,7 +60,7 @@ namespace SysBot.Pokemon.Discord
         [Summary("Lists available wondercard events from the specified generation or game or requests a specific event if a number is provided.")]
         public async Task ListSpecialEventsAsync(string generationOrGame, [Remainder] string args = "")
         {
-            var botPrefix = SysCord<T>.Runner.Config.Discord.CommandPrefix;
+            var botPrefix = SysCord<T>.Runner.Config.Integration.Discord.CommandPrefix;
             var parts = args.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
             if (parts.Length == 1 && int.TryParse(parts[0], out int index))
@@ -134,7 +134,7 @@ namespace SysBot.Pokemon.Discord
                 var entityEvents = eventData.Where(gift => gift.IsEntity && !gift.IsItem).ToArray();
                 if (index < 1 || index > entityEvents.Length)
                 {
-                    await ReplyAsync($"Invalid event index. Please use a valid event number from the `{SysCord<T>.Runner.Config.Discord.CommandPrefix}srp {generationOrGame}` command.").ConfigureAwait(false);
+                    await ReplyAsync($"Invalid event index. Please use a valid event number from the `{SysCord<T>.Runner.Config.Integration.Discord.CommandPrefix}srp {generationOrGame}` command.").ConfigureAwait(false);
                     return;
                 }
 
@@ -343,7 +343,7 @@ namespace SysBot.Pokemon.Discord
                 var entityEvents = eventData.Where(gift => gift.IsEntity && !gift.IsItem).ToArray();
                 if (eventIndex < 1 || eventIndex > entityEvents.Length)
                 {
-                    await ReplyAsync($"Invalid event index. Please use a valid event number from the `{SysCord<T>.Runner.Config.Discord.CommandPrefix}gep {generationOrGame}` command.").ConfigureAwait(false);
+                    await ReplyAsync($"Invalid event index. Please use a valid event number from the `{SysCord<T>.Runner.Config.Integration.Discord.CommandPrefix}gep {generationOrGame}` command.").ConfigureAwait(false);
                     return;
                 }
 
@@ -415,3 +415,6 @@ namespace SysBot.Pokemon.Discord
         }
     }
 }
+
+
+

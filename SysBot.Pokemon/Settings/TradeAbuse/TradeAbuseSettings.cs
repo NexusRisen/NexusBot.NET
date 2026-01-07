@@ -7,6 +7,12 @@ public class TradeAbuseSettings
     private const string Monitoring = nameof(Monitoring);
     public override string ToString() => "Trade Abuse Monitoring Settings";
 
+    [Category(Monitoring), Description("Maximum distinct Nintendo Account IDs a single remote user can trade to before being auto-banned.")]
+    public int MaxDistinctNintendoIDsPerRemoteUser { get; set; } = 3;
+
+    [Category(Monitoring), Description("Automatically ban remote users who exceed the distinct Nintendo Account ID limit.")]
+    public bool AutoBanOnExceedDistinctIDs { get; set; } = true;
+
     [Category(Monitoring), Description("When a person appears again in less than this setting's value (minutes), a notification will be sent.")]
     public double TradeCooldown { get; set; }
 
@@ -51,4 +57,7 @@ public class TradeAbuseSettings
 
     [Category(Monitoring), Description("If not empty, the provided string will be appended to Echo alerts to notify whomever you specify when a user violates Ledy trade rules. For Discord, use <@userIDnumber> to mention.")]
     public string LedyAbuseEchoMention { get; set; } = string.Empty;
+
+    [Category(Monitoring), Description("Banned remote users (Discord/Twitch) that are blocked from queueing trades.")]
+    public RemoteControlAccessList BannedRemoteUsers { get; set; } = new();
 }

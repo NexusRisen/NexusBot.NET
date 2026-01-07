@@ -36,14 +36,14 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
         }
     }
 
-    public bool ToggleQueue() => Hub.Config.Queues.CanQueue ^= true;
+    public bool ToggleQueue() => Hub.Config.TradeSystem.Queues.CanQueue ^= true;
 
     public bool GetCanQueue()
     {
-        if (!Hub.Config.Queues.CanQueue)
+        if (!Hub.Config.TradeSystem.Queues.CanQueue)
             return false;
         lock (_sync)
-            return UsersInQueue.Count < Hub.Config.Queues.MaxQueueCount && Hub.TradeBotsReady;
+            return UsersInQueue.Count < Hub.Config.TradeSystem.Queues.MaxQueueCount && Hub.TradeBotsReady;
     }
 
     public TradeEntry<T>? GetDetail(ulong uid)
@@ -215,7 +215,7 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
             if (detail.Trade.IsProcessing)
             {
                 currentlyProcessing = true;
-                if (!Hub.Config.Queues.CanDequeueIfProcessing)
+                if (!Hub.Config.TradeSystem.Queues.CanDequeueIfProcessing)
                 {
                     removedAll = false;
                     detail.Trade.IsCanceled = true;
@@ -322,7 +322,7 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
             }
 
             // Check if queue is full (unless user is sudo)
-            if (!sudo && UsersInQueue.Count >= Hub.Config.Queues.MaxQueueCount)
+            if (!sudo && UsersInQueue.Count >= Hub.Config.TradeSystem.Queues.MaxQueueCount)
                 return QueueResultAdd.QueueFull;
 
             // Blocked item validation - check if Pokemon has blocked held item using PKHeX's ItemRestrictions
@@ -354,7 +354,7 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
                 }
             }
 
-            if (Hub.Config.Legality.ResetHOMETracker && trade.Trade.TradeData is IHomeTrack t)
+            if (Hub.Config.Global.Legality.ResetHOMETracker && trade.Trade.TradeData is IHomeTrack t)
                 t.Tracker = 0;
 
             // Sudo users get Tier1 (highest priority)
@@ -373,13 +373,13 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
 
     public int GetRandomTradeCode(ulong trainerID)
     {
-        if (Hub.Config.Trade.TradeConfiguration.StoreTradeCodes)
+        if (Hub.Config.TradeSystem.Settings.TradeConfiguration.StoreTradeCodes)
         {
             return _tradeCodeStorage.GetTradeCode(trainerID);
         }
         else
         {
-            return Hub.Config.Trade.GetRandomTradeCode();
+            return Hub.Config.TradeSystem.Settings.GetRandomTradeCode();
         }
     }
 
@@ -422,3 +422,4 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
         }
     }
 }
+

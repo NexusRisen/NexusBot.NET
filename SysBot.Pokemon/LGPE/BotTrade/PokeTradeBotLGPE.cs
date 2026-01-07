@@ -18,9 +18,9 @@ namespace SysBot.Pokemon;
 
 public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : PokeRoutineExecutor7LGPE(Config), ICountBot, ITradeBot
 {
-    private readonly TradeSettings TradeSettings = Hub.Config.Trade;
+    private readonly TradeSettings TradeSettings = Hub.Config.TradeSystem.Settings;
 
-    public readonly TradeAbuseSettings AbuseSettings = Hub.Config.TradeAbuse;
+    public readonly TradeAbuseSettings AbuseSettings = Hub.Config.TradeSystem.Abuse;
 
     public event EventHandler<Exception>? ConnectionError;
 
@@ -42,7 +42,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
     /// Folder to dump received trade data to.
     /// </summary>
     /// <remarks>If null, will skip dumping.</remarks>
-    private readonly FolderSettings DumpSetting = Hub.Config.Folder;
+    private readonly FolderSettings DumpSetting = Hub.Config.Global.Folder;
 
     /// <summary>
     /// Synchronized start for multiple bots.
@@ -58,7 +58,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
     {
         try
         {
-            await InitializeHardware(Hub.Config.Trade, token).ConfigureAwait(false);
+            await InitializeHardware(Hub.Config.TradeSystem.Settings, token).ConfigureAwait(false);
 
             Log("Identifying trainer data of the host console.");
             var sav = await IdentifyTrainer(token).ConfigureAwait(false);
@@ -135,7 +135,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
             if (waitCounter == 0)
                 Log("No task assigned. Waiting for new task assignment.");
             waitCounter++;
-            if (waitCounter % 10 == 0 && Hub.Config.AntiIdle)
+            if (waitCounter % 10 == 0 && Hub.Config.Global.AntiIdle)
                 await Click(B, 1_000, token).ConfigureAwait(false);
             else
                 await Task.Delay(1_000, token).ConfigureAwait(false);
@@ -158,7 +158,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
 
             string tradetype = $" ({detail.Type})";
             Log($"Starting next {type}{tradetype} Bot Trade. Getting data...");
-            Hub.Config.Stream.StartTrade(this, detail, Hub);
+            Hub.Config.Integration.Stream.StartTrade(this, detail, Hub);
             Hub.Queues.StartTrade(this, detail);
 
             await PerformTrade(sav, detail, type, priority, token).ConfigureAwait(false);
@@ -170,12 +170,12 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
         if (waitCounter == 0)
         {
             // Updates the assets.
-            Hub.Config.Stream.IdleAssets(this);
+            Hub.Config.Integration.Stream.IdleAssets(this);
             Log("Nothing to check, waiting for new users...");
         }
 
         const int interval = 10;
-        if (waitCounter % interval == interval - 1 && Hub.Config.AntiIdle)
+        if (waitCounter % interval == interval - 1 && Hub.Config.Global.AntiIdle)
             await Click(B, 1_000, token).ConfigureAwait(false);
         else
             await Task.Delay(1_000, token).ConfigureAwait(false);
@@ -246,9 +246,9 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
 
         UpdateBarrier(poke.IsSynchronized);
         poke.TradeInitialize(this);
-        Hub.Config.Stream.EndEnterCode(this);
+        Hub.Config.Integration.Stream.EndEnterCode(this);
         var toSend = poke.TradeData;
-        if (Hub.Config.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT)
+        if (Hub.Config.Global.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT)
         {
             var trainerID = poke.Trainer.ID;
             var tradeCodeStorage1 = new TradeCodeStorage();
@@ -326,7 +326,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
                 Log($"{poke.Trainer.TrainerName} not found");
 
                 await ExitTrade(false, token);
-                Hub.Config.Stream.EndEnterCode(this);
+                Hub.Config.Integration.Stream.EndEnterCode(this);
                 return PokeTradeResult.NoTrainerFound;
             }
         }
@@ -511,7 +511,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
 
             tradeCounter++;
 
-            if (tradeCounter >= Hub.Config.Trade.TradeConfiguration.TradeAnimationMaxDelaySeconds)
+            if (tradeCounter >= Hub.Config.TradeSystem.Settings.TradeConfiguration.TradeAnimationMaxDelaySeconds)
             {
                 // If we don't detect a B1S1 change, the trade didn't go through in that time.
                 Log("Did not detect a change in slot 1.");
@@ -615,7 +615,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
                 Log($"{detail.Trainer.TrainerName} not found");
 
                 await ExitTrade(false, token);
-                Hub.Config.Stream.EndEnterCode(this);
+                Hub.Config.Integration.Stream.EndEnterCode(this);
                 return PokeTradeResult.NoTrainerFound;
             }
         }
@@ -711,7 +711,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
             Log($"Entering trade code: {string.Join(", ", poke.LGPETradeCode)}");
         }
 
-        Hub.Config.Stream.StartEnterCode(this);
+        Hub.Config.Integration.Stream.StartEnterCode(this);
         var codePosition = 1;
         foreach (Pictocodes pc in poke.LGPETradeCode)
         {
@@ -925,3 +925,4 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
         }
     }
 }
+

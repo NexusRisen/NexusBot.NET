@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace SysBot.Pokemon.Discord;
@@ -13,8 +14,10 @@ public static class BatchHelpers<T> where T : PKM, new()
 {
     public static List<string> ParseBatchTradeContent(string content)
     {
-        var delimiters = new[] { "---", "—-" };
-        return [.. content.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).Select(trade => trade.Trim())];
+        // Split by 3 or more hyphens/dashes, surrounded by optional whitespace
+        // This handles ---, ----, ———, etc. and various Discord auto-formatting
+        var pattern = @"\s*[-—–]{3,}\s*";
+        return [.. Regex.Split(content, pattern).Where(s => !string.IsNullOrWhiteSpace(s)).Select(trade => trade.Trim())];
     }
 
     public static async Task<(T? Pokemon, string? Error, ShowdownSet? Set, string? LegalizationHint)> ProcessSingleTradeForBatch(string tradeContent)

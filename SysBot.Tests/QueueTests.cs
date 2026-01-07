@@ -289,7 +289,7 @@ public class QueueTests
     private static void TestFavor<T>() where T : PKM, new()
     {
         var settings = new PokeTradeHubConfig();
-        settings.Queues.MaxQueueCount = 200; // Increase to accommodate all test users
+        settings.TradeSystem.Queues.MaxQueueCount = 200; // Increase to accommodate all test users
         var hub = new PokeTradeHub<T>(settings);
         var info = new TradeQueueInfo<T>(hub);
         var queue = info.Hub.Queues.GetQueue(PokeRoutineType.LinkTrade);
@@ -307,7 +307,7 @@ public class QueueTests
         queue.Count.Should().Be(count);
 
         // Configure favoritism: 40% skip means priority users will skip 40% of regular users
-        var f = settings.Favoritism;
+        var f = settings.TradeSystem.Favoritism;
         f.EnableFavoritism = true;
         f.SkipPercentage = 40;
         f.MinimumRegularUsersFirst = 3;

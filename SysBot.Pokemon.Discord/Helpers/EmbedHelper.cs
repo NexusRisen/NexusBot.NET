@@ -8,27 +8,28 @@ namespace SysBot.Pokemon.Discord;
 
 public static class EmbedHelper
 {
+    // NexusRisen Theme Colors
+    private static readonly Color ColorPrimary = new Color(43, 45, 49);     // Dark Gray (Discord-like)
+    private static readonly Color ColorAccent = new Color(88, 101, 242);    // Blurple
+    private static readonly Color ColorSuccess = new Color(87, 242, 135);   // Green
+    private static readonly Color ColorDanger = new Color(237, 66, 69);     // Red
+    private static readonly Color ColorWarning = new Color(254, 231, 92);   // Yellow
+    private static readonly Color ColorInfo = new Color(88, 101, 242);      // Blue/Blurple
+
+    // Common Footer
+    private static readonly EmbedFooterBuilder Footer = new EmbedFooterBuilder()
+        .WithText("NexusRisen PokeBot • Powered by SysBot.NET")
+        .WithIconUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/pokeball.png");
+
     public static async Task SendNotificationEmbedAsync(IUser user, string message)
     {
         var embed = new EmbedBuilder()
-            .WithTitle("Notice")
+            .WithTitle("📢 Notification")
             .WithDescription(message)
             .WithTimestamp(DateTimeOffset.Now)
             .WithThumbnailUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/exclamation.gif")
-            .WithColor(Color.Red)
-            .Build();
-
-        await user.SendMessageAsync(embed: embed).ConfigureAwait(false);
-    }
-
-    public static async Task SendTradeCanceledEmbedAsync(IUser user, string reason)
-    {
-        var embed = new EmbedBuilder()
-            .WithTitle("Your Trade was Canceled...")
-            .WithDescription($"Your trade was canceled.\nPlease try again. If the issue persists, restart your switch and check your internet connection.\n\n**Reason**: {reason}")
-            .WithTimestamp(DateTimeOffset.Now)
-            .WithThumbnailUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/dmerror.gif")
-            .WithColor(Color.Red)
+            .WithColor(ColorInfo)
+            .WithFooter(Footer)
             .Build();
 
         await user.SendMessageAsync(embed: embed).ConfigureAwait(false);
@@ -37,11 +38,13 @@ public static class EmbedHelper
     public static async Task SendTradeCodeEmbedAsync(IUser user, int code)
     {
         var embed = new EmbedBuilder()
-            .WithTitle("Here's your trade code!")
-            .WithDescription($"# {code:0000 0000}")
+            .WithTitle("🔄 Ready to Trade!")
+            .WithDescription($"Please enter the following Link Code:")
+            .AddField("Link Code", $"`{code:0000 0000}`", true)
             .WithTimestamp(DateTimeOffset.Now)
             .WithThumbnailUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/tradecode.gif")
-            .WithColor(Color.Blue)
+            .WithColor(ColorAccent)
+            .WithFooter(Footer)
             .Build();
 
         await user.SendMessageAsync(embed: embed).ConfigureAwait(false);
@@ -51,10 +54,12 @@ public static class EmbedHelper
         where T : PKM, new()
     {
         string thumbnailUrl;
+        string title = "✅ Trade Completed";
 
         if (isMysteryEgg)
         {
             thumbnailUrl = "https://raw.githubusercontent.com/hexbyt3/sprites/main/mysteryegg3.png";
+            title = "🥚 Mystery Egg Sent!";
         }
         else
         {
@@ -62,11 +67,12 @@ public static class EmbedHelper
         }
 
         var embed = new EmbedBuilder()
-            .WithTitle("Trade Completed!")
+            .WithTitle(title)
             .WithDescription(message)
             .WithTimestamp(DateTimeOffset.Now)
             .WithThumbnailUrl(thumbnailUrl)
-            .WithColor(Color.Teal)
+            .WithColor(ColorSuccess)
+            .WithFooter(Footer)
             .Build();
 
         await user.SendMessageAsync(embed: embed).ConfigureAwait(false);
@@ -80,15 +86,21 @@ public static class EmbedHelper
         }
 
         var embed = new EmbedBuilder()
-            .WithTitle("Loading the Trade Portal...")
-            .WithDescription($"**Pokemon**: {speciesName}\n**Trade Code**: {code:0000 0000}")
+            .WithTitle("🚀 Trade Initializing...")
+            .AddField("Pokémon", speciesName, true)
+            .AddField("Link Code", $"`{code:0000 0000}`", true)
             .WithTimestamp(DateTimeOffset.Now)
             .WithThumbnailUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/initializing.gif")
-            .WithColor(Color.Orange);
+            .WithColor(ColorAccent) // Use accent color instead of orange
+            .WithFooter(Footer);
 
         if (!string.IsNullOrEmpty(message))
         {
-            embed.WithDescription($"{embed.Description}\n\n{message}");
+            embed.WithDescription(message);
+        }
+        else
+        {
+            embed.WithDescription("Please enter the Link Code and wait for the bot.");
         }
 
         var builtEmbed = embed.Build();
@@ -98,18 +110,37 @@ public static class EmbedHelper
     public static async Task SendTradeSearchingEmbedAsync(IUser user, string trainerName, string inGameName, string? message = null)
     {
         var embed = new EmbedBuilder()
-            .WithTitle($"Now Searching for You, {trainerName}...")
-            .WithDescription($"**Waiting for**: {trainerName}\n**My IGN**: {inGameName}")
+            .WithTitle($"🔍 Searching for Partner...")
+            .AddField("Trainer", trainerName, true)
+            .AddField("Bot IGN", inGameName, true)
             .WithTimestamp(DateTimeOffset.Now)
             .WithThumbnailUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/searching.gif")
-            .WithColor(Color.Green);
+            .WithColor(ColorWarning)
+            .WithFooter(Footer);
 
         if (!string.IsNullOrEmpty(message))
         {
-            embed.WithDescription($"{embed.Description}\n\n{message}");
+            embed.WithDescription(message);
+        }
+        else
+        {
+            embed.WithDescription("Please stand by, the trade will begin shortly.");
         }
 
         var builtEmbed = embed.Build();
         await user.SendMessageAsync(embed: builtEmbed).ConfigureAwait(false);
+    }
+
+    public static async Task SendTradeCanceledEmbedAsync(IUser user, string reason)
+    {
+        var embed = new EmbedBuilder()
+            .WithTitle("⛔ Trade Canceled")
+            .WithDescription(reason)
+            .WithTimestamp(DateTimeOffset.Now)
+            .WithColor(ColorDanger)
+            .WithFooter(Footer)
+            .Build();
+
+        await user.SendMessageAsync(embed: embed).ConfigureAwait(false);
     }
 }

@@ -38,15 +38,15 @@ public static class DetailsExtractor<T> where T : PKM, new()
     {
         string leftSideContent = $"**Trainer:** {trainerMention}\n";
         leftSideContent +=
-            (pk.Version is GameVersion.SL or GameVersion.VL && SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.ShowTeraType ? $"**Tera Type:** {embedData.TeraType}\n" : "") +
-            (pk.Version is GameVersion.SL or GameVersion.VL && SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.ShowScale ? $"**Scale:** {embedData.Scale.Item1} ({embedData.Scale.Item2})\n" : "") +
-            (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.ShowLevel ? $"**Level:** {embedData.Level}\n" : "") +
-            (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.ShowMetDate ? $"**Met Date:** {embedData.MetDate}\n" : "") +
-            (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.ShowAbility ? $"**Ability:** {embedData.Ability}\n" : "") +
-            (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.ShowNature ? $"**Nature**: {embedData.Nature}\n" : "") +
-            (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.ShowIVs ? $"**IVs**: {embedData.IVsDisplay}\n" : "") +
-            (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.ShowLanguage ? $"**Language**: {embedData.Language}\n" : "") +
-            (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.ShowEVs && !string.IsNullOrWhiteSpace(embedData.EVsDisplay) ? $"**EVs**: {embedData.EVsDisplay}\n" : "");
+            (pk.Version is GameVersion.SL or GameVersion.VL && SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowTeraType ? $"**Tera Type:** {embedData.TeraType}\n" : "") +
+            (pk.Version is GameVersion.SL or GameVersion.VL && SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowScale ? $"**Scale:** {embedData.Scale.Item1} ({embedData.Scale.Item2})\n" : "") +
+            (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowLevel ? $"**Level:** {embedData.Level}\n" : "") +
+            (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowMetDate ? $"**Met Date:** {embedData.MetDate}\n" : "") +
+            (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowAbility ? $"**Ability:** {embedData.Ability}\n" : "") +
+            (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowNature ? $"**Nature**: {embedData.Nature}\n" : "") +
+            (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowIVs ? $"**IVs**: {embedData.IVsDisplay}\n" : "") +
+            (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowLanguage ? $"**Language**: {embedData.Language}\n" : "") +
+            (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowEVs && !string.IsNullOrWhiteSpace(embedData.EVsDisplay) ? $"**EVs**: {embedData.EVsDisplay}\n" : "");
 
         leftSideContent = leftSideContent.TrimEnd('\n');
         embedBuilder.AddField($"**{embedData.SpeciesName}{(string.IsNullOrEmpty(embedData.FormName) ? "" : $"-{embedData.FormName}")} {embedData.SpecialSymbols}**", leftSideContent, inline: true);
@@ -190,7 +190,7 @@ public static class DetailsExtractor<T> where T : PKM, new()
         {
             userDetailsText = $"Trades: {totalTradeCount}";
         }
-        if (SysCord<T>.Runner.Config.Trade.TradeConfiguration.StoreTradeCodes && tradeDetails != null)
+        if (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeConfiguration.StoreTradeCodes && tradeDetails != null)
         {
             if (!string.IsNullOrEmpty(tradeDetails?.OT))
             {
@@ -261,7 +261,7 @@ public static class DetailsExtractor<T> where T : PKM, new()
         List<int> movePPs = [pk.Move1_PP, pk.Move2_PP, pk.Move3_PP, pk.Move4_PP];
         var moveNames = new List<string>();
 
-        var typeEmojis = SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.CustomTypeEmojis
+        var typeEmojis = SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.CustomTypeEmojis
             .Where(e => !string.IsNullOrEmpty(e.EmojiCode))
             .ToDictionary(e => (PKHeX.Core.MoveType)e.MoveType, e => $"{e.EmojiCode}");
 
@@ -272,7 +272,7 @@ public static class DetailsExtractor<T> where T : PKM, new()
             byte moveTypeId = MoveInfo.GetType(moves[i], default);
             PKHeX.Core.MoveType moveType = (PKHeX.Core.MoveType)moveTypeId;
             string formattedMove = $"{moveName} ({movePPs[i]}pp)";
-            if (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.MoveTypeEmojis && typeEmojis.TryGetValue(moveType, out var moveEmoji))
+            if (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.MoveTypeEmojis && typeEmojis.TryGetValue(moveType, out var moveEmoji))
             {
                 formattedMove = $"{moveEmoji} {formattedMove}";
             }
@@ -301,25 +301,25 @@ public static class DetailsExtractor<T> where T : PKM, new()
         string markTitle = string.Empty;
         if (pk is IRibbonSetMark9 ribbonSetMark)
         {
-            alphaMarkSymbol = ribbonSetMark.RibbonMarkAlpha ? SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.AlphaMarkEmoji.EmojiString : string.Empty;
-            mightyMarkSymbol = ribbonSetMark.RibbonMarkMightiest ? SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.MightiestMarkEmoji.EmojiString : string.Empty;
+            alphaMarkSymbol = ribbonSetMark.RibbonMarkAlpha ? SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.AlphaMarkEmoji.EmojiString : string.Empty;
+            mightyMarkSymbol = ribbonSetMark.RibbonMarkMightiest ? SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.MightiestMarkEmoji.EmojiString : string.Empty;
         }
         if (pk is IRibbonIndex ribbonIndex)
         {
             TradeExtensions<T>.HasMark(ribbonIndex, out RibbonIndex result, out markTitle);
         }
-        string alphaSymbol = (pk is IAlpha alpha && alpha.IsAlpha) ? SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.AlphaPLAEmoji.EmojiString : string.Empty;
+        string alphaSymbol = (pk is IAlpha alpha && alpha.IsAlpha) ? SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.AlphaPLAEmoji.EmojiString : string.Empty;
         string shinySymbol = pk.ShinyXor == 0 ? "◼ " : pk.IsShiny ? "★ " : string.Empty;
         string genderSymbol = GameInfo.GenderSymbolASCII[pk.Gender];
-        string maleEmojiString = SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.MaleEmoji.EmojiString;
-        string femaleEmojiString = SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.FemaleEmoji.EmojiString;
+        string maleEmojiString = SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.MaleEmoji.EmojiString;
+        string femaleEmojiString = SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.FemaleEmoji.EmojiString;
         string displayGender = genderSymbol switch
         {
             "M" => !string.IsNullOrEmpty(maleEmojiString) ? maleEmojiString : "(M) ",
             "F" => !string.IsNullOrEmpty(femaleEmojiString) ? femaleEmojiString : "(F) ",
             _ => ""
         };
-        string mysteryGiftEmoji = pk.FatefulEncounter ? SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.MysteryGiftEmoji.EmojiString : "";
+        string mysteryGiftEmoji = pk.FatefulEncounter ? SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.MysteryGiftEmoji.EmojiString : "";
 
         return shinySymbol + alphaSymbol + mightyMarkSymbol + alphaMarkSymbol + mysteryGiftEmoji + displayGender + (!string.IsNullOrEmpty(markTitle) ? $"{markTitle} " : "");
     }
@@ -329,9 +329,9 @@ public static class DetailsExtractor<T> where T : PKM, new()
         var isStellar = pk9.TeraTypeOverride == (MoveType)TeraTypeUtil.Stellar || (int)pk9.TeraType == 99;
         var teraType = isStellar ? TradeSettings.MoveType.Stellar : (TradeSettings.MoveType)pk9.TeraType;
 
-        if (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.UseTeraEmojis)
+        if (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.UseTeraEmojis)
         {
-            var emojiInfo = SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.TeraTypeEmojis.Find(e => e.MoveType == teraType);
+            var emojiInfo = SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.TeraTypeEmojis.Find(e => e.MoveType == teraType);
             if (emojiInfo != null && !string.IsNullOrEmpty(emojiInfo.EmojiCode))
             {
                 return emojiInfo.EmojiCode;
@@ -425,3 +425,4 @@ public class EmbedData
     /// <summary>Trade title for the embed.</summary>
     public string? TradeTitle { get; set; }
 }
+

@@ -57,7 +57,7 @@ public sealed class EncounterBotLineSWSH(PokeBotState Config, PokeTradeHub<PK8> 
         {
             if (!await IsInBattle(token).ConfigureAwait(false))
             {
-                switch (Hub.Config.EncounterSWSH.EncounteringType)
+                switch (Hub.Config.EncounterSystem.EncounterSWSH.EncounteringType)
                 {
                     case EncounterMode.VerticalLine:
                         await SetStick(LEFT, 0, -30000, 2_400, token).ConfigureAwait(false);
@@ -96,3 +96,4 @@ public sealed class EncounterBotLineSWSH(PokeBotState Config, PokeTradeHub<PK8> 
         return -1; // aborted
     }
 }
+

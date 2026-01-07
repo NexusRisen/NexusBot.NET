@@ -35,9 +35,9 @@ public static class WebApiExtensions
         _cts = new CancellationTokenSource(); // Initialize early for background tasks
 
         // Get the configured port from settings
-        if (mainForm.Config?.Hub?.WebServer != null)
+        if (mainForm.Config?.Hub?.Integration.WebServer != null)
         {
-            _webPort = mainForm.Config.Hub.WebServer.ControlPanelPort;
+            _webPort = mainForm.Config.Hub.Integration.WebServer.ControlPanelPort;
             
             // Validate port range
             if (_webPort < 1 || _webPort > 65535)
@@ -50,7 +50,7 @@ public static class WebApiExtensions
             UpdateManager.SetConfiguredWebPort(_webPort);
             
             // Check if web server is enabled
-            if (!mainForm.Config.Hub.WebServer.EnableWebServer)
+            if (!mainForm.Config.Hub.Integration.WebServer.EnableWebServer)
             {
                 LogUtil.LogInfo("WebServer", "Web Control Panel is disabled in settings.");
                 return;
@@ -877,8 +877,8 @@ public static class WebApiExtensions
 
     private static string GetInstanceName(ProgramConfig? config, string mode)
     {
-        if (!string.IsNullOrEmpty(config?.Hub?.BotName))
-            return config.Hub.BotName;
+        if (!string.IsNullOrEmpty(config?.Hub?.Global.BotName))
+            return config.Hub.Global.BotName;
 
         return mode switch
         {
@@ -1162,3 +1162,5 @@ public static class WebApiExtensions
     }
 
 }
+
+

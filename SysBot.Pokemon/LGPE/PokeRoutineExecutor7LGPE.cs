@@ -42,7 +42,7 @@ public abstract class PokeRoutineExecutor7LGPE : PokeRoutineExecutor<PB7>
 
     public async Task CloseGame(PokeTradeHubConfig config, CancellationToken token)
     {
-        var timing = config.Timings;
+        var timing = config.Global.Timings;
 
         await Click(B, 0_500, token).ConfigureAwait(false);
         await Click(HOME, 2_000 + timing.ExtraTimeReturnHome, token).ConfigureAwait(false);
@@ -210,7 +210,7 @@ public abstract class PokeRoutineExecutor7LGPE : PokeRoutineExecutor<PB7>
     {
 
         // Open game.
-        var timing = config.Timings;
+        var timing = config.Global.Timings;
         var loadPro = timing.ProfileSelectionRequired ? timing.ExtraTimeLoadProfile : 0;
 
         await Click(A, 1_000 + loadPro, token).ConfigureAwait(false); // Initial "A" Press to start the Game + a delay if needed for profiles to load
@@ -301,3 +301,4 @@ public abstract class PokeRoutineExecutor7LGPE : PokeRoutineExecutor<PB7>
     // Initialize lure state. We can pass in different variables for whether we do this or not.
     //    await SetLure(lure, token).ConfigureAwait(false);
 }
+

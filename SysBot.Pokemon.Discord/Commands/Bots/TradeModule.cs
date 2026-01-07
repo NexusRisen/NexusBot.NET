@@ -358,7 +358,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         pk.ResetPartyStats();
 
         // Ad Name Check
-        if (Info.Hub.Config.Trade.TradeConfiguration.EnableSpamCheck)
+        if (Info.Hub.Config.TradeSystem.Settings.TradeConfiguration.EnableSpamCheck)
         {
             if (TradeExtensions<T>.HasAdName(pk, out string ad))
             {
@@ -410,9 +410,9 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     private async Task ProcessItemTradeAsync(int code, string item)
     {
-        Species species = Info.Hub.Config.Trade.TradeConfiguration.ItemTradeSpecies == Species.None
+        Species species = Info.Hub.Config.TradeSystem.Settings.TradeConfiguration.ItemTradeSpecies == Species.None
             ? Species.Diglett
-            : Info.Hub.Config.Trade.TradeConfiguration.ItemTradeSpecies;
+            : Info.Hub.Config.TradeSystem.Settings.TradeConfiguration.ItemTradeSpecies;
 
         var set = new ShowdownSet($"{SpeciesName.GetSpeciesNameGeneration((ushort)species, 2, 8)} @ {item.Trim()}");
         var template = AutoLegalityWrapper.GetTemplate(set);
@@ -495,7 +495,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     public Task ListEventsAsync([Remainder] string args = "")
         => ListHelpers<T>.HandleListCommandAsync(
             Context,
-            SysCord<T>.Runner.Config.Trade.RequestFolderSettings.EventsFolder,
+            SysCord<T>.Runner.Config.TradeSystem.Settings.RequestFolderSettings.EventsFolder,
             "events",
             "er",
             args
@@ -507,7 +507,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     public Task BattleReadyListAsync([Remainder] string args = "")
         => ListHelpers<T>.HandleListCommandAsync(
             Context,
-            SysCord<T>.Runner.Config.Trade.RequestFolderSettings.BattleReadyPKMFolder,
+            SysCord<T>.Runner.Config.TradeSystem.Settings.RequestFolderSettings.BattleReadyPKMFolder,
             "battle-ready files",
             "brr",
             args
@@ -524,7 +524,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     public Task EventRequestAsync(int index)
         => ListHelpers<T>.HandleRequestCommandAsync(
             Context,
-            SysCord<T>.Runner.Config.Trade.RequestFolderSettings.EventsFolder,
+            SysCord<T>.Runner.Config.TradeSystem.Settings.RequestFolderSettings.EventsFolder,
             index,
             "event",
             "le"
@@ -537,7 +537,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     public Task BattleReadyRequestAsync(int index)
         => ListHelpers<T>.HandleRequestCommandAsync(
             Context,
-            SysCord<T>.Runner.Config.Trade.RequestFolderSettings.BattleReadyPKMFolder,
+            SysCord<T>.Runner.Config.TradeSystem.Settings.RequestFolderSettings.BattleReadyPKMFolder,
             index,
             "battle-ready file",
             "brl"
@@ -549,11 +549,19 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("batchTrade")]
     [Alias("bt")]
-    [Summary("Makes the bot trade multiple Pokémon from the provided list, up to a maximum of 4 trades.")]
+    [Summary("Makes the bot trade multiple Pokémon from the provided list or attachments, up to a maximum configured number.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
-    public async Task BatchTradeAsync([Summary("List of Showdown Sets separated by '---'")][Remainder] string content)
+    public async Task BatchTradeAsync([Summary("List of Showdown Sets separated by '---'")][Remainder] string content = "")
     {
-        var tradeConfig = SysCord<T>.Runner.Config.Trade.TradeConfiguration;
+        // Batch trades are not supported for LGPE
+        if (typeof(T) == typeof(PB7))
+        {
+            await Helpers<T>.ReplyAndDeleteAsync(Context,
+                "Batch trades are not supported for Let's Go Pikachu/Eevee.", 5);
+            return;
+        }
+
+        var tradeConfig = SysCord<T>.Runner.Config.TradeSystem.Settings.TradeConfiguration;
 
         // Check if batch trades are allowed
         if (!tradeConfig.AllowBatchTrades)
@@ -570,20 +578,29 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
                 "You already have an existing trade in the queue that cannot be cleared. Please wait until it is processed.", 2);
             return;
         }
+
         content = ReusableActions.StripCodeBlock(content);
         var trades = BatchHelpers<T>.ParseBatchTradeContent(content);
+        var attachments = Context.Message.Attachments;
+        int totalTrades = trades.Count + attachments.Count;
+
+        if (totalTrades == 0)
+        {
+             await Helpers<T>.ReplyAndDeleteAsync(Context, "Please provide Showdown sets or attach files for batch trading.", 5);
+             return;
+        }
 
         // Use configured max trades per batch, default to 4 if less than 1
         int maxTradesAllowed = tradeConfig.MaxPkmsPerTrade > 0 ? tradeConfig.MaxPkmsPerTrade : 4;
 
-        if (trades.Count > maxTradesAllowed)
+        if (totalTrades > maxTradesAllowed)
         {
             await Helpers<T>.ReplyAndDeleteAsync(Context,
                 $"You can only process up to {maxTradesAllowed} trades at a time. Please reduce the number of trades in your batch.", 5);
             return;
         }
 
-        var processingMessage = await Context.Channel.SendMessageAsync($"{Context.User.Mention} Processing your batch trade with {trades.Count} Pokémon...");
+        var processingMessage = await Context.Channel.SendMessageAsync($"{Context.User.Mention} Processing your batch trade with {totalTrades} Pokémon...");
 
         _ = Task.Run(async () =>
         {
@@ -591,6 +608,77 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             {
                 var batchPokemonList = new List<T>();
                 var errors = new List<BatchTradeError>();
+
+                // Process Attachments first
+                foreach (var attachment in attachments)
+                {
+                    try
+                    {
+                        var dl = await NetUtil.DownloadPKMAsync(attachment).ConfigureAwait(false);
+                        var pk = Helpers<T>.GetRequest(dl);
+                        int currentTradeNumber = batchPokemonList.Count + errors.Count + 1;
+
+                        if (pk != null)
+                        {
+                            // Basic validation for attachment
+                            if (!pk.CanBeTraded())
+                            {
+                                errors.Add(new BatchTradeError 
+                                { 
+                                    TradeNumber = currentTradeNumber, 
+                                    SpeciesName = SpeciesName.GetSpeciesName(pk.Species, 2),
+                                    ErrorMessage = "Pokémon cannot be traded.", 
+                                    ShowdownSet = attachment.Filename 
+                                });
+                                continue;
+                            }
+
+                            // Legality Check
+                            var la = new LegalityAnalysis(pk);
+                            if (!la.Valid)
+                            {
+                                errors.Add(new BatchTradeError 
+                                { 
+                                    TradeNumber = currentTradeNumber, 
+                                    SpeciesName = SpeciesName.GetSpeciesName(pk.Species, 2),
+                                    ErrorMessage = "Illegal Pokémon", 
+                                    LegalizationHint = la.Report(), 
+                                    ShowdownSet = attachment.Filename 
+                                });
+                                continue;
+                            }
+
+                            // Prepare the Pokemon (similar to Helpers.PrepareForTrade but for attachments we assume they are mostly ready)
+                            // However, we might need to set Handler/Language if it was a file from elsewhere.
+                            // Helpers<T>.AddTradeToQueueAsync handles some of this, but here we are bypassing it until the end.
+                            // We should probably rely on standard preparation if needed, but for now assuming valid PKM file.
+                            
+                            batchPokemonList.Add(pk);
+                        }
+                        else
+                        {
+                            errors.Add(new BatchTradeError 
+                            { 
+                                TradeNumber = currentTradeNumber, 
+                                SpeciesName = "File",
+                                ErrorMessage = "Invalid attachment file.", 
+                                ShowdownSet = attachment.Filename 
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add(new BatchTradeError 
+                        { 
+                            TradeNumber = batchPokemonList.Count + errors.Count + 1, 
+                            SpeciesName = "File",
+                            ErrorMessage = $"Error processing file: {ex.Message}", 
+                            ShowdownSet = attachment.Filename 
+                        });
+                    }
+                }
+
+                // Process Text Trades
                 for (int i = 0; i < trades.Count; i++)
                 {
                     var (pk, error, set, legalizationHint) = await BatchHelpers<T>.ProcessSingleTradeForBatch(trades[i]);
@@ -605,7 +693,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
                             : "Unknown";
                         errors.Add(new BatchTradeError
                         {
-                            TradeNumber = i + 1,
+                            TradeNumber = batchPokemonList.Count + errors.Count + 1,
                             SpeciesName = speciesName,
                             ErrorMessage = error ?? "Unknown error",
                             LegalizationHint = legalizationHint,
@@ -618,13 +706,13 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
                 if (errors.Count > 0)
                 {
-                    await BatchHelpers<T>.SendBatchErrorEmbedAsync(Context, errors, trades.Count);
+                    await BatchHelpers<T>.SendBatchErrorEmbedAsync(Context, errors, totalTrades);
                     return;
                 }
                 if (batchPokemonList.Count > 0)
                 {
                     var batchTradeCode = Info.GetRandomTradeCode(userID);
-                    await BatchHelpers<T>.ProcessBatchContainer(Context, batchPokemonList, batchTradeCode, trades.Count);
+                    await BatchHelpers<T>.ProcessBatchContainer(Context, batchPokemonList, batchTradeCode, totalTrades);
                 }
             }
             catch (Exception ex)
@@ -707,3 +795,6 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     #endregion
 }
+
+
+

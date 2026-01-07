@@ -29,7 +29,7 @@ public sealed class RequireQueueRoleAttribute(string RoleName) : PreconditionAtt
         if (mgr.CanUseSudo(roles.Select(z => z.Name)))
             return Task.FromResult(PreconditionResult.FromSuccess());
 
-        bool canQueue = SysCordSettings.HubConfig.Queues.CanQueue;
+        bool canQueue = SysCordSettings.HubConfig.TradeSystem.Queues.CanQueue;
         if (!canQueue)
             return Task.FromResult(PreconditionResult.FromError("Sorry, I am not currently accepting queue requests!"));
 

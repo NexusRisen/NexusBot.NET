@@ -12,8 +12,8 @@ namespace SysBot.Pokemon.WinForms
 {
     public class UpdateChecker
     {
-        private const string RepositoryOwner = "hexbyt3";
-        private const string RepositoryName = "PokeBot";
+        private static string RepositoryOwner = "hexbyt3";
+        private static string RepositoryName = "PokeBot";
 
         // Reuse HttpClient to prevent socket exhaustion and memory leaks
         // HttpClient is thread-safe and should be reused
@@ -27,6 +27,14 @@ namespace SysBot.Pokemon.WinForms
             // No auth token needed for public repo
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github+json"));
             return client;
+        }
+
+        public static void SetRepository(string owner, string name)
+        {
+            if (!string.IsNullOrWhiteSpace(owner))
+                RepositoryOwner = owner.Trim();
+            if (!string.IsNullOrWhiteSpace(name))
+                RepositoryName = name.Trim();
         }
 
         public static async Task<(bool UpdateAvailable, bool UpdateRequired, string NewVersion)> CheckForUpdatesAsync(bool forceShow = false)

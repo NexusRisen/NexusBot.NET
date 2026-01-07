@@ -141,7 +141,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
         var position = Hub.Queues.Info.CheckPosition(_traderID, _uniqueTradeID, PokeRoutineType.LinkTrade);
         var currentPosition = position.Position < 1 ? 1 : position.Position;
         var botct = Hub.Bots.Count;
-        var currentETA = currentPosition > botct ? Hub.Config.Queues.EstimateDelay(currentPosition, botct) : 0;
+        var currentETA = currentPosition > botct ? Hub.Config.TradeSystem.Queues.EstimateDelay(currentPosition, botct) : 0;
 
         _lastReportedPosition = currentPosition;
 
@@ -302,7 +302,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
 
         // For single trades only, return the Pokemon immediately
         // Batch trades will have their Pokemon returned separately via SendNotification
-        if (result is not null && Hub.Config.Discord.ReturnPKMs && TotalBatchTrades <= 1)
+        if (result is not null && Hub.Config.Integration.Discord.ReturnPKMs && TotalBatchTrades <= 1)
         {
             Trader.SendPKMAsync(result, "Here's what you traded me!").ConfigureAwait(false);
         }
@@ -336,7 +336,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
     public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, T result, string message)
     {
         // Always send the Pokemon if requested, regardless of trade type
-        if (result.Species != 0 && (Hub.Config.Discord.ReturnPKMs || info.Type == PokeTradeType.Dump))
+        if (result.Species != 0 && (Hub.Config.Integration.Discord.ReturnPKMs || info.Type == PokeTradeType.Dump))
         {
             Trader.SendPKMAsync(result, message).ConfigureAwait(false);
         }
@@ -417,3 +417,4 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
         Dispose();
     }
 }
+

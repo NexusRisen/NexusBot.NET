@@ -121,8 +121,8 @@ public class StopConditionSettings
 
     public static void InitializeTargetIVs(PokeTradeHubConfig config, out int[] min, out int[] max)
     {
-        min = ReadTargetIVs(config.StopConditions, true);
-        max = ReadTargetIVs(config.StopConditions, false);
+        min = ReadTargetIVs(config.EncounterSystem.StopConditions, true);
+        max = ReadTargetIVs(config.EncounterSystem.StopConditions, false);
     }
 
     public static void ReadUnwantedMarks(StopConditionSettings settings, out IReadOnlyList<string> marks) =>
@@ -182,3 +182,4 @@ public enum TargetShinyType
 
     SquareOnly,     // Match square shiny only
 }
+

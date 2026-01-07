@@ -58,9 +58,9 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
     public PokeTradeBotBS(PokeTradeHub<PB8> hub, PokeBotState config) : base(config)
     {
         Hub = hub;
-        AbuseSettings = Hub.Config.TradeAbuse;
-        DumpSetting = Hub.Config.Folder;
-        TradeSettings = Hub.Config.Trade;
+        AbuseSettings = Hub.Config.TradeSystem.Abuse;
+        DumpSetting = Hub.Config.Global.Folder;
+        TradeSettings = Hub.Config.TradeSystem.Settings;
     }
 
     protected virtual void Dispose(bool disposing)
@@ -103,7 +103,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
     {
         try
         {
-            await InitializeHardware(Hub.Config.Trade, token).ConfigureAwait(false);
+            await InitializeHardware(Hub.Config.TradeSystem.Settings, token).ConfigureAwait(false);
 
             Log("Identifying trainer data of the host console.");
             var sav = await IdentifyTrainer(token).ConfigureAwait(false);
@@ -312,7 +312,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         var oldEC = await SwitchConnection.ReadBytesAbsoluteAsync(BoxStartOffset, 8, token).ConfigureAwait(false);
 
         await Click(A, 3_000, token).ConfigureAwait(false);
-        for (int i = 0; i < Hub.Config.Trade.TradeConfiguration.MaxTradeConfirmTime; i++)
+        for (int i = 0; i < Hub.Config.TradeSystem.Settings.TradeConfiguration.MaxTradeConfirmTime; i++)
         {
             if (token.IsCancellationRequested) return PokeTradeResult.RoutineCancel;
 
@@ -329,7 +329,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             if (!newEC.SequenceEqual(oldEC))
             {
                 // Check if partner offered a Pokemon that will evolve
-                if (Hub.Config.Trade.TradeConfiguration.DisallowTradeEvolve)
+                if (Hub.Config.TradeSystem.Settings.TradeConfiguration.DisallowTradeEvolve)
                 {
                     var offered = await ReadPokemon(LinkTradePokemonOffset, BoxFormatSlotSize, token).ConfigureAwait(false);
                     if (offered != null && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, detail.TradeData.Species))
@@ -357,7 +357,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             if (waitCounter == 0)
                 Log("No task assigned. Waiting for new task assignment.");
             waitCounter++;
-            if (waitCounter % 10 == 0 && Hub.Config.AntiIdle)
+            if (waitCounter % 10 == 0 && Hub.Config.Global.AntiIdle)
                 await Click(B, 1_000, token).ConfigureAwait(false);
             else
                 await Task.Delay(1_000, token).ConfigureAwait(false);
@@ -378,13 +378,13 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             }
             waitCounter = 0;
 
-            if (detail.Type != PokeTradeType.Random || !Hub.Config.Distribution.RemainInUnionRoomBDSP)
+            if (detail.Type != PokeTradeType.Random || !Hub.Config.TradeSystem.Distribution.RemainInUnionRoomBDSP)
                 await RestartGameIfCantLeaveUnionRoom(token).ConfigureAwait(false);
 
             string tradetype = $" ({detail.Type})";
             Log($"Starting next {type}{tradetype} Bot Trade. Getting data...");
             await Task.Delay(500, token).ConfigureAwait(false);
-            Hub.Config.Stream.StartTrade(this, detail, Hub);
+            Hub.Config.Integration.Stream.StartTrade(this, detail, Hub);
             Hub.Queues.StartTrade(this, detail);
 
             await PerformTrade(sav, detail, type, priority, token).ConfigureAwait(false);
@@ -414,7 +414,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             return true;
 
         // Open y-comm and select global room
-        await Click(Y, 1_000 + Hub.Config.Timings.ExtraTimeOpenYMenu, token).ConfigureAwait(false);
+        await Click(Y, 1_000 + Hub.Config.Global.Timings.ExtraTimeOpenYMenu, token).ConfigureAwait(false);
         await Click(DRIGHT, 0_400, token).ConfigureAwait(false);
 
         // French has one less menu
@@ -471,7 +471,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         await PressAndHold(A, 6_500, 0, token).ConfigureAwait(false);
 
         if (tradeType != PokeTradeType.Random)
-            Hub.Config.Stream.StartEnterCode(this);
+            Hub.Config.Integration.Stream.StartEnterCode(this);
         Log($"Entering Link Trade code: {tradeCode:0000 0000}...");
         await EnterLinkCode(tradeCode, Hub.Config, token).ConfigureAwait(false);
 
@@ -480,7 +480,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         if (token.IsCancellationRequested) return false;
 
         await Click(PLUS, 0_600, token).ConfigureAwait(false);
-        Hub.Config.Stream.EndEnterCode(this);
+        Hub.Config.Integration.Stream.EndEnterCode(this);
         Log("Entering the Union Room.");
 
         // Wait until we're past the communication message.
@@ -495,7 +495,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 return false;
         }
 
-        await Task.Delay(1_300 + Hub.Config.Timings.ExtraTimeJoinUnionRoom, token).ConfigureAwait(false);
+        await Task.Delay(1_300 + Hub.Config.Global.Timings.ExtraTimeJoinUnionRoom, token).ConfigureAwait(false);
 
         return true; // We've made it into the room and are ready to request.
     }
@@ -556,7 +556,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 if (tries < 0)
                     return false;
             }
-            await Task.Delay(3_000 + Hub.Config.Timings.ExtraTimeLeaveUnionRoom, token).ConfigureAwait(false);
+            await Task.Delay(3_000 + Hub.Config.Global.Timings.ExtraTimeLeaveUnionRoom, token).ConfigureAwait(false);
         }
         return true;
     }
@@ -597,7 +597,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
 
     private async Task<(PB8 toSend, PokeTradeResult check)> HandleClone(SAV8BS sav, PokeTradeDetail<PB8> poke, PB8 offered, CancellationToken token)
     {
-        if (Hub.Config.Discord.ReturnPKMs)
+        if (Hub.Config.Integration.Discord.ReturnPKMs)
             poke.SendNotification(this, offered, $"Here's what you showed me - {GameInfo.GetStrings("en").Species[offered.Species]}");
 
         var la = new LegalityAnalysis(offered);
@@ -616,7 +616,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         }
 
         var clone = offered.Clone();
-        if (Hub.Config.Legality.ResetHOMETracker)
+        if (Hub.Config.Global.Legality.ResetHOMETracker)
             clone.Tracker = 0;
 
         poke.SendNotification(this, $"**Cloned your {GameInfo.GetStrings("en").Species[clone.Species]}!**\nNow press B to cancel your offer and trade me a Pokémon you don't want.");
@@ -658,7 +658,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
     {
         if (token.IsCancellationRequested) return (offered, PokeTradeResult.RoutineCancel);
 
-        if (Hub.Config.Discord.ReturnPKMs)
+        if (Hub.Config.Integration.Discord.ReturnPKMs)
             poke.SendNotification(this, offered, $"Here's what you showed me - {GameInfo.GetStrings("en").Species[offered.Species]}");
 
         var adOT = TradeExtensions<PB8>.HasAdName(offered, out _);
@@ -670,7 +670,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         }
 
         var clone = (PB8)offered.Clone();
-        if (Hub.Config.Legality.ResetHOMETracker)
+        if (Hub.Config.Global.Legality.ResetHOMETracker)
             clone.Tracker = 0;
 
         string shiny = string.Empty;
@@ -767,7 +767,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         if (token.IsCancellationRequested) return (toSend, PokeTradeResult.RoutineCancel);
 
         // Allow the trade partner to do a Ledy swap.
-        var config = Hub.Config.Distribution;
+        var config = Hub.Config.TradeSystem.Distribution;
         var trade = Hub.Ledy.GetLedyTrade(offered, partner.TrainerOnlineID, config.LedySpecies);
         if (trade != null)
         {
@@ -832,8 +832,8 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             {
                 if (e.StackTrace != null)
                     Connection.LogError(e.StackTrace);
-                var attempts = Hub.Config.Timings.ReconnectAttempts;
-                var delay = Hub.Config.Timings.ExtraReconnectDelay;
+                var attempts = Hub.Config.Global.Timings.ReconnectAttempts;
+                var delay = Hub.Config.Global.Timings.ExtraReconnectDelay;
                 var protocol = Config.Connection.Protocol;
                 if (!await TryReconnect(attempts, delay, protocol, token).ConfigureAwait(false))
                     return;
@@ -866,9 +866,9 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         // Update Barrier Settings
         UpdateBarrier(poke.IsSynchronized);
         poke.TradeInitialize(this);
-        Hub.Config.Stream.EndEnterCode(this);
+        Hub.Config.Integration.Stream.EndEnterCode(this);
 
-        var distroRemainInRoom = poke.Type == PokeTradeType.Random && Hub.Config.Distribution.RemainInUnionRoomBDSP;
+        var distroRemainInRoom = poke.Type == PokeTradeType.Random && Hub.Config.TradeSystem.Distribution.RemainInUnionRoomBDSP;
 
         // If we weren't supposed to remain and started out in the Union Room, ensure we're out of the box.
         if (!distroRemainInRoom && await IsUnionWork(UnionGamingOffset, token).ConfigureAwait(false))
@@ -895,7 +895,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         }
         await RequestUnionRoomTrade(token).ConfigureAwait(false);
         poke.TradeSearching(this);
-        var waitPartner = Hub.Config.Trade.TradeConfiguration.TradeWaitTime;
+        var waitPartner = Hub.Config.TradeSystem.Settings.TradeConfiguration.TradeWaitTime;
 
         // Keep pressing A until we detect someone talking to us.
         while (!await IsUnionWork(UnionTalkingOffset, token).ConfigureAwait(false) && waitPartner > 0)
@@ -983,7 +983,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         if (partnerCheck != PokeTradeResult.Success)
             return PokeTradeResult.SuspiciousActivity;
 
-        if (Hub.Config.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT)
+        if (Hub.Config.Global.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT)
         {
             toSend = await ApplyAutoOT(toSend, sav, tradePartner.TrainerName, (uint)tid, (uint)sid, tradePartner.Gender, token);
         }
@@ -1048,7 +1048,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             poke.SendNotification(this, "Shinify success! Thanks for being part of the community!");
 
         // Check if the offered Pokemon will evolve upon trade BEFORE confirming
-        if (Hub.Config.Trade.TradeConfiguration.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, toSend.Species))
+        if (Hub.Config.TradeSystem.Settings.TradeConfiguration.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offered.Species, offered.Form, offered.HeldItem, toSend.Species))
         {
             Log("Trade cancelled because trainer offered a Pokémon that would evolve upon trade.");
             poke.SendNotification(this, "Trade cancelled. You cannot trade a Pokémon that will evolve. To prevent this, either give your Pokémon an Everstone to hold, or trade a different Pokémon.");
@@ -1188,7 +1188,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
 
         UpdateBarrier(poke.IsSynchronized);
         poke.TradeInitialize(this);
-        Hub.Config.Stream.EndEnterCode(this);
+        Hub.Config.Integration.Stream.EndEnterCode(this);
 
         if (await CheckIfSoftBanned(SoftBanOffset, token).ConfigureAwait(false))
             await UnSoftBan(token).ConfigureAwait(false);
@@ -1233,7 +1233,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 // Prepare the next Pokemon with AutoOT if needed
                 if (toSend.Species != 0)
                 {
-                    if (Hub.Config.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT && cachedTradePartner != null)
+                    if (Hub.Config.Global.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT && cachedTradePartner != null)
                     {
                         toSend = await ApplyAutoOT(toSend, sav, cachedTradePartner.TrainerName, cachedTID, cachedSID, cachedTradePartner.Gender, token);
                         tradesToProcess[currentTradeIndex] = toSend; // Update the list
@@ -1252,7 +1252,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             }
 
             poke.TradeSearching(this);
-            var waitPartner = Hub.Config.Trade.TradeConfiguration.TradeWaitTime;
+            var waitPartner = Hub.Config.TradeSystem.Settings.TradeConfiguration.TradeWaitTime;
 
             while (!await IsUnionWork(UnionTalkingOffset, token).ConfigureAwait(false) && waitPartner > 0)
             {
@@ -1367,7 +1367,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             }
 
             // Apply AutoOT for first trade if needed (already done for subsequent trades above)
-            if (currentTradeIndex == 0 && Hub.Config.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT)
+            if (currentTradeIndex == 0 && Hub.Config.Global.Legality.UseTradePartnerInfo && !poke.IgnoreAutoOT)
             {
                 toSend = await ApplyAutoOT(toSend, sav, tradePartner.TrainerName, (uint)tid, (uint)sid, tradePartner.Gender, token);
                 poke.TradeData = toSend;
@@ -1436,7 +1436,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 poke.SendNotification(this, "All batch trades completed! Thank you for trading!");
 
                 // Send back all received Pokemon if ReturnPKMs is enabled
-                if (Hub.Config.Discord.ReturnPKMs && allReceived.Count > 0)
+                if (Hub.Config.Integration.Discord.ReturnPKMs && allReceived.Count > 0)
                 {
                     poke.SendNotification(this, $"Here are the {allReceived.Count} Pokémon you traded to me:");
 
@@ -1520,11 +1520,11 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         if (token.IsCancellationRequested) return PokeTradeResult.RoutineCancel;
 
         int ctr = 0;
-        var time = TimeSpan.FromSeconds(Hub.Config.Trade.TradeConfiguration.MaxDumpTradeTime);
+        var time = TimeSpan.FromSeconds(Hub.Config.TradeSystem.Settings.TradeConfiguration.MaxDumpTradeTime);
         var start = DateTime.Now;
 
         var bctr = 0;
-        while (ctr < Hub.Config.Trade.TradeConfiguration.MaxDumpsPerTrade && DateTime.Now - start < time)
+        while (ctr < Hub.Config.TradeSystem.Settings.TradeConfiguration.MaxDumpsPerTrade && DateTime.Now - start < time)
         {
             if (token.IsCancellationRequested) return PokeTradeResult.RoutineCancel;
 
@@ -1558,7 +1558,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             Log($"Shown Pokémon is: {(la.Valid ? "Valid" : "Invalid")}.");
 
             ctr++;
-            var msg = Hub.Config.Trade.TradeConfiguration.DumpTradeLegalityCheck ? verbose : $"File {ctr}";
+            var msg = Hub.Config.TradeSystem.Settings.TradeConfiguration.DumpTradeLegalityCheck ? verbose : $"File {ctr}";
 
             // Extra information about trainer data for people requesting with their own trainer data.
             var ot = pk.OriginalTrainerName;
@@ -1660,11 +1660,11 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
     {
         if (!ShouldWaitAtBarrier)
             return;
-        var opt = Hub.Config.Distribution.SynchronizeBots;
+        var opt = Hub.Config.TradeSystem.Distribution.SynchronizeBots;
         if (opt == BotSyncOption.NoSync)
             return;
 
-        var timeoutAfter = Hub.Config.Distribution.SynchronizeTimeout;
+        var timeoutAfter = Hub.Config.TradeSystem.Distribution.SynchronizeTimeout;
         if (FailedBarrier == 1) // failed last iteration
             timeoutAfter *= 2; // try to re-sync in the event things are too slow.
 
@@ -1685,13 +1685,14 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         if (waitCounter == 0)
         {
             // Updates the assets.
-            Hub.Config.Stream.IdleAssets(this);
+            Hub.Config.Integration.Stream.IdleAssets(this);
             Log("Nothing to check, waiting for new users...");
         }
 
         const int interval = 10;
-        if (waitCounter % interval == interval - 1 && Hub.Config.AntiIdle)
+        if (waitCounter % interval == interval - 1 && Hub.Config.Global.AntiIdle)
             return Click(B, 1_000, token);
         return Task.Delay(1_000, token);
     }
 }
+

@@ -6,7 +6,7 @@ using System.IO;
 
 namespace SysBot.Pokemon;
 
-public class PokemonPool<T>(BaseConfig Settings) : List<T>
+public class PokemonPool<T>(PokeTradeHubConfig Settings) : List<T>
     where T : PKM, new()
 {
     public readonly Dictionary<string, LedyRequest<T>> Files = [];
@@ -15,7 +15,7 @@ public class PokemonPool<T>(BaseConfig Settings) : List<T>
 
     private int Counter;
 
-    private bool Randomized => Settings.Shuffled;
+    private bool Randomized => Settings.TradeSystem.Distribution.Shuffled;
 
     public static bool DisallowRandomRecipientTrade(T pk)
     {
@@ -103,7 +103,7 @@ public class PokemonPool<T>(BaseConfig Settings) : List<T>
                 continue;
             }
 
-            if (Settings.Legality.ResetHOMETracker && dest is IHomeTrack h)
+            if (Settings.Global.Legality.ResetHOMETracker && dest is IHomeTrack h)
                 h.Tracker = 0;
 
             var fn = Path.GetFileNameWithoutExtension(file);

@@ -16,8 +16,8 @@ public class EncounterBotFossilSWSH : EncounterBotSWSH
 
     public EncounterBotFossilSWSH(PokeBotState Config, PokeTradeHub<PK8> hub) : base(Config, hub)
     {
-        Settings = Hub.Config.EncounterSWSH.Fossil;
-        DumpSetting = Hub.Config.Folder;
+        Settings = Hub.Config.EncounterSystem.EncounterSWSH.Fossil;
+        DumpSetting = Hub.Config.Global.Folder;
     }
 
     public override async Task RebootAndStop(CancellationToken t)
@@ -111,3 +111,5 @@ public class EncounterBotFossilSWSH : EncounterBotSWSH
             await Click(B, 0_200, token).ConfigureAwait(false);
     }
 }
+
+

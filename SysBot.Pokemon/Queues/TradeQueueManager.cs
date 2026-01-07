@@ -43,7 +43,7 @@ public class TradeQueueManager<T> where T : PKM, new()
         AllQueues = [Seed, Dump, Clone, FixOT, Trade, Batch];
 
         foreach (var q in AllQueues)
-            q.Queue.Settings = hub.Config.Favoritism;
+            q.Queue.Settings = hub.Config.TradeSystem.Favoritism;
     }
 
     public void ClearAll()
@@ -108,7 +108,7 @@ public class TradeQueueManager<T> where T : PKM, new()
 
     private bool GetFlexDequeue(out PokeTradeDetail<T> detail, out uint priority, string botName)
     {
-        var cfg = Hub.Config.Queues;
+        var cfg = Hub.Config.TradeSystem.Queues;
         return cfg.FlexMode == FlexYieldMode.LessCheatyFirst
             ? GetFlexDequeueOld(out detail, out priority, botName)
             : GetFlexDequeueWeighted(cfg, out detail, out priority, botName);
@@ -177,13 +177,13 @@ public class TradeQueueManager<T> where T : PKM, new()
     public bool TryDequeueLedy(out PokeTradeDetail<T> detail, bool force = false)
     {
         detail = default!;
-        var cfg = Hub.Config.Distribution;
+        var cfg = Hub.Config.TradeSystem.Distribution;
 
         if ((!cfg.DistributeWhileIdle && !force) || Hub.Ledy.Pool.Count == 0)
             return false;
 
         var random = Hub.Ledy.Pool.GetRandomPoke();
-        var code = cfg.RandomCode ? Hub.Config.Trade.GetRandomTradeCode() : cfg.TradeCode;
+        var code = cfg.RandomCode ? Hub.Config.TradeSystem.Settings.GetRandomTradeCode() : cfg.TradeCode;
         var lgcode = GetLGPECode(cfg);
 
         var trainer = new PokeTradeTrainerInfo("Random Distribution");
@@ -194,3 +194,5 @@ public class TradeQueueManager<T> where T : PKM, new()
     private static List<Pictocodes> GetLGPECode(DistributionSettings cfg) =>
         [cfg.LGPECode1, cfg.LGPECode2, cfg.LGPECode3];
 }
+
+
