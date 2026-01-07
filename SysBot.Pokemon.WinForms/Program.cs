@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Windows.Forms;
+using SysBot.Pokemon.WinForms.Helpers;
 
 [assembly: System.Runtime.Versioning.SupportedOSPlatform("windows")]
 
@@ -28,6 +29,7 @@ internal static class Program
 
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
+        CrashHandler.Initialize();
         Application.Run(new Main());
     }
 }
