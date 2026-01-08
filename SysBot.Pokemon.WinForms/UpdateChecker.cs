@@ -100,7 +100,7 @@ namespace SysBot.Pokemon.WinForms
                 }
 
                 var exeAsset = latestRelease.Assets
-                    .FirstOrDefault(a => a.Name?.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) == true);
+                    .FirstOrDefault(a => string.Equals(a.Name, "PokeBot.exe", StringComparison.OrdinalIgnoreCase));
 
                 if (exeAsset == null)
                 {

@@ -236,6 +236,15 @@ namespace SysBot.Pokemon.WinForms
 
         private async void ButtonDownload_Click(object? sender, EventArgs? e)
         {
+            // Fail-safe: Ensure we are running as PokeBot.exe before downloading
+            string currentExe = Path.GetFileName(Application.ExecutablePath);
+            if (!string.Equals(currentExe, "PokeBot.exe", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show($"Update/Download can only be performed when running as 'PokeBot.exe'.\nCurrent executable: {currentExe}",
+                    "Update Safety Check", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             buttonDownload.Enabled = false;
             buttonDownload.Text = "Preparing Download...";
             buttonDownload.BackColor = Color.Gray;
