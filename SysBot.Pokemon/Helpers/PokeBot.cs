@@ -6,6 +6,13 @@ namespace SysBot.Pokemon.Helpers
 
         public const string ConfigPath = "config.json";
 
-        public const string Version = "v1.1.5";
+        public static string Version
+        {
+            get
+            {
+                var v = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version;
+                return v != null ? $"v{v.Major}.{v.Minor}.{v.Build}" : "vUnknown";
+            }
+        }
     }
 }
