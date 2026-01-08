@@ -252,15 +252,10 @@ public sealed class SysCord<T> where T : PKM, new()
 
         var botName = string.IsNullOrEmpty(SysCordSettings.HubConfig.Global.BotName) ? "SysBot" : SysCordSettings.HubConfig.Global.BotName;
         var fullStatusMessage = $"**Status**: {botName} is {status}!";
-        var thumbnailUrl = status == "Online"
-            ? "https://raw.githubusercontent.com/hexbyt3/sprites/main/botgo.png"
-            : "https://raw.githubusercontent.com/hexbyt3/sprites/main/botstop.png";
-
         var embed = new EmbedBuilder()
             .WithTitle("Bot Status Report")
             .WithDescription(fullStatusMessage)
             .WithColor(EmbedColorConverter.ToDiscordColor(color))
-            .WithThumbnailUrl(thumbnailUrl)
             .WithTimestamp(DateTimeOffset.Now)
             .Build();
 
@@ -766,5 +761,4 @@ public sealed class SysCord<T> where T : PKM, new()
         }
     }
 }
-
 

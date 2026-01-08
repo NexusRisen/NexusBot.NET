@@ -79,11 +79,7 @@ public static class DetailsExtractor<T> where T : PKM, new()
     /// <param name="heldItemUrl">URL for the held item image.</param>
     public static void AddThumbnails(EmbedBuilder embedBuilder, bool isCloneRequest, bool isSpecialRequest, string heldItemUrl)
     {
-        if (isCloneRequest || isSpecialRequest)
-        {
-            embedBuilder.WithThumbnailUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/profoak.png");
-        }
-        else if (!string.IsNullOrEmpty(heldItemUrl))
+        if (!string.IsNullOrEmpty(heldItemUrl))
         {
             embedBuilder.WithThumbnailUrl(heldItemUrl);
         }

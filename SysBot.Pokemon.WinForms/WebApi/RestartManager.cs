@@ -398,7 +398,8 @@ public static class RestartManager
 
         try
         {
-            var processes = Process.GetProcessesByName("PokeBot")
+            var currentProcessName = Process.GetCurrentProcess().ProcessName;
+            var processes = Process.GetProcessesByName(currentProcessName)
                 .Where(p => p.Id != Environment.ProcessId);
 
             foreach (var process in processes)
@@ -429,24 +430,13 @@ public static class RestartManager
     {
         try
         {
-            var exePath = process.MainModule?.FileName;
-            if (string.IsNullOrEmpty(exePath))
-                return null;
-
-            var portFile = Path.Combine(Path.GetDirectoryName(exePath)!, $"PokeBot_{process.Id}.port");
-            if (!File.Exists(portFile))
-                return null;
-
-            var portText = File.ReadAllText(portFile).Trim();
-            // Port file now contains TCP port on first line, web port on second line (for slaves)
-            var lines = portText.Split('\n', '\r').Where(l => !string.IsNullOrWhiteSpace(l)).ToArray();
-            if (lines.Length == 0 || !int.TryParse(lines[0], out var port))
-                return null;
+            var port = GetInstancePort(process);
+            if (port == null) return null;
 
             return new InstanceInfo
             {
                 ProcessId = process.Id,
-                Port = port,
+                Port = port.Value,
                 IsMaster = false
             };
         }
@@ -454,6 +444,26 @@ public static class RestartManager
         {
             return null;
         }
+    }
+
+    private static int? GetInstancePort(Process process)
+    {
+        try
+        {
+            var exePath = process.MainModule?.FileName;
+            if (string.IsNullOrEmpty(exePath)) return null;
+
+            var portFile = Path.Combine(Path.GetDirectoryName(exePath)!, $"{process.ProcessName}_{process.Id}.port");
+            if (!File.Exists(portFile)) return null;
+
+            var portText = File.ReadAllText(portFile).Trim();
+            var lines = portText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            
+            if (lines.Length > 0 && int.TryParse(lines[0], out var port))
+                return port;
+        }
+        catch { }
+        return null;
     }
 
     private static async Task IdleAllBotsAsync(List<InstanceInfo> instances)
@@ -716,8 +726,9 @@ public static class RestartManager
             // Add current process ID
             pids.Add(Environment.ProcessId);
             
-            // Add all PokeBot process IDs
-            var processes = Process.GetProcessesByName("PokeBot");
+            // Add all related process IDs
+            var currentProcessName = Process.GetCurrentProcess().ProcessName;
+            var processes = Process.GetProcessesByName(currentProcessName);
             foreach (var process in processes)
             {
                 try
@@ -943,30 +954,18 @@ public static class RestartManager
 
         try
         {
-            var processes = Process.GetProcessesByName("PokeBot")
+            var currentProcessName = Process.GetCurrentProcess().ProcessName;
+            var processes = Process.GetProcessesByName(currentProcessName)
                 .Where(p => p.Id != Environment.ProcessId);
 
             foreach (var process in processes)
             {
                 try
                 {
-                    var exePath = process.MainModule?.FileName;
-                    if (string.IsNullOrEmpty(exePath))
-                        continue;
-
-                    var portFile = Path.Combine(Path.GetDirectoryName(exePath)!, $"PokeBot_{process.Id}.port");
-                    if (!File.Exists(portFile))
-                        continue;
-
-                    var portText = File.ReadAllText(portFile).Trim();
-                    // Port file now contains TCP port on first line, web port on second line (for slaves)
-                    var lines = portText.Split('\n', '\r').Where(l => !string.IsNullOrWhiteSpace(l)).ToArray();
-                    if (lines.Length == 0 || !int.TryParse(lines[0], out var port))
-                        continue;
-
-                    if (IsPortOpen(port))
+                    var port = GetInstancePort(process);
+                    if (port.HasValue && IsPortOpen(port.Value))
                     {
-                        instances.Add((port, process.Id));
+                        instances.Add((port.Value, process.Id));
                     }
                 }
                 catch { }

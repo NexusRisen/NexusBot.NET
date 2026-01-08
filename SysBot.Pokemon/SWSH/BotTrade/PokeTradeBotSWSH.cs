@@ -110,7 +110,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
             var task = Config.CurrentRoutineType switch
             {
                 PokeRoutineType.Idle => DoNothing(token),
-                PokeRoutineType.SurpriseTrade => DoSurpriseTrades(sav, token),
+                // PokeRoutineType.SurpriseTrade => DoSurpriseTrades(sav, token),
                 _ => DoTrades(sav, token),
             };
             try
@@ -632,13 +632,8 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
 
     private async Task DoSurpriseTrades(SAV8SWSH sav, CancellationToken token)
     {
-        await SetCurrentBox(0, token).ConfigureAwait(false);
-        while (!token.IsCancellationRequested && Config.NextRoutineType == PokeRoutineType.SurpriseTrade)
-        {
-            var pkm = hub.Ledy.Pool.GetRandomSurprise();
-            await EnsureConnectedToYComm(OverworldOffset, hub.Config, token).ConfigureAwait(false);
-            var _ = await PerformSurpriseTrade(sav, pkm, token).ConfigureAwait(false);
-        }
+        Log("Surprise Trade is disabled.");
+        await Task.Delay(1000, token).ConfigureAwait(false);
     }
 
     private async Task<PokeTradeResult> PerformLinkCodeTrade(SAV8SWSH sav, PokeTradeDetail<PK8> poke, CancellationToken token)
@@ -1147,130 +1142,10 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
         return PokeTradeResult.Success;
     }
 
-    private async Task<PokeTradeResult> PerformSurpriseTrade(SAV8SWSH sav, PK8 pkm, CancellationToken token)
+    private Task<PokeTradeResult> PerformSurpriseTrade(SAV8SWSH sav, PK8 pkm, CancellationToken token)
     {
-        // General Bot Strategy:
-        // 1. Inject to b1s1
-        // 2. Send out Trade
-        // 3. Clear received PKM to skip the trade animation
-        // 4. Repeat
-
-        // Inject to b1s1
-        if (await CheckIfSoftBanned(token).ConfigureAwait(false))
-            await UnSoftBan(token).ConfigureAwait(false);
-
-        Log("Starting next Surprise Trade. Getting data...");
-        await SetBoxPokemon(pkm, 0, 0, token, sav).ConfigureAwait(false);
-
-        if (!await IsOnOverworld(OverworldOffset, token).ConfigureAwait(false))
-        {
-            await ExitTrade(true, token).ConfigureAwait(false);
-            return PokeTradeResult.RecoverStart;
-        }
-
-        if (await CheckIfSearchingForSurprisePartner(token).ConfigureAwait(false))
-        {
-            Log("Still searching, resetting bot position.");
-            await ResetTradePosition(token).ConfigureAwait(false);
-        }
-
-        Log("Opening Y-Comm menu.");
-        await Click(Y, 1_500, token).ConfigureAwait(false);
-
-        if (token.IsCancellationRequested)
-            return PokeTradeResult.RoutineCancel;
-
-        Log("Selecting Surprise Trade.");
-        await Click(DDOWN, 0_500, token).ConfigureAwait(false);
-        await Click(A, 2_000, token).ConfigureAwait(false);
-
-        if (token.IsCancellationRequested)
-            return PokeTradeResult.RoutineCancel;
-
-        await Task.Delay(0_750, token).ConfigureAwait(false);
-
-        if (!await IsInBox(token).ConfigureAwait(false))
-        {
-            await ExitTrade(true, token).ConfigureAwait(false);
-            return PokeTradeResult.RecoverPostLinkCode;
-        }
-
-        Log($"Selecting Pokémon: {pkm.FileName}");
-
-        // Box 1 Slot 1; no movement required.
-        await Click(A, 0_700, token).ConfigureAwait(false);
-
-        if (token.IsCancellationRequested)
-            return PokeTradeResult.RoutineCancel;
-
-        Log("Confirming...");
-        while (!await IsOnOverworld(OverworldOffset, token).ConfigureAwait(false))
-            await Click(A, 0_800, token).ConfigureAwait(false);
-
-        if (token.IsCancellationRequested)
-            return PokeTradeResult.RoutineCancel;
-
-        // Let Surprise Trade be sent out before checking if we're back to the Overworld.
-        await Task.Delay(3_000, token).ConfigureAwait(false);
-
-        if (!await IsOnOverworld(OverworldOffset, token).ConfigureAwait(false))
-        {
-            await ExitTrade(true, token).ConfigureAwait(false);
-            return PokeTradeResult.RecoverReturnOverworld;
-        }
-
-        // Wait 30 Seconds for Trainer...
-        Log("Waiting for Surprise Trade partner...");
-
-        // Wait for an offer...
-        var oldEC = await Connection.ReadBytesAsync(SurpriseTradeSearchOffset, 4, token).ConfigureAwait(false);
-        var partnerFound = await ReadUntilChanged(SurpriseTradeSearchOffset, oldEC, hub.Config.TradeSystem.Settings.TradeConfiguration.TradeWaitTime * 1_000, 0_200, false, token).ConfigureAwait(false);
-
-        if (token.IsCancellationRequested)
-            return PokeTradeResult.RoutineCancel;
-
-        if (!partnerFound)
-        {
-            await ResetTradePosition(token).ConfigureAwait(false);
-            return PokeTradeResult.NoTrainerFound;
-        }
-
-        // Let the game flush the results and de-register from the online surprise trade queue.
-        await Task.Delay(7_000, token).ConfigureAwait(false);
-
-        var TrainerName = await GetTradePartnerName(TradeMethod.SurpriseTrade, token).ConfigureAwait(false);
-        var TrainerTID = await GetTradePartnerTID7(TradeMethod.SurpriseTrade, token).ConfigureAwait(false);
-        var SurprisePoke = await ReadSurpriseTradePokemon(token).ConfigureAwait(false);
-
-        Log($"Found Surprise Trade partner: {TrainerName}-{TrainerTID}, Pokémon: {(Species)SurprisePoke.Species}");
-
-        // Clear out the received trade data; we want to skip the trade animation.
-        // The box slot locks have been removed prior to searching.
-
-        await Connection.WriteBytesAsync(BitConverter.GetBytes(SurpriseTradeSearch_Empty), SurpriseTradeSearchOffset, token).ConfigureAwait(false);
-        await Connection.WriteBytesAsync(PokeTradeBotUtil.EMPTY_SLOT, SurpriseTradePartnerPokemonOffset, token).ConfigureAwait(false);
-
-        // Let the game recognize our modifications before finishing this loop.
-        await Task.Delay(5_000, token).ConfigureAwait(false);
-
-        // Clear the Surprise Trade slot locks! We'll skip the trade animation and reuse the slot on later loops.
-        // Write 8 bytes of FF to set both Int32's to -1. Regular locks are [Box32][Slot32]
-
-        await Connection.WriteBytesAsync(BitConverter.GetBytes(ulong.MaxValue), SurpriseTradeLockBox, token).ConfigureAwait(false);
-
-        if (token.IsCancellationRequested)
-            return PokeTradeResult.RoutineCancel;
-
-        if (await IsOnOverworld(OverworldOffset, token).ConfigureAwait(false))
-            Log("Trade complete!");
-        else
-            await ExitTrade(true, token).ConfigureAwait(false);
-
-        if (DumpSetting.Dump && !string.IsNullOrEmpty(DumpSetting.DumpFolder))
-            DumpPokemon(DumpSetting.DumpFolder, "surprise", SurprisePoke);
-        TradeSettings.CountStatsSettings.AddCompletedSurprise();
-
-        return PokeTradeResult.Success;
+        Log("Surprise Trade is disabled.");
+        return Task.FromResult(PokeTradeResult.RoutineCancel);
     }
 
 
@@ -1690,5 +1565,4 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
         }
     }
 }
-
 

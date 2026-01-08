@@ -56,7 +56,7 @@ public abstract class PokeRoutineExecutorBase(IConsoleBotManaged<IConsoleConnect
         var earlyIdentifier = Connection.Label;
 
         // Update Connection.Label to use trainer identifier for logging
-        // This creates log folders like: logs/HeXbyt3-483256/ instead of logs/192.168.0.106/
+        // This creates log folders like: logs/User-483256/ instead of logs/192.168.0.106/
         Connection.Label = TrainerLabel;
 
         // Flush any buffered logs to the trainer folder

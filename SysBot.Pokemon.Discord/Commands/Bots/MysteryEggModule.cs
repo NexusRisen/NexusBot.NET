@@ -205,7 +205,6 @@ namespace SysBot.Pokemon.Discord
                 .WithColor(global::Discord.Color.Gold)
                 .WithTitle($"🥚 Mystery Egg {eggNumber} of {totalEggs}")
                 .WithDescription("A mysterious egg containing a random Pokémon!")
-                .WithImageUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/mysteryegg3.png")
                 .WithFooter($"Batch Trade {eggNumber} of {totalEggs}" + (eggNumber == 1 ? $" | Position: {queuePosition}" : ""))
                 .WithAuthor(new EmbedAuthorBuilder()
                     .WithName($"Mystery Egg for {context.User.Username}")
@@ -417,6 +416,5 @@ namespace SysBot.Pokemon.Discord
         }
     }
 }
-
 
 

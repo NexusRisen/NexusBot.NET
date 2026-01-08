@@ -70,7 +70,7 @@ public class PokemonPool<T>(PokeTradeHubConfig Settings) : List<T>
         var files = Directory.EnumerateFiles(path, "*", opt);
         var matchFiles = LoadUtil.GetFilesOfSize(files, ExpectedSize);
 
-        const int surpriseBlocked = 0;
+        // const int surpriseBlocked = 0;
         foreach (var file in matchFiles)
         {
             var data = File.ReadAllBytes(file);
@@ -121,8 +121,8 @@ public class PokemonPool<T>(PokeTradeHubConfig Settings) : List<T>
             }
             loadedAny = true;
         }
-        if (surpriseBlocked == Count)
-            LogUtil.LogInfo(nameof(PokemonPool<T>), "Surprise trading will fail; failed to load any compatible files.");
+        // if (surpriseBlocked == Count)
+        //    LogUtil.LogInfo(nameof(PokemonPool<T>), "Surprise trading will fail; failed to load any compatible files.");
 
         return loadedAny;
     }

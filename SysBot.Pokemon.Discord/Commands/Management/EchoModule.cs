@@ -93,15 +93,12 @@ namespace SysBot.Pokemon.Discord
                 ? $"The queue has reached maximum capacity and is now **closed**.\n\n**Current Queue Count:** {currentCount}/{maxCount}\n\nThe queue will automatically open when trades are completed and space becomes available.\n\n**Status Updated:** {formattedTimestamp}"
                 : $"The queue is now **open** and accepting new trades!\n\n**Current Queue Count:** {currentCount}/{maxCount}\n\n**Status Updated:** {formattedTimestamp}";
 
-            var thumbnailUrl = Settings.AnnouncementSettings.RandomAnnouncementThumbnail ? GetRandomThumbnail() : GetSelectedThumbnail();
-
             var embed = new EmbedBuilder
             {
                 Color = embedColor,
                 Description = description
             }
             .WithTitle(title)
-            .WithThumbnailUrl(thumbnailUrl)
             .WithFooter("Queue status updates are automatic")
             .Build();
 
@@ -133,8 +130,6 @@ namespace SysBot.Pokemon.Discord
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
             var embedColor = Settings.AnnouncementSettings.RandomAnnouncementColor ? GetRandomColor() : Settings.AnnouncementSettings.AnnouncementEmbedColor.ToDiscordColor();
 #pragma warning restore CS8602 // Dereference of a possibly null reference.
-            var thumbnailUrl = Settings.AnnouncementSettings.RandomAnnouncementThumbnail ? GetRandomThumbnail() : GetSelectedThumbnail();
-
             var embedDescription = $"## {announcement}\n\n**Sent: {formattedTimestamp}**";
 
             var embed = new EmbedBuilder
@@ -143,7 +138,6 @@ namespace SysBot.Pokemon.Discord
                 Description = embedDescription
             }
             .WithTitle("Important Announcement!")
-            .WithThumbnailUrl(thumbnailUrl)
             .Build();
 
             var client = Context.Client;
@@ -178,50 +172,11 @@ namespace SysBot.Pokemon.Discord
             return colors[random.Next(colors.Count)].ToDiscordColor();
         }
 
-        private static string GetRandomThumbnail()
-        {
-            var thumbnailOptions = new List<string>
-    {
-        "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/gengarmegaphone.png",
-        "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/pikachumegaphone.png",
-        "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/umbreonmegaphone.png",
-        "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/sylveonmegaphone.png",
-        "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/charmandermegaphone.png",
-        "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/jigglypuffmegaphone.png",
-        "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/flareonmegaphone.png",
-    };
-            var random = new Random();
-            return thumbnailOptions[random.Next(thumbnailOptions.Count)];
-        }
+        private static string GetRandomThumbnail() => string.Empty;
 
-        private static string GetSelectedThumbnail()
-        {
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-            if (!string.IsNullOrEmpty(Settings.AnnouncementSettings.CustomAnnouncementThumbnailUrl))
-            {
-                return Settings.AnnouncementSettings.CustomAnnouncementThumbnailUrl;
-            }
-            else
-            {
-                return GetUrlFromThumbnailOption(Settings.AnnouncementSettings.AnnouncementThumbnailOption);
-            }
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
-        }
+        private static string GetSelectedThumbnail() => string.Empty;
 
-        private static string GetUrlFromThumbnailOption(ThumbnailOption option)
-        {
-            return option switch
-            {
-                ThumbnailOption.Gengar => "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/gengarmegaphone.png",
-                ThumbnailOption.Pikachu => "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/pikachumegaphone.png",
-                ThumbnailOption.Umbreon => "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/umbreonmegaphone.png",
-                ThumbnailOption.Sylveon => "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/sylveonmegaphone.png",
-                ThumbnailOption.Charmander => "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/charmandermegaphone.png",
-                ThumbnailOption.Jigglypuff => "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/jigglypuffmegaphone.png",
-                ThumbnailOption.Flareon => "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/flareonmegaphone.png",
-                _ => "https://raw.githubusercontent.com/hexbyt3/sprites/main/imgs/gengarmegaphone.png",
-            };
-        }
+        private static string GetUrlFromThumbnailOption(ThumbnailOption option) => string.Empty;
 
         [Command("addEmbedChannel")]
         [Alias("aec")]

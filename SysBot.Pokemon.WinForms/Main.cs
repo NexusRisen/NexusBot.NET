@@ -13,7 +13,6 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -98,6 +97,7 @@ namespace SysBot.Pokemon.WinForms
             Config = new ProgramConfig();
             RunningEnvironment = GetRunner(Config);
             Config.Hub.Global.Folder.CreateDefaults(Program.WorkingDirectory);
+            UpdateChecker.SetRepository("NexusRisen", "PokeBot");
         }
 
         private async Task InitializeAsync()
@@ -122,12 +122,15 @@ namespace SysBot.Pokemon.WinForms
 
                     Config = JsonSerializer.Deserialize(lines, ProgramConfigContext.Default.ProgramConfig) ?? new ProgramConfig();
                     
+                    // Use static repository for update checks
+
                     LogConfig.MaxArchiveFiles = Config.Hub.Global.MaxArchiveFiles;
                     LogConfig.LoggingEnabled = Config.Hub.Global.LoggingEnabled;
                     Config.Hub.TradeSystem.Distribution.CurrentMode = Config.Mode;
                     comboBox1.SelectedValue = (int)Config.Mode;
 
                     RunningEnvironment = GetRunner(Config);
+                    UpdateChecker.SetRepository("NexusRisen", "PokeBot");
                     foreach (var bot in Config.Bots)
                     {
                         bot.Initialize();
@@ -157,6 +160,7 @@ namespace SysBot.Pokemon.WinForms
                             comboBox1.SelectedValue = (int)Config.Mode;
 
                             RunningEnvironment = GetRunner(Config);
+                            UpdateChecker.SetRepository("NexusRisen", "PokeBot");
                             foreach (var bot in Config.Bots)
                             {
                                 bot.Initialize();
@@ -379,13 +383,6 @@ namespace SysBot.Pokemon.WinForms
 
         private void LoadControls()
         {
-            btnScan.Click += BtnScan_Click;
-            
-            // Monitor controls setup
-            monitorTimer = new System.Windows.Forms.Timer { Interval = 500 }; // 500ms update rate
-            monitorTimer.Tick += MonitorTimer_Tick;
-            btnMonitorToggle.Click += BtnMonitorToggle_Click;
-
             PG_Hub.SelectedObject = RunningEnvironment.Config;
             _autoSaveTimer = new System.Windows.Forms.Timer
             {
@@ -537,18 +534,18 @@ namespace SysBot.Pokemon.WinForms
 
             SaveCurrentConfig();
             var bots = RunningEnvironment;
-            if (!bots.IsRunning)
+            if (bots == null || !bots.IsRunning)
                 return;
 
             async Task WaitUntilNotRunning()
             {
-                while (bots.IsRunning)
+                while (bots != null && bots.IsRunning)
                     await Task.Delay(10).ConfigureAwait(false);
             }
 
             WindowState = FormWindowState.Minimized;
             ShowInTaskbar = false;
-            bots.StopAll();
+            bots?.StopAll();
             Task.WhenAny(WaitUntilNotRunning(), Task.Delay(5_000)).ConfigureAwait(true).GetAwaiter().GetResult();
         }
 
@@ -1261,142 +1258,6 @@ namespace SysBot.Pokemon.WinForms
             }
         }
         
-        private async void BtnMonitorToggle_Click(object? sender, EventArgs e)
-        {
-            if (monitorTimer.Enabled)
-            {
-                monitorTimer.Stop();
-                btnMonitorToggle.Text = "Start Monitor";
-                btnMonitorToggle.BackColor = Color.FromArgb(45, 125, 200);
-                txtMonitorAddr.Enabled = true;
-            }
-            else
-            {
-                if (SwitchConnection == null)
-                {
-                    MessageBox.Show("No Switch connection available.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                string addrStr = txtMonitorAddr.Text.Trim().Replace("0x", "");
-                if (!ulong.TryParse(addrStr, System.Globalization.NumberStyles.HexNumber, null, out _))
-                {
-                    MessageBox.Show("Invalid address format. Use Hex (e.g. 0xABC123).", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                txtMonitorAddr.Enabled = false;
-                btnMonitorToggle.Text = "Stop Monitor";
-                btnMonitorToggle.BackColor = Color.FromArgb(200, 50, 50);
-                monitorTimer.Start();
-            }
-        }
-
-        private async void MonitorTimer_Tick(object? sender, EventArgs e)
-        {
-            if (SwitchConnection == null)
-            {
-                monitorTimer.Stop();
-                return;
-            }
-
-            try
-            {
-                string addrStr = txtMonitorAddr.Text.Trim().Replace("0x", "");
-                if (ulong.TryParse(addrStr, System.Globalization.NumberStyles.HexNumber, null, out ulong address))
-                {
-                    // Read 8 bytes
-                    byte[] data = await SwitchConnection.ReadBytesAbsoluteAsync(address, 8, CancellationToken.None).ConfigureAwait(true);
-                    ulong val = BitConverter.ToUInt64(data, 0);
-                    txtMonitorValue.Text = $"0x{val:X16}";
-
-                    // Analyze region/pointer
-                    var scanner = new Helpers.MemoryScanner(SwitchConnection);
-                    string regionInfo = await scanner.AnalyzeAddressAsync(address).ConfigureAwait(true);
-                    txtPointerInfo.Text = regionInfo;
-                }
-            }
-            catch (Exception)
-            {
-                txtMonitorValue.Text = "Read Error";
-                // Don't stop timer, transient errors happen
-            }
-        }
-
-        private async void BtnScan_Click(object? sender, EventArgs e)
-        {
-            if (SwitchConnection == null)
-            {
-                rtbResults.AppendText($"Error: No Switch connection available.{Environment.NewLine}");
-                return;
-            }
-
-            try
-            {
-                btnScan.Enabled = false;
-                rtbResults.Clear();
-                rtbResults.AppendText($"Starting scan...{Environment.NewLine}");
-
-                // Parse pattern
-                string patternStr = txtPattern.Text.Replace(" ", "");
-                if (patternStr.Length % 2 != 0)
-                {
-                    rtbResults.AppendText($"Error: Invalid pattern length.{Environment.NewLine}");
-                    btnScan.Enabled = true;
-                    return;
-                }
-
-                byte[] pattern = new byte[patternStr.Length / 2];
-                for (int i = 0; i < pattern.Length; i++)
-                {
-                    pattern[i] = Convert.ToByte(patternStr.Substring(i * 2, 2), 16);
-                }
-
-                // Determine region
-                ulong startAddress = 0;
-                ulong length = 0;
-                
-                // Simple default ranges (can be expanded based on game knowledge)
-                if (cbRegion.SelectedItem?.ToString() == "Heap")
-                {
-                    startAddress = 0xAA00000000; // Example Heap start
-                    length = 0x10000000; // 256MB scan
-                }
-                else
-                {
-                    startAddress = 0x0; // Main
-                    length = 0x800000000; // Large scan
-                }
-
-                var scanner = new Helpers.MemoryScanner(SwitchConnection);
-                var progress = new Progress<string>(status => 
-                {
-                    if (InvokeRequired)
-                        BeginInvoke((MethodInvoker)(() => lblScanStatus.Text = status));
-                    else
-                        lblScanStatus.Text = status;
-                });
-
-                var cts = new CancellationTokenSource();
-                var results = await Task.Run(() => scanner.ScanPattern(pattern, startAddress, length, progress, cts.Token));
-
-                rtbResults.AppendText($"Scan complete. Found {results.Count} matches:{Environment.NewLine}");
-                foreach (var addr in results)
-                {
-                    rtbResults.AppendText($"0x{addr:X}{Environment.NewLine}");
-                }
-            }
-            catch (Exception ex)
-            {
-                rtbResults.AppendText($"Error during scan: {ex.Message}{Environment.NewLine}");
-            }
-            finally
-            {
-                btnScan.Enabled = true;
-                lblScanStatus.Text = "Ready";
-            }
-        }
-
         private void EnsurePanelLayout()
         {
             // Skip if controls aren't ready
@@ -1411,7 +1272,6 @@ namespace SysBot.Pokemon.WinForms
             contentPanel.Controls.SetChildIndex(botsPanel, 0);
             contentPanel.Controls.SetChildIndex(hubPanel, 0);
             contentPanel.Controls.SetChildIndex(logsPanel, 0);
-            contentPanel.Controls.SetChildIndex(devPanel, 0);
             contentPanel.Controls.SetChildIndex(headerPanel, contentPanel.Controls.Count - 1);
             
             // Reset docking to force recalculation
@@ -1419,7 +1279,6 @@ namespace SysBot.Pokemon.WinForms
             botsPanel.Dock = DockStyle.None;
             hubPanel.Dock = DockStyle.None;
             logsPanel.Dock = DockStyle.None;
-            devPanel.Dock = DockStyle.None;
             
             // Force layout update
             contentPanel.PerformLayout();
@@ -1431,7 +1290,6 @@ namespace SysBot.Pokemon.WinForms
             botsPanel.Dock = DockStyle.Fill;
             hubPanel.Dock = DockStyle.Fill;
             logsPanel.Dock = DockStyle.Fill;
-            devPanel.Dock = DockStyle.Fill;
             
             contentPanel.ResumeLayout(true);
             contentPanel.PerformLayout();
@@ -1580,6 +1438,54 @@ namespace SysBot.Pokemon.WinForms
         }
 
         #endregion
+
+        
+
+        private void PaintAlienInputPanel(object sender, PaintEventArgs e)
+        {
+            if (sender is not Panel p) return;
+            var g = e.Graphics;
+            var rect = p.ClientRectangle;
+            using var bg = new SolidBrush(Color.FromArgb(12, 12, 12));
+            using var border = new Pen(Color.FromArgb(0, 204, 255), 1);
+            g.FillRectangle(bg, rect);
+            g.DrawRectangle(border, rect.Left, rect.Top, rect.Width - 1, rect.Height - 1);
+        }
+
+        private void PaintAlienAddButton(object sender, PaintEventArgs e)
+        {
+            if (sender is not Button btn) return;
+            var g = e.Graphics;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            var rect = btn.ClientRectangle;
+            using var bg = new System.Drawing.Drawing2D.LinearGradientBrush(rect, Color.FromArgb(20, 20, 20), Color.FromArgb(5, 5, 5), System.Drawing.Drawing2D.LinearGradientMode.Vertical);
+            using var pen = new Pen(Color.FromArgb(0, 204, 255), 1.5f);
+            g.FillRectangle(bg, rect);
+            g.DrawRectangle(pen, rect.Left, rect.Top, rect.Width - 1, rect.Height - 1);
+            var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+            using var textBrush = new SolidBrush(Color.White);
+            g.DrawString(btn.Text, btn.Font, textBrush, rect, sf);
+        }
+
+        private void BtnAutoScroll_Click(object sender, EventArgs e)
+        {
+            // Toggle no-op placeholder
+            var btn = sender as Button;
+            if (btn?.Tag is EnhancedButtonAnimationState state)
+            {
+                state.IsActive = !state.IsActive;
+                btn.Invalidate();
+            }
+        }
+
+        private void BtnExportLogs_Click(object sender, EventArgs e)
+        {
+            using var sfd = new SaveFileDialog { Filter = "Text Files (*.txt)|*.txt", FileName = "logs.txt" };
+            if (sfd.ShowDialog(this) == DialogResult.OK)
+            {
+                File.WriteAllText(sfd.FileName, RTB_Logs.Text ?? string.Empty);
+            }
+        }
     }
 
     public sealed class SearchManager
@@ -1777,5 +1683,3 @@ namespace SysBot.Pokemon.WinForms
 
     public readonly record struct SearchMatch(int Start, int Length);
 }
-
-

@@ -897,7 +897,7 @@ public static class WebApiExtensions
         {
             var exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? "";
             var exeDir = Path.GetDirectoryName(exePath) ?? Program.WorkingDirectory;
-            var portFile = Path.Combine(exeDir, $"PokeBot_{Environment.ProcessId}.port");
+            var portFile = Path.Combine(exeDir, $"{System.Diagnostics.Process.GetCurrentProcess().ProcessName}_{Environment.ProcessId}.port");
             var tempFile = portFile + ".tmp";
 
             using (var fs = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None))
@@ -923,7 +923,7 @@ public static class WebApiExtensions
         {
             var exePath = System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName ?? "";
             var exeDir = Path.GetDirectoryName(exePath) ?? Program.WorkingDirectory;
-            var portFile = Path.Combine(exeDir, $"PokeBot_{Environment.ProcessId}.port");
+            var portFile = Path.Combine(exeDir, $"{System.Diagnostics.Process.GetCurrentProcess().ProcessName}_{Environment.ProcessId}.port");
 
             if (File.Exists(portFile))
                 File.Delete(portFile);
@@ -951,7 +951,7 @@ public static class WebApiExtensions
                 if (!IsPortInUse(port))
                 {
                     // Check if any port file claims this port
-                    var portFiles = Directory.GetFiles(exeDir, "PokeBot_*.port");
+                    var portFiles = Directory.GetFiles(exeDir, $"{System.Diagnostics.Process.GetCurrentProcess().ProcessName}_*.port");
                     bool portClaimed = false;
 
                     foreach (var file in portFiles)
@@ -1127,7 +1127,8 @@ public static class WebApiExtensions
 
         try
         {
-            var processes = Process.GetProcessesByName("PokeBot")
+            var currentProcessName = Process.GetCurrentProcess().ProcessName;
+            var processes = Process.GetProcessesByName(currentProcessName)
                 .Where(p => p.Id != Environment.ProcessId);
 
             foreach (var process in processes)
@@ -1138,13 +1139,13 @@ public static class WebApiExtensions
                     if (string.IsNullOrEmpty(exePath))
                         continue;
 
-                    var portFile = Path.Combine(Path.GetDirectoryName(exePath)!, $"PokeBot_{process.Id}.port");
+                    var portFile = Path.Combine(Path.GetDirectoryName(exePath)!, $"{process.ProcessName}_{process.Id}.port");
                     if (!File.Exists(portFile))
                         continue;
 
                     var portText = File.ReadAllText(portFile).Trim();
                     // Port file now contains TCP port on first line, web port on second line (for slaves)
-                    var lines = portText.Split('\n', '\r').Where(l => !string.IsNullOrWhiteSpace(l)).ToArray();
+                    var lines = portText.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
                     if (lines.Length == 0 || !int.TryParse(lines[0], out var port))
                         continue;
 

@@ -275,7 +275,7 @@ namespace SysBot.Pokemon.WinForms
         {
             buttonDownload.Enabled = true;
             buttonDownload.Text = isUpdateAvailable ? "Download & Install Update" : "Re-Install Current Version";
-            buttonDownload.BackColor = Color.FromArgb(0, 120, 215);
+            buttonDownload.BackColor = Color.FromArgb(0, 100, 100);
             progressBarDownload.Visible = false;
             labelDownloadStatus.Visible = false;
         }

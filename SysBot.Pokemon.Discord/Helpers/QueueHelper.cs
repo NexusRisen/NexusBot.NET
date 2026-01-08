@@ -65,7 +65,7 @@ public static class QueueHelper<T> where T : PKM, new()
         };
     }
 
-    public static async Task AddToQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T trade, PokeRoutineType routine, PokeTradeType type, SocketUser trader, int batchTradeNumber = 1, int totalBatchTrades = 1, bool isHiddenTrade = false, bool isMysteryEgg = false, List<Pictocodes>? lgcode = null, bool ignoreAutoOT = false, bool setEdited = false, bool isNonNative = false)
+        public static async Task AddToQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T trade, PokeRoutineType routine, PokeTradeType type, SocketUser trader, int batchTradeNumber = 1, int totalBatchTrades = 1, bool isHiddenTrade = false, bool isMysteryEgg = false, List<Pictocodes>? lgcode = null, bool ignoreAutoOT = false, bool setEdited = false, bool isNonNative = false)
     {
         if ((uint)code > MaxTradeCode)
         {
@@ -189,13 +189,7 @@ public static class QueueHelper<T> where T : PKM, new()
         try
         {
             (string embedImageUrl, DiscordColor embedColor) = await PrepareEmbedDetails(pk);
-
-            embedData.EmbedImageUrl = isMysteryEgg ? "https://raw.githubusercontent.com/hexbyt3/sprites/main/mysteryegg3.png" :
-                                       type == PokeRoutineType.Dump ? "https://raw.githubusercontent.com/hexbyt3/sprites/main/AltBallImg/128x128/dumpball.png" :
-                                       type == PokeRoutineType.Clone ? "https://raw.githubusercontent.com/hexbyt3/sprites/main/clonepod.png" :
-                                       type == PokeRoutineType.SeedCheck ? "https://raw.githubusercontent.com/hexbyt3/sprites/main/specialrequest.png" :
-                                       type == PokeRoutineType.FixOT ? "https://raw.githubusercontent.com/hexbyt3/sprites/main/AltBallImg/128x128/rocketball.png" :
-                                       embedImageUrl;
+            embedData.EmbedImageUrl = embedImageUrl;
 
             embedData.HeldItemUrl = string.Empty;
             if (!string.IsNullOrWhiteSpace(embedData.HeldItem))
@@ -242,26 +236,14 @@ public static class QueueHelper<T> where T : PKM, new()
             if (pk is IHomeTrack homeTrack)
             {
                 if (homeTrack.HasTracker && isNonNative)
-                {
-                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/hexbyt3/sprites/main/exclamation.gif";
                     embedBuilder.AddField("**__Notice__**: **This Pokemon is Non-Native & Has Home Tracker.**", "*AutoOT not applied.*");
-                }
                 else if (homeTrack.HasTracker)
-                {
-                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/hexbyt3/sprites/main/exclamation.gif";
                     embedBuilder.AddField("**__Notice__**: **Home Tracker Detected.**", "*AutoOT not applied.*");
-                }
                 else if (isNonNative)
-                {
-                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/hexbyt3/sprites/main/exclamation.gif";
                     embedBuilder.AddField("**__Notice__**: **This Pokemon is Non-Native.**", "*Cannot enter HOME & AutoOT not applied.*");
-                }
             }
             else if (isNonNative)
-            {
-                embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/hexbyt3/sprites/main/exclamation.gif";
                 embedBuilder.AddField("**__Notice__**: **This Pokemon is Non-Native.**", "*Cannot enter HOME & AutoOT not applied.*");
-            }
 
             DetailsExtractor<T>.AddThumbnails(embedBuilder, type == PokeRoutineType.Clone, type == PokeRoutineType.SeedCheck, embedData.HeldItemUrl);
 
@@ -275,15 +257,7 @@ public static class QueueHelper<T> where T : PKM, new()
                     return new TradeQueueResult(false);
                 }
 
-                if (embedData.IsLocalFile)
-                {
-                    await context.Channel.SendFileAsync(embedData.EmbedImageUrl, embed: embed);
-                    await ScheduleFileDeletion(embedData.EmbedImageUrl, 0);
-                }
-                else
-                {
-                    await context.Channel.SendMessageAsync(embed: embed);
-                }
+                await context.Channel.SendMessageAsync(embed: embed);
             }
             else
             {
@@ -443,10 +417,7 @@ public static class QueueHelper<T> where T : PKM, new()
                     if (pk is IHomeTrack homeTrack)
                     {
                         if (homeTrack.HasTracker)
-                        {
-                            embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/hexbyt3/sprites/main/exclamation.gif";
                             embedBuilder.AddField("**__Notice__**: **Home Tracker Detected.**", "*AutoOT not applied.*");
-                        }
                     }
 
                     DetailsExtractor<T>.AddThumbnails(embedBuilder, false, false, embedData.HeldItemUrl);
@@ -506,167 +477,36 @@ public static class QueueHelper<T> where T : PKM, new()
         return imagesFolder;
     }
 
-    private static string SaveImageLocally(System.Drawing.Image image)
-    {
-        string imagesFolderPath = GetImageFolderPath();
-        string filePath = Path.Combine(imagesFolderPath, $"image_{Guid.NewGuid()}.png");
-
-#pragma warning disable CA1416 // Validate platform compatibility
-        image.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
-#pragma warning restore CA1416 // Validate platform compatibility
-
-        return filePath;
-    }
+    private static string SaveImageLocally(System.Drawing.Image image) => string.Empty;
 
     private static async Task<(string, DiscordColor)> PrepareEmbedDetails(T pk)
     {
         string embedImageUrl;
-        string speciesImageUrl;
-
         if (pk.IsEgg)
         {
-            string eggImageUrl = GetEggTypeImageUrl(pk);
-            speciesImageUrl = TradeExtensions<T>.PokeImg(pk, false, true, null);
-            System.Drawing.Image combinedImage = await OverlaySpeciesOnEgg(eggImageUrl, speciesImageUrl);
-            embedImageUrl = SaveImageLocally(combinedImage);
+            var strings = new[]
+            {
+                "Normal","Fighting","Flying","Poison","Ground","Rock","Bug","Ghost",
+                "Steel","Fire","Water","Grass","Electric","Psychic","Ice","Dragon",
+                "Dark","Fairy"
+            };
+            var typeIndex = pk.PersonalInfo.Type1;
+            var typeName = (typeIndex >= 0 && typeIndex < strings.Length) ? strings[typeIndex] : "Normal";
+            embedImageUrl = $"https://raw.githubusercontent.com/NexusRisen/HomeImages/master/128x128/Egg_{typeName}.png";
         }
         else
         {
             bool canGmax = pk is PK8 pk8 && pk8.CanGigantamax;
-            speciesImageUrl = TradeExtensions<T>.PokeImg(pk, canGmax, false, SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.PreferredImageSize);
-            embedImageUrl = speciesImageUrl;
-        }
-
-        var strings = GameInfo.GetStrings("en");
-        string ballName = strings.balllist[pk.Ball];
-        if (ballName.Contains("(LA)"))
-        {
-            ballName = "la" + ballName.Replace(" ", "").Replace("(LA)", "").ToLower();
-        }
-        else
-        {
-            ballName = ballName.Replace(" ", "").ToLower();
-        }
-
-        string ballImgUrl = $"https://raw.githubusercontent.com/hexbyt3/sprites/main/AltBallImg/20x20/{ballName}.png";
-
-        if (Uri.TryCreate(embedImageUrl, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeFile)
-        {
-#pragma warning disable CA1416 // Validate platform compatibility
-            using var localImage = await Task.Run(() => System.Drawing.Image.FromFile(uri.LocalPath));
-#pragma warning restore CA1416 // Validate platform compatibility
-            using var ballImage = await LoadImageFromUrl(ballImgUrl);
-            if (ballImage != null)
-            {
-#pragma warning disable CA1416 // Validate platform compatibility
-                using (var graphics = Graphics.FromImage(localImage))
-                {
-                    var ballPosition = new Point(localImage.Width - ballImage.Width, localImage.Height - ballImage.Height);
-                    graphics.DrawImage(ballImage, ballPosition);
-                }
-#pragma warning restore CA1416 // Validate platform compatibility
-                embedImageUrl = SaveImageLocally(localImage);
-            }
-        }
-        else
-        {
-            (System.Drawing.Image? finalCombinedImage, bool ballImageLoaded) = await OverlayBallOnSpecies(speciesImageUrl, ballImgUrl);
-            if (finalCombinedImage != null)
-            {
-                embedImageUrl = SaveImageLocally(finalCombinedImage);
-            }
-            else
-            {
-                // Fall back to species image if overlay failed
-                embedImageUrl = speciesImageUrl;
-            }
-
-            if (!ballImageLoaded)
-            {
-                Console.WriteLine($"Ball image could not be loaded: {ballImgUrl}");
-            }
+            embedImageUrl = TradeExtensions<T>.PokeImg(pk, canGmax, false, SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.PreferredImageSize);
         }
 
         (int R, int G, int B) = await GetDominantColorAsync(embedImageUrl);
         return (embedImageUrl, new DiscordColor(R, G, B));
     }
 
-    private static async Task<(System.Drawing.Image?, bool)> OverlayBallOnSpecies(string speciesImageUrl, string ballImageUrl)
-    {
-        using var speciesImage = await LoadImageFromUrl(speciesImageUrl);
-        if (speciesImage == null)
-        {
-            Console.WriteLine("Species image could not be loaded.");
-            return (null, false);
-        }
+    private static async Task<(System.Drawing.Image?, bool)> OverlayBallOnSpecies(string speciesImageUrl, string ballImageUrl) => (null, false);
 
-        var ballImage = await LoadImageFromUrl(ballImageUrl);
-        if (ballImage == null)
-        {
-            Console.WriteLine($"Ball image could not be loaded: {ballImageUrl}");
-#pragma warning disable CA1416 // Validate platform compatibility
-            return ((System.Drawing.Image)speciesImage.Clone(), false);
-#pragma warning restore CA1416 // Validate platform compatibility
-        }
-
-        using (ballImage)
-        {
-#pragma warning disable CA1416 // Validate platform compatibility
-            using (var graphics = Graphics.FromImage(speciesImage))
-            {
-                var ballPosition = new Point(speciesImage.Width - ballImage.Width, speciesImage.Height - ballImage.Height);
-                graphics.DrawImage(ballImage, ballPosition);
-            }
-#pragma warning restore CA1416 // Validate platform compatibility
-
-#pragma warning disable CA1416 // Validate platform compatibility
-            return ((System.Drawing.Image)speciesImage.Clone(), true);
-#pragma warning restore CA1416 // Validate platform compatibility
-        }
-    }
-
-    private static async Task<System.Drawing.Image> OverlaySpeciesOnEgg(string eggImageUrl, string speciesImageUrl)
-    {
-        System.Drawing.Image? eggImage = await LoadImageFromUrl(eggImageUrl);
-        System.Drawing.Image? speciesImage = await LoadImageFromUrl(speciesImageUrl);
-        
-        if (eggImage == null || speciesImage == null)
-        {
-            throw new InvalidOperationException("Failed to load egg or species image.");
-        }
-
-#pragma warning disable CA1416 // Validate platform compatibility
-        double scaleRatio = Math.Min((double)eggImage.Width / speciesImage.Width, (double)eggImage.Height / speciesImage.Height);
-        Size newSize = new((int)(speciesImage.Width * scaleRatio), (int)(speciesImage.Height * scaleRatio));
-        System.Drawing.Image resizedSpeciesImage = new Bitmap(speciesImage, newSize);
-
-        using (Graphics g = Graphics.FromImage(eggImage))
-        {
-            int speciesX = (eggImage.Width - resizedSpeciesImage.Width) / 2;
-            int speciesY = (eggImage.Height - resizedSpeciesImage.Height) / 2;
-            g.DrawImage(resizedSpeciesImage, speciesX, speciesY, resizedSpeciesImage.Width, resizedSpeciesImage.Height);
-        }
-
-        speciesImage.Dispose();
-        resizedSpeciesImage.Dispose();
-
-        double scale = Math.Min(128.0 / eggImage.Width, 128.0 / eggImage.Height);
-        int newWidth = (int)(eggImage.Width * scale);
-        int newHeight = (int)(eggImage.Height * scale);
-
-        Bitmap finalImage = new(128, 128);
-
-        using (Graphics g = Graphics.FromImage(finalImage))
-        {
-            int x = (128 - newWidth) / 2;
-            int y = (128 - newHeight) / 2;
-            g.DrawImage(eggImage, x, y, newWidth, newHeight);
-        }
-
-        eggImage.Dispose();
-#pragma warning restore CA1416 // Validate platform compatibility
-        return finalImage;
-    }
+    private static async Task<System.Drawing.Image> OverlaySpeciesOnEgg(string eggImageUrl, string speciesImageUrl) => throw new NotSupportedException();
 
     private static async Task<System.Drawing.Image?> LoadImageFromUrl(string url)
     {
@@ -847,23 +687,7 @@ public static class QueueHelper<T> where T : PKM, new()
         await context.Channel.SendMessageAsync(message).ConfigureAwait(false);
     }
 
-    private static string GetEggTypeImageUrl(T pk)
-    {
-        var pi = pk.PersonalInfo;
-        byte typeIndex = pi.Type1;
-
-        string[] typeNames = [
-            "Normal", "Fighting", "Flying", "Poison", "Ground", "Rock", "Bug", "Ghost",
-            "Steel", "Fire", "Water", "Grass", "Electric", "Psychic", "Ice", "Dragon",
-            "Dark", "Fairy"
-        ];
-
-        string typeName = (typeIndex >= 0 && typeIndex < typeNames.Length)
-            ? typeNames[typeIndex]
-            : "Normal";
-
-        return $"https://raw.githubusercontent.com/hexbyt3/HomeImages/ebd562941ff77b1889a297ee50eacfa8cb3589de/128x128/Egg_{typeName}.png";
-    }
+    // Removed external egg image dependency
 
     public static (string, Embed) CreateLGLinkCodeSpriteEmbed(List<Pictocodes> lgcode)
     {
@@ -922,4 +746,3 @@ public static class QueueHelper<T> where T : PKM, new()
         return (filename, returnembed);
     }
 }
-

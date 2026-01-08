@@ -33,10 +33,10 @@ namespace SysBot.Pokemon.WinForms
                 
                 if (IsWindows11OrGreater())
                 {
-                    int darkColor = ColorTranslator.ToWin32(System.Drawing.Color.FromArgb(23, 29, 37));
+                    int darkColor = ColorTranslator.ToWin32(System.Drawing.Color.FromArgb(0, 0, 0));
                     DwmSetWindowAttribute(handle, DWMWA_CAPTION_COLOR, ref darkColor, sizeof(int));
                     
-                    int borderColor = ColorTranslator.ToWin32(System.Drawing.Color.FromArgb(32, 38, 48));
+                    int borderColor = ColorTranslator.ToWin32(System.Drawing.Color.FromArgb(0, 204, 255));
                     DwmSetWindowAttribute(handle, DWMWA_BORDER_COLOR, ref borderColor, sizeof(int));
                 }
 

@@ -24,18 +24,21 @@ namespace SysBot.Pokemon.WinForms
         private Color currentStatusColor = Color.FromArgb(90, 186, 71);
         private DateTime LastUpdateStatus = DateTime.Now;
         private bool buttonHovering = false;
+        private bool _isHovered = false;
         private float pulseScale = 1.0f;
         private bool pulseGrowing = true;
+        private float shimmerPosition = -1.0f;
         private const float MIN_PULSE_SCALE = 0.6f;
         private const float MAX_PULSE_SCALE = 1.0f;
         private const float PULSE_SPEED = 0.03f;
+        private const float SHIMMER_SPEED = 0.02f;
 
-        private readonly Color CuztomBackground = Color.FromArgb(27, 40, 56);
-        private readonly Color CuztomDarkBackground = Color.FromArgb(22, 32, 45);
-        private readonly Color CuztomDarkerBackground = Color.FromArgb(16, 24, 34);
-        private readonly Color CuztomAccent = Color.FromArgb(102, 192, 244);
+        private readonly Color CuztomBackground = Color.Black;
+        private readonly Color CuztomDarkBackground = Color.FromArgb(5, 5, 5);
+        private readonly Color CuztomDarkerBackground = Color.FromArgb(0, 0, 0);
+        private readonly Color CuztomAccent = Color.FromArgb(0, 204, 255);
         private readonly Color CuztomText = Color.FromArgb(239, 239, 239);
-        private readonly Color CuztomSubText = Color.FromArgb(139, 179, 217);
+        private readonly Color CuztomSubText = Color.Gray;
         private readonly Color CuztomGreen = Color.FromArgb(90, 186, 71);
         private readonly Color CuztomRed = Color.FromArgb(236, 98, 95);
         private readonly Color CuztomYellow = Color.FromArgb(245, 197, 92);
@@ -53,6 +56,8 @@ namespace SysBot.Pokemon.WinForms
                     ControlStyles.Opaque, true);
             UpdateStyles();
             
+            this.BackColor = Color.Transparent;
+            
             // Skip initialization in design mode
             if (DesignMode || System.ComponentModel.LicenseManager.UsageMode == System.ComponentModel.LicenseUsageMode.Designtime)
                 return;
@@ -62,6 +67,25 @@ namespace SysBot.Pokemon.WinForms
             ModernizeStatusIndicator();
             ConfigureButtonAppearance();
             InitializeAnimationTimer();
+            
+            mainPanel.Resize += (s, e) => UpdateRegion();
+            UpdateRegion();
+        }
+        
+        private void UpdateRegion()
+        {
+            if (mainPanel == null || mainPanel.IsDisposed) return;
+            
+            var rect = mainPanel.ClientRectangle;
+            using var path = new GraphicsPath();
+            int chamfer = 25;
+            path.AddLine(rect.Left + chamfer, rect.Top, rect.Right - chamfer, rect.Top);
+            path.AddLine(rect.Right, rect.Top + chamfer, rect.Right, rect.Bottom - chamfer);
+            path.AddLine(rect.Right - chamfer, rect.Bottom, rect.Left + chamfer, rect.Bottom);
+            path.AddLine(rect.Left, rect.Bottom - chamfer, rect.Left, rect.Top + chamfer);
+            path.CloseFigure();
+            
+            mainPanel.Region = new Region(path);
         }
         
         protected override void OnVisibleChanged(EventArgs e)
@@ -101,17 +125,17 @@ namespace SysBot.Pokemon.WinForms
 
         private void ModernizeStatusIndicator()
         {
-            // Scale-aware sizing for smaller circle
+            // Scale-aware sizing for larger glow circle
             var dpiScale = DeviceDpi / 96f;
-            var scaledSize = (int)(16 * dpiScale); // Reduced from 24 to 16
+            var scaledSize = (int)(40 * dpiScale); 
             statusIndicator.Size = new Size(scaledSize, scaledSize);
-            statusIndicator.Location = new Point((int)(12 * dpiScale), (int)(25 * dpiScale)); // Adjusted vertical position
+            statusIndicator.Location = new Point((int)(15 * dpiScale), (int)(30 * dpiScale)); // Vertically centered
             statusIndicator.BackColor = Color.Transparent;
         }
 
         private void ConfigureButtonAppearance()
         {
-            btnActions.Text = "\u27a4 BOT MENU";
+            btnActions.Text = "COMMANDS";
             btnActions.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
             btnActions.ForeColor = Color.White;
             btnActions.FlatStyle = FlatStyle.Flat;
@@ -418,8 +442,16 @@ namespace SysBot.Pokemon.WinForms
                     bot.Pause();
                     break;
                 case BotControlCommand.Start:
-                    Runner.InitializeStart();
-                    bot.Start();
+                    try
+                    {
+                        Runner.InitializeStart();
+                        bot.Start();
+                    }
+                    catch (Exception ex)
+                    {
+                        LogUtil.LogError($"Failed to start bot: {ex.Message}", "BotController");
+                        WinFormsUtil.Alert($"Failed to start bot: {ex.Message}");
+                    }
                     break;
                 case BotControlCommand.Stop:
                     bot.Stop();
@@ -449,9 +481,17 @@ namespace SysBot.Pokemon.WinForms
                             {
                                 BeginInvoke((MethodInvoker)(() =>
                                 {
-                                    Runner.InitializeStart();
-                                    bot.Bot.Connection.Reset();
-                                    bot.Start();
+                                    try
+                                    {
+                                        Runner.InitializeStart();
+                                        bot.Bot.Connection.Reset();
+                                        bot.Start();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        LogUtil.LogError($"Failed to restart bot: {ex.Message}", "BotController");
+                                        WinFormsUtil.Alert($"Failed to restart bot: {ex.Message}");
+                                    }
                                 }));
                             }
                         });
@@ -632,12 +672,17 @@ namespace SysBot.Pokemon.WinForms
 
         private void BotController_MouseEnter(object? sender, EventArgs e)
         {
-            // Mouse hover removed for simplicity
+            _isHovered = true;
+            mainPanel.Invalidate();
         }
 
         private void BotController_MouseLeave(object? sender, EventArgs e)
         {
-            // Mouse hover removed for simplicity
+            if (!ClientRectangle.Contains(PointToClient(MousePosition)))
+            {
+                _isHovered = false;
+                mainPanel.Invalidate();
+            }
         }
 
         private void BtnActions_MouseEnter(object? sender, EventArgs e)
@@ -720,12 +765,7 @@ namespace SysBot.Pokemon.WinForms
         {
             if (_suspendPainting) return;
             
-            var g = e.Graphics;
-            // Paint the outer container with consistent background
-            using (var bgBrush = new SolidBrush(CuztomBackground))
-            {
-                g.FillRectangle(bgBrush, ClientRectangle);
-            }
+            // Transparent background - do not paint
         }
 
         private void MainPanel_Paint(object sender, PaintEventArgs e)
@@ -733,19 +773,144 @@ namespace SysBot.Pokemon.WinForms
             if (_suspendPainting) return;
             
             var g = e.Graphics;
-            g.CompositingMode = CompositingMode.SourceCopy;
-            g.SmoothingMode = SmoothingMode.None;
-            g.PixelOffsetMode = PixelOffsetMode.Half;
+            g.CompositingMode = CompositingMode.SourceOver;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
-            var rect = e.ClipRectangle;
+            var rect = new Rectangle(0, 0, mainPanel.Width - 1, mainPanel.Height - 1);
             
-            // Paint with the same background as the main form
-            using (var bgBrush = new SolidBrush(CuztomDarkBackground))
+            // Alien Tech Background
+            using (var path = new GraphicsPath())
             {
-                g.FillRectangle(bgBrush, rect);
+                // Aggressive chamfered corners
+                int chamfer = 25;
+                path.AddLine(rect.Left + chamfer, rect.Top, rect.Right - chamfer, rect.Top);
+                path.AddLine(rect.Right, rect.Top + chamfer, rect.Right, rect.Bottom - chamfer);
+                path.AddLine(rect.Right - chamfer, rect.Bottom, rect.Left + chamfer, rect.Bottom);
+                path.AddLine(rect.Left, rect.Bottom - chamfer, rect.Left, rect.Top + chamfer);
+                path.CloseFigure();
+                
+                // 1. Deep Dark Base (High Opacity for readability over Rack)
+                using (var brush = new SolidBrush(Color.FromArgb(240, 5, 5, 5)))
+                {
+                    g.FillPath(brush, path);
+                }
+
+                // 2. True Hexagon Mesh Pattern
+                using (var clip = new Region(path))
+                {
+                    g.SetClip(clip, CombineMode.Replace);
+                    using (var pen = new Pen(Color.FromArgb(10, 0, 255, 255), 1))
+                    {
+                        float hexRadius = 15f;
+                        float hexHeight = (float)(Math.Sqrt(3) * hexRadius); // Height of flat-topped hex
+                        float hexWidth = 2 * hexRadius; // Width of flat-topped hex
+                        float horizDist = hexWidth * 0.75f;
+                        float vertDist = hexHeight;
+                        
+                        // Calculate grid bounds
+                        int cols = (int)(rect.Width / horizDist) + 2;
+                        int rows = (int)(rect.Height / vertDist) + 2;
+
+                        for (int r = 0; r < rows; r++)
+                        {
+                            for (int c = 0; c < cols; c++)
+                            {
+                                float x = c * horizDist;
+                                float y = r * vertDist;
+                                if (c % 2 == 1) y += vertDist / 2; // Stagger odd columns
+
+                                // Draw Hexagon
+                                PointF[] points = new PointF[6];
+                                for (int i = 0; i < 6; i++)
+                                {
+                                    float angle_deg = 60 * i;
+                                    float angle_rad = (float)(Math.PI / 180 * angle_deg);
+                                    points[i] = new PointF(
+                                        x + hexRadius * (float)Math.Cos(angle_rad),
+                                        y + hexRadius * (float)Math.Sin(angle_rad)
+                                    );
+                                }
+                                g.DrawPolygon(pen, points);
+                            }
+                        }
+                    }
+                    g.ResetClip();
+                }
+                
+                // 3. Vertical Gradient Overlay (Vignette)
+                using (var brush = new LinearGradientBrush(rect, 
+                    Color.FromArgb(20, 255, 255, 255), 
+                    Color.FromArgb(200, 0, 0, 0), 
+                    LinearGradientMode.Vertical))
+                {
+                    g.FillPath(brush, path);
+                }
+
+                // 4. Glowing Border
+                var borderColor = currentStatusColor;
+                if (borderColor == Color.Empty) borderColor = CuztomAccent;
+
+                int glowIntensity = 40;
+                int borderThickness = 6;
+                
+                if (_isHovered)
+                {
+                    // Intensify the glow on hover (Brighter and thicker)
+                    glowIntensity = 120;
+                    borderThickness = 8;
+                    // Boost brightness significantly
+                    borderColor = ControlPaint.Light(borderColor, 0.5f); 
+                }
+
+                // Outer soft glow
+                using (var pen = new Pen(Color.FromArgb(glowIntensity, borderColor), borderThickness))
+                {
+                    pen.LineJoin = LineJoin.Bevel;
+                    g.DrawPath(pen, path);
+                }
+                
+                // Inner sharp border
+                using (var pen = new Pen(borderColor, _isHovered ? 2.5f : 1.5f))
+                {
+                    pen.LineJoin = LineJoin.Bevel;
+                    g.DrawPath(pen, path);
+                }
+
+                // 5. Tech Accents (Corner Brackets)
+                using (var pen = new Pen(borderColor, 3))
+                {
+                    int arm = 25;
+                    // Top Left
+                    g.DrawLine(pen, rect.Left + chamfer - 5, rect.Top, rect.Left + chamfer + arm, rect.Top);
+                    g.DrawLine(pen, rect.Left, rect.Top + chamfer - 5, rect.Left, rect.Top + chamfer + arm);
+                    
+                    // Bottom Right
+                    g.DrawLine(pen, rect.Right - chamfer + 5, rect.Bottom, rect.Right - chamfer - arm, rect.Bottom);
+                    g.DrawLine(pen, rect.Right, rect.Bottom - chamfer + 5, rect.Right, rect.Bottom - chamfer - arm);
+                }
+
+                // 6. Shimmer Effect (Alien Pulse)
+                if (shimmerPosition > -0.5f && shimmerPosition < 1.5f)
+                {
+                    float shimmerX = rect.Left + (rect.Width * shimmerPosition);
+                    // Draw a angled highlight moving across
+                    using (var shimmerBrush = new LinearGradientBrush(
+                        new PointF(shimmerX - 100, rect.Top),
+                        new PointF(shimmerX + 100, rect.Bottom),
+                        Color.Transparent,
+                        Color.Transparent))
+                    {
+                        ColorBlend blend = new ColorBlend();
+                        blend.Positions = new[] { 0.0f, 0.5f, 1.0f };
+                        blend.Colors = new[] { Color.Transparent, Color.FromArgb(100, borderColor), Color.Transparent };
+                        shimmerBrush.InterpolationColors = blend;
+                        
+                        g.FillPath(shimmerBrush, path);
+                    }
+                }
             }
         }
-
 
         private void StatusIndicator_Paint(object sender, PaintEventArgs e)
         {
@@ -757,34 +922,66 @@ namespace SysBot.Pokemon.WinForms
 
             if (sender is not PictureBox control) return;
 
-            // Don't clear - let parent background show through
-            // This ensures transparency works properly
-
-            // Calculate pulsing circle dimensions
             var centerX = control.Width / 2f;
             var centerY = control.Height / 2f;
-            var baseRadius = Math.Min(control.Width, control.Height) * 0.35f; // Smaller circle
-            var currentRadius = baseRadius * pulseScale;
-
-            // Draw the pulsing circle
-            using var path = new GraphicsPath();
-            path.AddEllipse(centerX - currentRadius, centerY - currentRadius, currentRadius * 2, currentRadius * 2);
-
-            // Apply opacity based on pulse scale for breathing effect
-            var opacity = (int)(255 * (0.7f + 0.3f * pulseScale));
-            var colorWithOpacity = Color.FromArgb(opacity, currentStatusColor);
+            var baseRadius = Math.Min(control.Width, control.Height) * 0.4f; 
             
-            using var brush = new SolidBrush(colorWithOpacity);
-            g.FillPath(brush, path);
+            // Pulsing logic
+            var currentRadius = baseRadius * (0.9f + (pulseScale - 0.6f) * 0.3f);
 
-            // Add subtle glow effect for larger pulse scales
-            if (pulseScale > 0.8f)
+            // Alien Power Button Look
+            
+            // 1. Glow Halo
+            using (var path = new GraphicsPath())
             {
-                using var glowBrush = new SolidBrush(Color.FromArgb((int)(20 * pulseScale), currentStatusColor));
-                var glowRadius = currentRadius + 3;
-                using var glowPath = new GraphicsPath();
-                glowPath.AddEllipse(centerX - glowRadius, centerY - glowRadius, glowRadius * 2, glowRadius * 2);
-                g.FillPath(glowBrush, glowPath);
+                path.AddEllipse(centerX - currentRadius * 1.5f, centerY - currentRadius * 1.5f, currentRadius * 3f, currentRadius * 3f);
+                using (var brush = new PathGradientBrush(path))
+                {
+                    brush.CenterColor = Color.FromArgb(150, currentStatusColor);
+                    brush.SurroundColors = new[] { Color.Transparent };
+                    g.FillPath(brush, path);
+                }
+            }
+
+            // 2. Hexagon Frame
+            var hexPoints = new PointF[6];
+            for (int i = 0; i < 6; i++)
+            {
+                float angle = (float)(i * 60 * Math.PI / 180);
+                hexPoints[i] = new PointF(
+                    centerX + currentRadius * (float)Math.Cos(angle),
+                    centerY + currentRadius * (float)Math.Sin(angle));
+            }
+
+            // Fill Hex (Dark Tech)
+            using (var brush = new LinearGradientBrush(
+                new PointF(centerX, centerY - currentRadius),
+                new PointF(centerX, centerY + currentRadius),
+                Color.FromArgb(240, 30, 30, 30),
+                Color.FromArgb(240, 10, 10, 10)))
+            {
+                g.FillPolygon(brush, hexPoints);
+            }
+            
+            // Stroke Hex
+            using (var pen = new Pen(currentStatusColor, 2f))
+            {
+                g.DrawPolygon(pen, hexPoints);
+            }
+
+            // 3. Power Symbol
+            float iconRadius = currentRadius * 0.5f;
+            using (var pen = new Pen(currentStatusColor, 2.5f))
+            {
+                pen.StartCap = LineCap.Round;
+                pen.EndCap = LineCap.Round;
+                
+                // Power Circle Arc (Gap at top)
+                // Start at 300 degrees, sweep 300 degrees
+                g.DrawArc(pen, centerX - iconRadius, centerY - iconRadius, iconRadius * 2, iconRadius * 2, 300, 300);
+                
+                // Power Line (Vertical at top)
+                g.DrawLine(pen, centerX, centerY - iconRadius, centerX, centerY - iconRadius * 0.2f);
             }
         }
 
@@ -801,31 +998,61 @@ namespace SysBot.Pokemon.WinForms
 
             btn.Region?.Dispose();
 
+            // Chamfered button
             using var path = new GraphicsPath();
-            GraphicsExtensions.AddRoundedRectangle(path, rect, 4);
+            int chamfer = 6;
+            path.AddLine(rect.Left + chamfer, rect.Top, rect.Right - chamfer, rect.Top);
+            path.AddLine(rect.Right, rect.Top + chamfer, rect.Right, rect.Bottom - chamfer);
+            path.AddLine(rect.Right - chamfer, rect.Bottom, rect.Left + chamfer, rect.Bottom);
+            path.AddLine(rect.Left, rect.Bottom - chamfer, rect.Left, rect.Top + chamfer);
+            path.CloseFigure();
+            
             btn.Region = new Region(path);
 
-            // Simple solid color
-            var bgColor = buttonHovering ? Color.FromArgb(120, 200, 255) : Color.FromArgb(102, 192, 244);
-            using (var bgBrush = new SolidBrush(bgColor))
+            // Alien Tech Button Style
+            var glowColor = buttonHovering ? Color.Cyan : Color.FromArgb(0, 150, 200);
+
+            // 1. Base (Deep Key Cap)
+            using (var brush = new LinearGradientBrush(rect, 
+                Color.FromArgb(20, 20, 20), 
+                Color.FromArgb(5, 5, 5), 
+                LinearGradientMode.Vertical))
             {
-                g.FillPath(bgBrush, path);
+                g.FillPath(brush, path);
             }
 
-            // Simple border
-            using (var borderPen = new Pen(Color.FromArgb(100, 180, 230), 1))
+            // 2. Inner Highlight (Top Edge)
+            var topRect = new Rectangle(rect.Left, rect.Top, rect.Width, rect.Height / 2);
+            using (var brush = new LinearGradientBrush(topRect, 
+                Color.FromArgb(50, 255, 255, 255), 
+                Color.Transparent, 
+                LinearGradientMode.Vertical))
             {
-                g.DrawPath(borderPen, path);
+                g.FillPath(brush, path);
             }
 
-            // Draw text
+            // 3. Glowing Text Shadow (Neon Effect)
             var textFormat = new StringFormat
             {
                 Alignment = StringAlignment.Center,
                 LineAlignment = StringAlignment.Center
             };
+            
+            // Draw glow behind text
+            for (int i = 0; i < 3; i++)
+            {
+                using var glowBrush = new SolidBrush(Color.FromArgb(30, glowColor));
+                g.DrawString(btn.Text, btn.Font, glowBrush, new RectangleF(rect.X + 1, rect.Y + 1, rect.Width, rect.Height), textFormat);
+            }
 
-            using var textBrush = new SolidBrush(Color.White);
+            // 4. Border (Active/Inactive)
+            using (var pen = new Pen(buttonHovering ? glowColor : Color.FromArgb(60, 60, 60), 1.5f))
+            {
+                g.DrawPath(pen, path);
+            }
+
+            // 5. Text
+            using var textBrush = new SolidBrush(buttonHovering ? Color.White : Color.FromArgb(220, 220, 220));
             g.DrawString(btn.Text, btn.Font, textBrush, rect, textFormat);
         }
 
@@ -857,9 +1084,21 @@ namespace SysBot.Pokemon.WinForms
                     pulseGrowing = true;
                 }
             }
+            
+            // Update shimmer
+            shimmerPosition += SHIMMER_SPEED;
+            if (shimmerPosition > 1.5f)
+            {
+                shimmerPosition = -3.0f; // Reset and wait a bit (pause)
+            }
 
-            // Invalidate only the status indicator for efficient repainting
-            if (statusIndicator is not null && !statusIndicator.IsDisposed)
+            // Invalidate main panel for shimmer
+            if (mainPanel != null && !mainPanel.IsDisposed && shimmerPosition > -0.5f && shimmerPosition < 1.5f)
+            {
+                mainPanel.Invalidate();
+            }
+            // Otherwise just invalidate indicator
+            else if (statusIndicator is not null && !statusIndicator.IsDisposed)
             {
                 statusIndicator.Invalidate();
             }
@@ -878,7 +1117,7 @@ namespace SysBot.Pokemon.WinForms
             protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
             {
                 var rc = new Rectangle(Point.Empty, e.Item.Size);
-                var c = e.Item.Selected ? Color.FromArgb(55, 70, 95) : Color.FromArgb(35, 45, 60);
+                var c = e.Item.Selected ? Color.FromArgb(20, 20, 20) : Color.FromArgb(12, 12, 12);
                 using var brush = new SolidBrush(c);
                 e.Graphics.FillRectangle(brush, rc);
             }
@@ -887,9 +1126,9 @@ namespace SysBot.Pokemon.WinForms
             {
                 // Force white text for better visibility
                 if (!e.Item.Enabled)
-                    e.TextColor = Color.FromArgb(120, 120, 120);
+                    e.TextColor = Color.Gray;
                 else
-                    e.TextColor = Color.White;
+                    e.TextColor = Color.Cyan;
                     
                 base.OnRenderItemText(e);
             }
@@ -897,15 +1136,15 @@ namespace SysBot.Pokemon.WinForms
 
         private class CuztomColorTable : ProfessionalColorTable
         {
-            public override Color MenuItemSelected => Color.FromArgb(55, 70, 95);
-            public override Color MenuItemBorder => Color.FromArgb(80, 120, 160);
-            public override Color MenuBorder => Color.FromArgb(20, 30, 40);
-            public override Color ToolStripDropDownBackground => Color.FromArgb(35, 45, 60);
-            public override Color ImageMarginGradientBegin => Color.FromArgb(35, 45, 60);
-            public override Color ImageMarginGradientMiddle => Color.FromArgb(35, 45, 60);
-            public override Color ImageMarginGradientEnd => Color.FromArgb(35, 45, 60);
-            public override Color SeparatorDark => Color.FromArgb(20, 30, 40);
-            public override Color SeparatorLight => Color.FromArgb(55, 65, 80);
+            public override Color MenuItemSelected => Color.FromArgb(20, 20, 20);
+            public override Color MenuItemBorder => Color.FromArgb(0, 204, 255);
+            public override Color MenuBorder => Color.FromArgb(64, 64, 64);
+            public override Color ToolStripDropDownBackground => Color.FromArgb(12, 12, 12);
+            public override Color ImageMarginGradientBegin => Color.FromArgb(12, 12, 12);
+            public override Color ImageMarginGradientMiddle => Color.FromArgb(12, 12, 12);
+            public override Color ImageMarginGradientEnd => Color.FromArgb(12, 12, 12);
+            public override Color SeparatorDark => Color.FromArgb(64, 64, 64);
+            public override Color SeparatorLight => Color.FromArgb(32, 32, 32);
         }
     }
 

@@ -30,7 +30,6 @@ public class InfoModule : ModuleBase<SocketCommandContext>
             Color = new Color(88, 101, 242), // NexusRisen Blurple
             Title = "🤖 NexusRisen PokeBot",
             Description = detail,
-            ThumbnailUrl = "https://raw.githubusercontent.com/hexbyt3/sprites/main/pokeball.png",
             Footer = new EmbedFooterBuilder().WithText("Powered by SysBot.NET • NexusRisen Edition")
         };
 

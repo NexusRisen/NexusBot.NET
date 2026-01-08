@@ -18,8 +18,7 @@ public static class EmbedHelper
 
     // Common Footer
     private static readonly EmbedFooterBuilder Footer = new EmbedFooterBuilder()
-        .WithText("NexusRisen PokeBot • Powered by SysBot.NET")
-        .WithIconUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/pokeball.png");
+        .WithText("NexusRisen PokeBot • Powered by SysBot.NET");
 
     public static async Task SendNotificationEmbedAsync(IUser user, string message)
     {
@@ -27,7 +26,6 @@ public static class EmbedHelper
             .WithTitle("📢 Notification")
             .WithDescription(message)
             .WithTimestamp(DateTimeOffset.Now)
-            .WithThumbnailUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/exclamation.gif")
             .WithColor(ColorInfo)
             .WithFooter(Footer)
             .Build();
@@ -42,7 +40,6 @@ public static class EmbedHelper
             .WithDescription($"Please enter the following Link Code:")
             .AddField("Link Code", $"`{code:0000 0000}`", true)
             .WithTimestamp(DateTimeOffset.Now)
-            .WithThumbnailUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/tradecode.gif")
             .WithColor(ColorAccent)
             .WithFooter(Footer)
             .Build();
@@ -53,25 +50,27 @@ public static class EmbedHelper
     public static async Task SendTradeFinishedEmbedAsync<T>(IUser user, string message, T pk, bool isMysteryEgg)
         where T : PKM, new()
     {
-        string thumbnailUrl;
         string title = "✅ Trade Completed";
+        if (isMysteryEgg)
+            title = "🥚 Mystery Egg Sent!";
 
+        string? thumbUrl = null;
         if (isMysteryEgg)
         {
-            thumbnailUrl = "https://raw.githubusercontent.com/hexbyt3/sprites/main/mysteryegg3.png";
-            title = "🥚 Mystery Egg Sent!";
+            thumbUrl = "https://raw.githubusercontent.com/NexusRisen/HomeImages/master/128x128/Egg_Normal.png";
         }
         else
         {
-            thumbnailUrl = TradeExtensions<T>.PokeImg(pk, false, true, null);
+            bool canGmax = pk is PK8 pk8 && pk8.CanGigantamax;
+            thumbUrl = TradeExtensions<T>.PokeImg(pk, canGmax, false, null);
         }
 
         var embed = new EmbedBuilder()
             .WithTitle(title)
             .WithDescription(message)
             .WithTimestamp(DateTimeOffset.Now)
-            .WithThumbnailUrl(thumbnailUrl)
             .WithColor(ColorSuccess)
+            .WithThumbnailUrl(thumbUrl)
             .WithFooter(Footer)
             .Build();
 
@@ -90,7 +89,6 @@ public static class EmbedHelper
             .AddField("Pokémon", speciesName, true)
             .AddField("Link Code", $"`{code:0000 0000}`", true)
             .WithTimestamp(DateTimeOffset.Now)
-            .WithThumbnailUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/initializing.gif")
             .WithColor(ColorAccent) // Use accent color instead of orange
             .WithFooter(Footer);
 
@@ -114,7 +112,6 @@ public static class EmbedHelper
             .AddField("Trainer", trainerName, true)
             .AddField("Bot IGN", inGameName, true)
             .WithTimestamp(DateTimeOffset.Now)
-            .WithThumbnailUrl("https://raw.githubusercontent.com/hexbyt3/sprites/main/searching.gif")
             .WithColor(ColorWarning)
             .WithFooter(Footer);
 

@@ -79,14 +79,10 @@ public static class ReusableActions
     public static async Task SendPKMAsShowdownSetAsync(this ISocketMessageChannel channel, PKM pkm, SocketUserMessage userMessage)
     {
         var txt = GetFormattedShowdownText(pkm);
-        bool canGmax = pkm is PK8 pk8 && pk8.CanGigantamax;
-        var speciesImageUrl = TradeExtensions<PK9>.PokeImg(pkm, canGmax, false);
-
         var embed = new EmbedBuilder()
             .WithTitle("Pokémon Showdown Set")
             .WithDescription(txt)
             .WithColor(Color.Blue)
-            .WithThumbnailUrl(speciesImageUrl)
             .Build();
 
         var botMessage = await channel.SendMessageAsync(embed: embed).ConfigureAwait(false); // Send the embed

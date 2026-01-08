@@ -248,33 +248,28 @@ public abstract class TradeExtensions<T> where T : PKM, new()
 
     public static string PokeImg(PKM pkm, bool canGmax, bool fullSize, ImageSize? preferredImageSize = null)
     {
+        string sizeFolder;
+        if (fullSize)
+            sizeFolder = "512x512";
+        else if (preferredImageSize.HasValue)
+            sizeFolder = preferredImageSize.Value switch
+            {
+                ImageSize.Size128x128 => "128x128",
+                ImageSize.Size256x256 => "256x256",
+                _ => "256x256",
+            };
+        else
+            sizeFolder = "256x256";
+
         bool md = false;
         bool fd = false;
-        string[] baseLink;
-
-        if (fullSize)
-        {
-            baseLink = "https://raw.githubusercontent.com/hexbyt3/HomeImages/master/512x512/poke_capture_0001_000_mf_n_00000000_f_n.png".Split('_');
-        }
-        else if (preferredImageSize.HasValue)
-        {
-            baseLink = preferredImageSize.Value switch
-            {
-                ImageSize.Size256x256 => "https://raw.githubusercontent.com/hexbyt3/HomeImages/master/256x256/poke_capture_0001_000_mf_n_00000000_f_n.png".Split('_'),
-                ImageSize.Size128x128 => "https://raw.githubusercontent.com/hexbyt3/HomeImages/master/128x128/poke_capture_0001_000_mf_n_00000000_f_n.png".Split('_'),
-                _ => "https://raw.githubusercontent.com/hexbyt3/HomeImages/master/256x256/poke_capture_0001_000_mf_n_00000000_f_n.png".Split('_'),
-            };
-        }
-        else
-        {
-            baseLink = "https://raw.githubusercontent.com/hexbyt3/HomeImages/master/256x256/poke_capture_0001_000_mf_n_00000000_f_n.png".Split('_');
-        }
 
         if (Enum.IsDefined(typeof(GenderDependent), pkm.Species) && !canGmax && pkm.Form is 0)
         {
             if (pkm.Gender == 0 && pkm.Species != (int)Species.Torchic)
                 md = true;
-            else fd = true;
+            else
+                fd = true;
         }
 
         int form = pkm.Species switch
@@ -288,7 +283,8 @@ public abstract class TradeExtensions<T> where T : PKM, new()
         {
             if (pkm.Gender is 0)
                 md = true;
-            else fd = true;
+            else
+                fd = true;
         }
 
         if (pkm.Species is (ushort)Species.Basculegion)
@@ -305,16 +301,23 @@ public abstract class TradeExtensions<T> where T : PKM, new()
 
             string s = pkm.IsShiny ? "r" : "n";
             string g = md && pkm.Gender is not 1 ? "md" : "fd";
-            return "https://raw.githubusercontent.com/hexbyt3/HomeImages/master/256x256/poke_capture_0" + $"{pkm.Species}" + "_00" + $"{pkm.Form}" + "_" + $"{g}" + "_n_00000000_f_" + $"{s}" + ".png";
+            return $"https://raw.githubusercontent.com/NexusRisen/HomeImages/master/256x256/poke_capture_0{pkm.Species}_00{pkm.Form}_{g}_n_00000000_f_{s}.png";
         }
 
-        baseLink[2] = pkm.Species < 10 ? $"000{pkm.Species}" : pkm.Species < 100 && pkm.Species > 9 ? $"00{pkm.Species}" : pkm.Species >= 1000 ? $"{pkm.Species}" : $"0{pkm.Species}";
-        baseLink[3] = pkm.Form < 10 ? $"00{form}" : $"0{form}";
-        baseLink[4] = pkm.PersonalInfo.OnlyFemale ? "fo" : pkm.PersonalInfo.OnlyMale ? "mo" : pkm.PersonalInfo.Genderless ? "uk" : fd ? "fd" : md ? "md" : "mf";
-        baseLink[5] = canGmax ? "g" : "n";
-        baseLink[6] = "0000000" + ((pkm.Species == (int)Species.Alcremie && !canGmax) ? ((IFormArgument)pkm).FormArgument.ToString() : "0");
-        baseLink[8] = pkm.IsShiny ? "r.png" : "n.png";
-        return string.Join("_", baseLink);
+        string speciesPadded = pkm.Species < 10 ? $"000{pkm.Species}" :
+                               pkm.Species < 100 ? $"00{pkm.Species}" :
+                               pkm.Species >= 1000 ? $"{pkm.Species}" : $"0{pkm.Species}";
+
+        string formPadded = form < 10 ? $"00{form}" : $"0{form}";
+        string genderCode = pkm.PersonalInfo.OnlyFemale ? "fo" :
+                            pkm.PersonalInfo.OnlyMale ? "mo" :
+                            pkm.PersonalInfo.Genderless ? "uk" :
+                            fd ? "fd" : md ? "md" : "mf";
+        string gmaxCode = canGmax ? "g" : "n";
+        string alcremieArg = (pkm.Species == (int)Species.Alcremie && !canGmax) ? ((IFormArgument)pkm).FormArgument.ToString() : "0";
+        string shinyCode = pkm.IsShiny ? "r" : "n";
+
+        return $"https://raw.githubusercontent.com/NexusRisen/HomeImages/master/{sizeFolder}/poke_capture_{speciesPadded}_{formPadded}_{genderCode}_{gmaxCode}_0000000{alcremieArg}_f_{shinyCode}.png";
     }
 
     public static bool ShinyLockCheck(ushort species, string form, string ball = "")

@@ -79,12 +79,12 @@ namespace SysBot.Pokemon.WinForms
             this.UpdateStyles();
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(22, 32, 45);
+            this.BackColor = System.Drawing.Color.FromArgb(12, 12, 12);
             this.Controls.Add(this.mainPanel);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.Margin = new System.Windows.Forms.Padding(0, 0, 0, 5);
             this.Name = "BotController";
-            this.Size = new System.Drawing.Size(900, 100);
+            this.Size = new System.Drawing.Size(900, 130);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.BotController_Paint);
             this.MouseEnter += new System.EventHandler(this.BotController_MouseEnter);
             this.MouseLeave += new System.EventHandler(this.BotController_MouseLeave);
@@ -94,7 +94,7 @@ namespace SysBot.Pokemon.WinForms
                                      System.Windows.Forms.AnchorStyles.Bottom |
                                      System.Windows.Forms.AnchorStyles.Left |
                                      System.Windows.Forms.AnchorStyles.Right;
-            this.mainPanel.BackColor = System.Drawing.Color.FromArgb(22, 32, 45);
+            this.mainPanel.BackColor = System.Drawing.Color.FromArgb(12, 12, 12);
             this.mainPanel.Controls.Add(this.statusIndicator);
             this.mainPanel.Controls.Add(this.lblStatusValue);
             this.mainPanel.Controls.Add(this.lblBotName);
@@ -111,44 +111,44 @@ namespace SysBot.Pokemon.WinForms
 
             // Status Indicator (pulsing indicator on the left)
             this.statusIndicator.BackColor = System.Drawing.Color.Transparent;
-            this.statusIndicator.Location = new System.Drawing.Point(12, 23);
+            this.statusIndicator.Location = new System.Drawing.Point(15, 25);
             this.statusIndicator.Name = "statusIndicator";
-            this.statusIndicator.Size = new System.Drawing.Size(8, 8);
+            this.statusIndicator.Size = new System.Drawing.Size(40, 40);
             this.statusIndicator.TabIndex = 0;
             this.statusIndicator.TabStop = false;
             this.statusIndicator.Paint += new System.Windows.Forms.PaintEventHandler(this.StatusIndicator_Paint);
 
-            // Status Value Label (RUNNING, STOPPED, etc.)
-            this.lblStatusValue.AutoSize = false;
-            this.lblStatusValue.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblStatusValue.ForeColor = System.Drawing.Color.FromArgb(90, 186, 71);
-            this.lblStatusValue.Location = new System.Drawing.Point(45, 20);
-            this.lblStatusValue.Name = "lblStatusValue";
-            this.lblStatusValue.Size = new System.Drawing.Size(180, 16);
-            this.lblStatusValue.TabIndex = 1;
-            this.lblStatusValue.Text = "RUNNING";
-            this.lblStatusValue.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-
             // Bot Name Label
             this.lblBotName.AutoSize = false;
-            this.lblBotName.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.lblBotName.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             this.lblBotName.ForeColor = System.Drawing.Color.FromArgb(239, 239, 239);
-            this.lblBotName.Location = new System.Drawing.Point(45, 38);
+            this.lblBotName.Location = new System.Drawing.Point(70, 15);
             this.lblBotName.Name = "lblBotName";
-            this.lblBotName.Size = new System.Drawing.Size(400, 18);
+            this.lblBotName.Size = new System.Drawing.Size(400, 25);
             this.lblBotName.TabIndex = 2;
             this.lblBotName.Text = "192.168.1.100";
             this.lblBotName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             this.lblBotName.MouseEnter += new System.EventHandler(this.BotController_MouseEnter);
             this.lblBotName.MouseLeave += new System.EventHandler(this.BotController_MouseLeave);
 
+            // Status Value Label (RUNNING, STOPPED, etc.)
+            this.lblStatusValue.AutoSize = false;
+            this.lblStatusValue.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.lblStatusValue.ForeColor = System.Drawing.Color.FromArgb(90, 186, 71);
+            this.lblStatusValue.Location = new System.Drawing.Point(70, 42);
+            this.lblStatusValue.Name = "lblStatusValue";
+            this.lblStatusValue.Size = new System.Drawing.Size(180, 16);
+            this.lblStatusValue.TabIndex = 1;
+            this.lblStatusValue.Text = "RUNNING";
+            this.lblStatusValue.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+
             // Routine Type Label (trade type @ time)
             this.lblRoutineType.AutoSize = false;
-            this.lblRoutineType.Font = new System.Drawing.Font("Segoe UI", 8F);
+            this.lblRoutineType.Font = new System.Drawing.Font("Segoe UI", 8.5F);
             this.lblRoutineType.ForeColor = System.Drawing.Color.FromArgb(139, 179, 217);
-            this.lblRoutineType.Location = new System.Drawing.Point(45, 56);
+            this.lblRoutineType.Location = new System.Drawing.Point(70, 60);
             this.lblRoutineType.Name = "lblRoutineType";
-            this.lblRoutineType.Size = new System.Drawing.Size(400, 14);
+            this.lblRoutineType.Size = new System.Drawing.Size(400, 15);
             this.lblRoutineType.TabIndex = 3;
             this.lblRoutineType.Text = "FlexTrade";
             this.lblRoutineType.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -162,7 +162,7 @@ namespace SysBot.Pokemon.WinForms
             this.lblConnectionInfo.AutoEllipsis = true;
             this.lblConnectionInfo.Font = new System.Drawing.Font("Segoe UI", 8F);
             this.lblConnectionInfo.ForeColor = System.Drawing.Color.FromArgb(176, 176, 176);
-            this.lblConnectionInfo.Location = new System.Drawing.Point(45, 74);
+            this.lblConnectionInfo.Location = new System.Drawing.Point(70, 78);
             this.lblConnectionInfo.Name = "lblConnectionInfo";
             this.lblConnectionInfo.Size = new System.Drawing.Size(600, 15);
             this.lblConnectionInfo.TabIndex = 4;
@@ -179,13 +179,13 @@ namespace SysBot.Pokemon.WinForms
             this.btnActions.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(92, 173, 220);
             this.btnActions.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(122, 207, 255);
             this.btnActions.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnActions.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
+            this.btnActions.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.btnActions.ForeColor = System.Drawing.Color.White;
-            this.btnActions.Location = new System.Drawing.Point(770, 12);
+            this.btnActions.Location = new System.Drawing.Point(750, 30);
             this.btnActions.Name = "btnActions";
-            this.btnActions.Size = new System.Drawing.Size(110, 25);
+            this.btnActions.Size = new System.Drawing.Size(120, 35);
             this.btnActions.TabIndex = 5;
-            this.btnActions.Text = "➤ BOT MENU";
+            this.btnActions.Text = "COMMANDS";
             this.btnActions.UseVisualStyleBackColor = false;
             this.btnActions.Click += new System.EventHandler(this.BtnActions_Click);
             this.btnActions.Paint += new System.Windows.Forms.PaintEventHandler(this.BtnActions_Paint);
