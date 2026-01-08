@@ -14,7 +14,6 @@
     <Description>Nintendo Switch Pokémon Bot Manager</Description>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <StartupObject>SysBot.Pokemon.WinForms.Program</StartupObject>
-    <Version>1.1.5</Version>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
   <PropertyGroup>
@@ -100,4 +99,17 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+  <Target Name="SetVersion" BeforeTargets="BeforeBuild">
+    <Message Text="Calculating Version from Git Tag..." Importance="high" />
+    <Exec Command="git describe --tags --abbrev=0" ConsoleToMSBuild="true" StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="GitTag" />
+    </Exec>
+    <Message Text="Git Tag found: $(GitTag)" Importance="high" />
+    <PropertyGroup Condition="'$(GitTag)' != ''">
+      <Version>$(GitTag.Replace('v', ''))</Version>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(GitTag)' == ''">
+       <Version>1.0.0</Version>
+    </PropertyGroup>
+  </Target>
 </Project>
