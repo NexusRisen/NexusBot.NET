@@ -1840,15 +1840,24 @@ namespace SysBot.Pokemon.WinForms
         private void TransitionPanels(int index)
         {
             // Ensure proper panel layout before transitioning
-            // This fixes the issue where panels are cut off when first visited after tray restore
             contentPanel.SuspendLayout();
             
-            // Hide all panels
-            botsPanel.Visible = false;
-            hubPanel.Visible = false;
-            logsPanel.Visible = false;
-            devPanel.Visible = false;
-            
+            // Determine target panel
+            Panel targetPanel = index switch
+            {
+                0 => botsPanel,
+                1 => hubPanel,
+                2 => logsPanel,
+                3 => devPanel,
+                _ => botsPanel
+            };
+
+            // Optimization: Suspend layout for bot flow panel when switching to it
+            if (targetPanel == botsPanel)
+            {
+                FLP_Bots.SuspendLayout();
+            }
+
             // Fix z-order to ensure headerPanel is on top
             contentPanel.Controls.SetChildIndex(headerPanel, contentPanel.Controls.Count - 1);
             
@@ -1857,34 +1866,37 @@ namespace SysBot.Pokemon.WinForms
             headerPanel.Dock = DockStyle.Top;
             headerPanel.Height = 60;
             
-            // Show the selected panel
-            switch (index)
+            // Show target panel first to avoid flickering
+            targetPanel.Visible = true;
+            targetPanel.Dock = DockStyle.None;
+            targetPanel.Dock = DockStyle.Fill;
+            targetPanel.BringToFront();
+
+            // Hide other panels
+            if (botsPanel != targetPanel) botsPanel.Visible = false;
+            if (hubPanel != targetPanel) hubPanel.Visible = false;
+            if (logsPanel != targetPanel) logsPanel.Visible = false;
+            if (devPanel != targetPanel) devPanel.Visible = false;
+
+            // Toggle Start/Stop/Reboot buttons (Only visible in Bots section)
+            if (controlButtonsPanel != null)
             {
-                case 0:
-                    botsPanel.Dock = DockStyle.None;
-                    botsPanel.Dock = DockStyle.Fill;
-                    botsPanel.Visible = true;
-                    break;
-                case 1:
-                    hubPanel.Dock = DockStyle.None;
-                    hubPanel.Dock = DockStyle.Fill;
-                    hubPanel.Visible = true;
-                    break;
-                case 2:
-                    logsPanel.Dock = DockStyle.None;
-                    logsPanel.Dock = DockStyle.Fill;
-                    logsPanel.Visible = true;
-                    break;
-                case 3:
-                    devPanel.Dock = DockStyle.None;
-                    devPanel.Dock = DockStyle.Fill;
-                    devPanel.Visible = true;
-                    break;
+                controlButtonsPanel.Visible = (index == 0);
             }
             
             contentPanel.ResumeLayout(true);
             contentPanel.PerformLayout();
-            contentPanel.Refresh();
+
+            // Optimization: Resume layout for bot flow panel
+            if (index == 0)
+            {
+                FLP_Bots.ResumeLayout(true);
+            }
+            // Fix for PropertyGrid text duplication/glitches
+            else if (index == 1)
+            {
+                PG_Hub.Refresh();
+            }
         }
 
         #endregion

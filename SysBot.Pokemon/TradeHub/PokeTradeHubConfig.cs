@@ -15,6 +15,7 @@ public sealed class PokeTradeHubConfig
     public TradeSystemSettings TradeSystem { get; set; } = new();
 
     [Category("Web & Integrations")]
+    [DisplayName("Web Integrations")]
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public IntegrationSettings Integration { get; set; } = new();
 

@@ -79,12 +79,12 @@ namespace SysBot.Pokemon.WinForms
             this.UpdateStyles();
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.FromArgb(12, 12, 12);
+            this.BackColor = System.Drawing.Color.Transparent;
             this.Controls.Add(this.mainPanel);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.Margin = new System.Windows.Forms.Padding(0, 0, 0, 5);
+            this.Margin = new System.Windows.Forms.Padding(0, 0, 0, 100);
             this.Name = "BotController";
-            this.Size = new System.Drawing.Size(900, 130);
+            this.Size = new System.Drawing.Size(900, 150);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.BotController_Paint);
             this.MouseEnter += new System.EventHandler(this.BotController_MouseEnter);
             this.MouseLeave += new System.EventHandler(this.BotController_MouseLeave);
@@ -94,7 +94,7 @@ namespace SysBot.Pokemon.WinForms
                                      System.Windows.Forms.AnchorStyles.Bottom |
                                      System.Windows.Forms.AnchorStyles.Left |
                                      System.Windows.Forms.AnchorStyles.Right;
-            this.mainPanel.BackColor = System.Drawing.Color.FromArgb(12, 12, 12);
+            this.mainPanel.BackColor = System.Drawing.Color.Transparent;
             this.mainPanel.Controls.Add(this.statusIndicator);
             this.mainPanel.Controls.Add(this.lblStatusValue);
             this.mainPanel.Controls.Add(this.lblBotName);
@@ -103,7 +103,7 @@ namespace SysBot.Pokemon.WinForms
             this.mainPanel.Controls.Add(this.btnActions);
             this.mainPanel.Location = new System.Drawing.Point(3, 3);
             this.mainPanel.Name = "mainPanel";
-            this.mainPanel.Size = new System.Drawing.Size(894, 94);
+            this.mainPanel.Size = new System.Drawing.Size(894, 114);
             this.mainPanel.TabIndex = 0;
             this.mainPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.MainPanel_Paint);
             this.mainPanel.MouseEnter += new System.EventHandler(this.BotController_MouseEnter);
@@ -120,6 +120,7 @@ namespace SysBot.Pokemon.WinForms
 
             // Bot Name Label
             this.lblBotName.AutoSize = false;
+            this.lblBotName.BackColor = System.Drawing.Color.Transparent;
             this.lblBotName.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
             this.lblBotName.ForeColor = System.Drawing.Color.FromArgb(239, 239, 239);
             this.lblBotName.Location = new System.Drawing.Point(70, 15);
@@ -133,6 +134,7 @@ namespace SysBot.Pokemon.WinForms
 
             // Status Value Label (RUNNING, STOPPED, etc.)
             this.lblStatusValue.AutoSize = false;
+            this.lblStatusValue.BackColor = System.Drawing.Color.Transparent;
             this.lblStatusValue.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
             this.lblStatusValue.ForeColor = System.Drawing.Color.FromArgb(90, 186, 71);
             this.lblStatusValue.Location = new System.Drawing.Point(70, 42);
@@ -144,6 +146,7 @@ namespace SysBot.Pokemon.WinForms
 
             // Routine Type Label (trade type @ time)
             this.lblRoutineType.AutoSize = false;
+            this.lblRoutineType.BackColor = System.Drawing.Color.Transparent;
             this.lblRoutineType.Font = new System.Drawing.Font("Segoe UI", 8.5F);
             this.lblRoutineType.ForeColor = System.Drawing.Color.FromArgb(139, 179, 217);
             this.lblRoutineType.Location = new System.Drawing.Point(70, 60);
@@ -160,6 +163,7 @@ namespace SysBot.Pokemon.WinForms
                                            System.Windows.Forms.AnchorStyles.Left |
                                            System.Windows.Forms.AnchorStyles.Right;
             this.lblConnectionInfo.AutoEllipsis = true;
+            this.lblConnectionInfo.BackColor = System.Drawing.Color.Transparent;
             this.lblConnectionInfo.Font = new System.Drawing.Font("Segoe UI", 8F);
             this.lblConnectionInfo.ForeColor = System.Drawing.Color.FromArgb(176, 176, 176);
             this.lblConnectionInfo.Location = new System.Drawing.Point(70, 78);

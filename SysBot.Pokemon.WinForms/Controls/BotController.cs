@@ -47,13 +47,13 @@ namespace SysBot.Pokemon.WinForms
         public BotController()
         {
             InitializeComponent();
+            EnableDoubleBuffering(mainPanel);
             SetStyle(ControlStyles.AllPaintingInWmPaint | 
                     ControlStyles.UserPaint |
                     ControlStyles.DoubleBuffer | 
                     ControlStyles.ResizeRedraw |
                     ControlStyles.OptimizedDoubleBuffer | 
-                    ControlStyles.SupportsTransparentBackColor |
-                    ControlStyles.Opaque, true);
+                    ControlStyles.SupportsTransparentBackColor, true);
             UpdateStyles();
             
             this.BackColor = Color.Transparent;
@@ -159,6 +159,13 @@ namespace SysBot.Pokemon.WinForms
             }
         }
 
+        private static void EnableDoubleBuffering(Control control)
+        {
+            if (control == null) return;
+            var property = typeof(Control).GetProperty("DoubleBuffered", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            property?.SetValue(control, true, null);
+        }
+
         private void ConfigureContextMenu()
         {
             var opt = (BotControlCommand[])Enum.GetValues(typeof(BotControlCommand));
@@ -194,13 +201,13 @@ namespace SysBot.Pokemon.WinForms
                         item.Text = "↻  Restart";
                         break;
                     case BotControlCommand.RebootAndStop:
-                        item.Text = "⚡  Reboot & Stop";
+                        item.Text = "⚡  Reboot && Stop";
                         break;
                     case BotControlCommand.ScreenOnAll:
-                        item.Text = "☀  Screen On";
+                        item.Text = "☀  Screen On All";
                         break;
                     case BotControlCommand.ScreenOffAll:
-                        item.Text = "🌙  Screen Off";
+                        item.Text = "🌙  Screen Off All";
                         break;
                 }
 
@@ -248,6 +255,10 @@ namespace SysBot.Pokemon.WinForms
                 c.MouseEnter += BotController_MouseEnter;
                 c.MouseLeave += BotController_MouseLeave;
             }
+            
+            // Hook up resize for region handling to avoid doing it on every paint
+            btnActions.Resize += BtnActions_Resize;
+            BtnActions_Resize(btnActions, EventArgs.Empty);
         }
 
         private void RcMenuOnOpening(object? sender, CancelEventArgs e)
@@ -264,7 +275,7 @@ namespace SysBot.Pokemon.WinForms
                 if (tsi.Text != null && tsi.Text.Length >= 3)
                 {
                     var text = tsi.Text[3..].Trim();
-                    tsi.Enabled = Enum.TryParse(text.Replace(" ", "").Replace("&", "And"), out BotControlCommand cmd)
+                    tsi.Enabled = Enum.TryParse(text.Replace(" ", "").Replace("&&", "&").Replace("&", "And"), out BotControlCommand cmd)
                         ? cmd.IsUsable(bot.IsRunning, bot.IsPaused)
                         : !bot.IsRunning;
                 }
@@ -756,8 +767,6 @@ namespace SysBot.Pokemon.WinForms
             {
                 animationTimer.Start();
             }
-            // Force a refresh of status when resuming
-            ReadState();
             statusIndicator?.Invalidate();
         }
 
@@ -985,6 +994,22 @@ namespace SysBot.Pokemon.WinForms
             }
         }
 
+        private void BtnActions_Resize(object? sender, EventArgs e)
+        {
+            if (sender is not Button btn) return;
+            var rect = btn.ClientRectangle;
+            
+            using var path = new GraphicsPath();
+            int chamfer = 6;
+            path.AddLine(rect.Left + chamfer, rect.Top, rect.Right - chamfer, rect.Top);
+            path.AddLine(rect.Right, rect.Top + chamfer, rect.Right, rect.Bottom - chamfer);
+            path.AddLine(rect.Right - chamfer, rect.Bottom, rect.Left + chamfer, rect.Bottom);
+            path.AddLine(rect.Left, rect.Bottom - chamfer, rect.Left, rect.Top + chamfer);
+            path.CloseFigure();
+            
+            btn.Region = new Region(path);
+        }
+
         private void BtnActions_Paint(object sender, PaintEventArgs e)
         {
             if (_suspendPainting) return;
@@ -996,9 +1021,9 @@ namespace SysBot.Pokemon.WinForms
             if (sender is not Button btn) return;
             var rect = btn.ClientRectangle;
 
-            btn.Region?.Dispose();
+            // Region is now handled in BtnActions_Resize to improve performance
 
-            // Chamfered button
+            // Chamfered button path for drawing
             using var path = new GraphicsPath();
             int chamfer = 6;
             path.AddLine(rect.Left + chamfer, rect.Top, rect.Right - chamfer, rect.Top);
@@ -1007,8 +1032,6 @@ namespace SysBot.Pokemon.WinForms
             path.AddLine(rect.Left, rect.Bottom - chamfer, rect.Left, rect.Top + chamfer);
             path.CloseFigure();
             
-            btn.Region = new Region(path);
-
             // Alien Tech Button Style
             var glowColor = buttonHovering ? Color.Cyan : Color.FromArgb(0, 150, 200);
 

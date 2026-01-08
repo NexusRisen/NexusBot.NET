@@ -61,6 +61,9 @@ namespace SysBot.Pokemon.WinForms
             
             InitializeComponent();
             
+            // Enable double buffering for PropertyGrid to reduce flickering/glitches
+            EnableDoubleBuffering(PG_Hub);
+
             // Performance optimizations
             SetStyle(ControlStyles.AllPaintingInWmPaint | 
                     ControlStyles.UserPaint | 
@@ -942,6 +945,7 @@ namespace SysBot.Pokemon.WinForms
 
         private void FLP_Bots_Resize(object sender, EventArgs e)
         {
+            FLP_Bots.SuspendLayout();
             int scrollBarWidth = SystemInformation.VerticalScrollBarWidth;
             int availableWidth = FLP_Bots.ClientSize.Width;
 
@@ -956,6 +960,7 @@ namespace SysBot.Pokemon.WinForms
             {
                 c.Width = botWidth;
             }
+            FLP_Bots.ResumeLayout(true);
         }
 
         private void CB_Protocol_SelectedIndexChanged(object sender, EventArgs e)
