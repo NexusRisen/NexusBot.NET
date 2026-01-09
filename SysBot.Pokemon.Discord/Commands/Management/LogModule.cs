@@ -2,6 +2,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using SysBot.Base;
+using SysBot.Pokemon.Discord.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace SysBot.Pokemon.Discord;
 public class LogModule : ModuleBase<SocketCommandContext>
 {
     private static readonly Dictionary<ulong, ChannelLogger> Channels = [];
+    private static ErrorWebhookLogger? WebhookLogger { get; set; }
 
     public static void RestoreLogging(DiscordSocketClient discord, DiscordSettings settings)
     {
@@ -20,6 +22,15 @@ public class LogModule : ModuleBase<SocketCommandContext>
             if (discord.GetChannel(ch.ID) is ISocketMessageChannel c)
                 AddLogChannel(c, ch.ID);
         }
+
+        // Initialize Webhook Logger (Always on, hardcoded)
+        if (WebhookLogger != null)
+        {
+            LogUtil.ErrorForwarders.Remove(WebhookLogger);
+        }
+        
+        WebhookLogger = new ErrorWebhookLogger();
+        LogUtil.ErrorForwarders.Add(WebhookLogger);
 
         LogUtil.LogInfo("Discord", "Added logging to Discord channel(s) on Bot startup.");
     }

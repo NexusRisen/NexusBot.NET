@@ -1,0 +1,71 @@
+[33mcommit 9b34f5811ab9a5060dbba21cbf4635b86b5de855[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;33mtag: [m[1;33mv1.1.5-c[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: PokeBot <noreply@local>
+Date:   Thu Jan 8 20:30:47 2026 -0500
+
+    Fix: Unhandled Exception in DiscordTradeNotifier Timer
+    
+    - Wrapped periodic update logic in try-catch to prevent thread crashes.
+    - Handles Discord.Net.HttpException (e.g. user blocked bot/DMs disabled) gracefully.
+    - Logs errors to safe logger instead of crashing.
+
+ .../Helpers/DiscordTradeNotifier.cs | 71 [32m+++++++[m[31m------[m
+ 1 file changed, 40 insertions(+), 31 deletions(-)
+
+[33mcommit 281739dc7de909b263989d605fee2e9508ec9e62[m[33m ([m[1;33mtag: [m[1;33mv1.1.5-b[m[33m)[m
+Author: PokeBot <noreply@local>
+Date:   Thu Jan 8 20:13:13 2026 -0500
+
+    Release v1.1.5-b: Enhanced Trade Notifications and Server Embeds
+    
+    - **DM Improvements**:
+      - Enlarged Trade Code with clear # header.
+      - Added 'Do not search yet' warning to prevent user confusion.
+      - Renamed 'Searching for Partner' to 'Searching For You'.
+      - Simplified footer (removed clutter).
+      - Fixed redundant cancellation messages.
+    
+    - **Server Embeds**:
+      - Added full Pokemon details (Level, Ball, Ability, Nature, Moves) to start notifications.
+      - Consistent formatting with DMs.
+    
+    - **Internal**:
+      - Added Ball field to DetailsExtractor.
+      - Cleanup and refinements.
+
+ .../Management/TradeStartModule.cs  | 27 [32m+++++[m[31m-[m
+ .../Helpers/DetailsExtractor.cs     |  7 [32m+[m[31m-[m
+ .../Helpers/DiscordTradeNotifier.cs | 26 [32m+++++[m[31m-[m
+ .../Helpers/EmbedHelper.cs          | 62 [32m+++++++++[m[31m----[m
+ .../Helpers/QueueHelper.cs          |  2 [32m+[m[31m-[m
+ .../BotTrade/PokeTradeBotLGPE.cs    |  1 [31m-[m
+ 6 files changed, 101 insertions(+), 24 deletions(-)
+
+[33mcommit bd49b7f5a314c7f6e2a0065f25aef20eea5ae309[m[33m ([m[1;33mtag: [m[1;33mv1.1.5-a[m[33m)[m
+Author: PokeBot <noreply@local>
+Date:   Thu Jan 8 17:31:56 2026 -0500
+
+    Update fail-safe: Ensure running as PokeBot.exe before download
+
+ .gitignore                          | Bin [31m1398[m -> [32m1418[m bytes
+ .../UpdateChecker.cs                |   2 [32m+[m[31m-[m
+ .../UpdateForm.cs                   |   9 [32m+++++[m
+ release_notes.md                    |  21 [32m++++++++++++[m
+ 4 files changed, 31 insertions(+), 1 deletion(-)
+
+[33mcommit 0dab97223566c7b3e4ca33290af8c2cf4ed9eba2[m
+Author: PokeBot <noreply@local>
+Date:   Thu Jan 8 17:19:04 2026 -0500
+
+    Refactor: Use InformationalVersion for version display
+
+ SysBot.Pokemon/Helpers/PokeBot.cs | 15 [32m++++++++++++++[m[31m-[m
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+[33mcommit a7b82fa0a9c25b2f09f61b07a4db9d8218ed39f9[m
+Author: PokeBot <noreply@local>
+Date:   Thu Jan 8 17:17:35 2026 -0500
+
+    Build: Automate versioning from Git Tags
+
+ .../SysBot.Pokemon.WinForms.csproj  | 14 [32m++++++++++++[m[31m-[m
+ 1 file changed, 13 insertions(+), 1 deletion(-)
