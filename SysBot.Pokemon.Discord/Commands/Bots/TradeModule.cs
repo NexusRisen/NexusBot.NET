@@ -706,6 +706,22 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
                 if (errors.Count > 0)
                 {
+                    static string Truncate(string value, int maxLen)
+                    {
+                        if (string.IsNullOrEmpty(value) || value.Length <= maxLen)
+                            return value;
+                        return value[..(maxLen - 3)] + "...";
+                    }
+
+                    var location = $"{Context.Guild?.Name ?? "DM"} #{Context.Channel.Name} ({Context.Channel.Id})";
+                    var header = $"Batch trade errors | User: {Context.User.Username} ({Context.User.Id}) | Location: {location} | Trades: {totalTrades}";
+                    var details = string.Join(
+                        "\n\n",
+                        errors.Take(5).Select(e =>
+                            $"Trade {e.TradeNumber}: {e.SpeciesName}\nError: {e.ErrorMessage}\nHint: {e.LegalizationHint ?? "(none)"}\nShowdown/File: {Truncate(e.ShowdownSet, 500)}")
+                    );
+                    LogUtil.LogError($"{header}\n\n{Truncate(details, 3500)}", nameof(TradeModule<T>));
+
                     await BatchHelpers<T>.SendBatchErrorEmbedAsync(Context, errors, totalTrades);
                     return;
                 }
@@ -750,6 +766,13 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         {
             try
             {
+                static string Truncate(string value, int maxLen)
+                {
+                    if (string.IsNullOrEmpty(value) || value.Length <= maxLen)
+                        return value;
+                    return value[..(maxLen - 3)] + "...";
+                }
+
                 // Detect custom trainer info BEFORE generating the Pokemon
                 var ignoreAutoOT = content.Contains("OT:") || content.Contains("TID:") || content.Contains("SID:");
 
@@ -757,6 +780,11 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
                 if (result.Pokemon == null)
                 {
+                    var location = $"{Context.Guild?.Name ?? "DM"} #{Context.Channel.Name} ({Context.Channel.Id})";
+                    var request = $"User: {Context.User.Username} ({Context.User.Id}) | Code: {code:0000 0000} | Location: {location}";
+                    var body = $"Reason: {result.Error ?? "Unknown"}\n\nShowdown:\n{Truncate(content, 1500)}";
+                    LogUtil.LogError($"{request}\n{body}", nameof(TradeModule<T>));
+
                     await Helpers<T>.SendTradeErrorEmbedAsync(Context, result);
                     return;
                 }

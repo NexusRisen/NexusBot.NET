@@ -56,6 +56,16 @@ public static class AutoLegalityExtensionsDiscord
         }
         catch (Exception ex)
         {
+            static string Truncate(string value, int maxLen)
+            {
+                if (string.IsNullOrEmpty(value) || value.Length <= maxLen)
+                    return value;
+                return value[..(maxLen - 3)] + "...";
+            }
+
+            var showdown = Truncate(string.Join("\n", set.GetSetLines()), 1500);
+            LogUtil.LogError($"Unhandled exception while legalizing Showdown set:\n{showdown}", nameof(AutoLegalityExtensionsDiscord));
+
             LogUtil.LogSafe(ex, nameof(AutoLegalityExtensionsDiscord));
             var msg = $"Oops! An unexpected problem happened with this Showdown Set:\n```{string.Join("\n", set.GetSetLines())}```";
             await channel.SendMessageAsync(msg).ConfigureAwait(false);
@@ -64,18 +74,34 @@ public static class AutoLegalityExtensionsDiscord
 
     public static Task ReplyWithLegalizedSetAsync(this ISocketMessageChannel channel, string content, byte gen)
     {
-        content = ReusableActions.StripCodeBlock(content);
-        var set = new ShowdownSet(content);
-        var sav = AutoLegalityWrapper.GetTrainerInfo(gen);
-        return channel.ReplyWithLegalizedSetAsync(sav, set);
+        try
+        {
+            content = ReusableActions.StripCodeBlock(content);
+            var set = new ShowdownSet(content);
+            var sav = AutoLegalityWrapper.GetTrainerInfo(gen);
+            return channel.ReplyWithLegalizedSetAsync(sav, set);
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogSafe(ex, nameof(AutoLegalityExtensionsDiscord));
+            return channel.SendMessageAsync("Unable to parse that Showdown set.");
+        }
     }
 
     public static Task ReplyWithLegalizedSetAsync<T>(this ISocketMessageChannel channel, string content) where T : PKM, new()
     {
-        content = ReusableActions.StripCodeBlock(content);
-        var set = new ShowdownSet(content);
-        var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-        return channel.ReplyWithLegalizedSetAsync(sav, set);
+        try
+        {
+            content = ReusableActions.StripCodeBlock(content);
+            var set = new ShowdownSet(content);
+            var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
+            return channel.ReplyWithLegalizedSetAsync(sav, set);
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogSafe(ex, nameof(AutoLegalityExtensionsDiscord));
+            return channel.SendMessageAsync("Unable to parse that Showdown set.");
+        }
     }
 
     public static async Task ReplyWithLegalizedSetAsync(this ISocketMessageChannel channel, IAttachment att)
@@ -97,6 +123,9 @@ public static class AutoLegalityExtensionsDiscord
         var legal = pkm.LegalizePokemon();
         if (!new LegalityAnalysis(legal).Valid)
         {
+            var la = new LegalityAnalysis(legal);
+            LogUtil.LogError($"{download.SanitizedFileName}: Unable to legalize.\nPKHeX legality report:\n{la.Report()}", nameof(AutoLegalityExtensionsDiscord));
+
             await channel.SendMessageAsync($"{download.SanitizedFileName}: Unable to legalize.").ConfigureAwait(false);
             return;
         }

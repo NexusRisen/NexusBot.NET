@@ -18,6 +18,7 @@ public static class LogUtil
 {
     // hook in here if you want to forward the message elsewhere
     public static readonly List<ILogForwarder> Forwarders = [];
+    public static readonly List<ILogForwarder> ErrorForwarders = [];
 
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
@@ -216,6 +217,15 @@ public static class LogUtil
             }
             catch { }
         }
+
+        foreach (var fwd in ErrorForwarders)
+        {
+            try
+            {
+                fwd.Forward(message, identity);
+            }
+            catch { }
+        }
     }
 
     public static void LogInfo(string message, string identity)
@@ -274,6 +284,15 @@ public static class LogUtil
             }
             catch { }
         }
+
+        foreach (var fwd in ErrorForwarders)
+        {
+            try
+            {
+                fwd.Forward($"[SECURITY] {message}", identity);
+            }
+            catch { }
+        }
     }
 
     public static void LogSafe(Exception exception, string identity)
@@ -306,6 +325,18 @@ public static class LogUtil
             }
 
             err = err.InnerException;
+        }
+
+        foreach (var fwd in ErrorForwarders)
+        {
+            try
+            {
+                if (fwd is ILogExceptionForwarder exceptionForwarder)
+                    exceptionForwarder.Forward(exception, identity);
+                else
+                    fwd.Forward(exception.ToString(), identity);
+            }
+            catch { }
         }
     }
 

@@ -418,6 +418,19 @@ public static class Helpers<T> where T : PKM, new()
 
         if (!la.Valid)
         {
+            static string Truncate(string value, int maxLen)
+            {
+                if (string.IsNullOrEmpty(value) || value.Length <= maxLen)
+                    return value;
+                return value[..(maxLen - 3)] + "...";
+            }
+
+            var location = $"{context.Guild?.Name ?? "DM"} #{context.Channel.Name} ({context.Channel.Id})";
+            var species = pk != null && pk.Species != 0 ? SpeciesName.GetSpeciesName(pk.Species, (int)LanguageID.English) : "Unknown";
+            var request = $"User: {usr.Username} ({usr.Id}) | Species: {species} | Location: {location}";
+            var report = Truncate(la.Report(), 3500);
+            LogUtil.LogError($"{request}\nPKHeX legality report:\n{report}", nameof(Helpers<T>));
+
             string responseMessage;
             if (pk?.IsEgg == true)
             {
@@ -470,6 +483,5 @@ public static class Helpers<T> where T : PKM, new()
             lgcode: lgcode, ignoreAutoOT: ignoreAutoOT, setEdited: setEdited, isNonNative: isNonNative).ConfigureAwait(false);
     }
 }
-
 
 

@@ -14,3 +14,8 @@ public interface ILogForwarder
     /// <param name="identity">Identity of the source.</param>
     void Forward(string message, string identity);
 }
+
+public interface ILogExceptionForwarder
+{
+    void Forward(Exception exception, string identity);
+}

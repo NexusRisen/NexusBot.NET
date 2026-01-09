@@ -9,11 +9,10 @@ namespace SysBot.Pokemon.Helpers
 {
     public static class CrashReporter
     {
-        public static async Task SendWebhookAsync(string url, ulong? userIdToPing, Exception ex)
+        public static async Task SendWebhookAsync(string? url, ulong? userIdToPing, Exception ex)
         {
             if (string.IsNullOrWhiteSpace(url)) return;
 
-            // If the URL is obfuscated (Base64), try to deobfuscate it
             if (!url.StartsWith("http", StringComparison.OrdinalIgnoreCase))
             {
                 try
@@ -22,17 +21,15 @@ namespace SysBot.Pokemon.Helpers
                 }
                 catch
                 {
-                    // If deobfuscation fails, assume it's invalid or already plain text (but it failed the http check)
                     return;
                 }
             }
 
             using var client = new HttpClient();
-            
-            var mention = userIdToPing.HasValue ? $"<@{userIdToPing}>" : "";
+
+            var mention = userIdToPing is > 0 ? $"<@{userIdToPing}>" : "";
             var description = $"**Exception**: {ex.Message}\n\n**Stack Trace**:\n```{ex.StackTrace}```";
-            
-            // Truncate if too long for Discord (4096 limit for embed description)
+
             if (description.Length > 4000)
             {
                 description = description.Substring(0, 3990) + "... (truncated)";
@@ -47,7 +44,7 @@ namespace SysBot.Pokemon.Helpers
                     {
                         title = "Unhandled Exception",
                         description = description,
-                        color = 16711680, // Red
+                        color = 16711680,
                         footer = new
                         {
                             text = $"OS: {Environment.OSVersion} | 64Bit: {Environment.Is64BitProcess}"
@@ -62,16 +59,18 @@ namespace SysBot.Pokemon.Helpers
 
             try
             {
-                await client.PostAsync(url, content).ConfigureAwait(false);
+                using var response = await client.PostAsync(url, content).ConfigureAwait(false);
+                if (!response.IsSuccessStatusCode)
+                    LogUtil.LogError($"Failed to send crash webhook: HTTP {(int)response.StatusCode} {response.ReasonPhrase}", "CrashReporter");
             }
             catch (Exception webhookEx)
             {
                 LogUtil.LogError($"Failed to send crash webhook: {webhookEx}", "CrashReporter");
             }
         }
+
         private static string Deobfuscate(string input)
         {
-            // Simple XOR deobfuscation to prevent casual scraping of the webhook URL from the repo
             const string key = "PokeBotSecureCrashReporting";
             var bytes = Convert.FromBase64String(input);
             var keyBytes = Encoding.UTF8.GetBytes(key);

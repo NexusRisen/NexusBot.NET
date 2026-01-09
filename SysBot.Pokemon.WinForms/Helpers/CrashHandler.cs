@@ -1,15 +1,7 @@
 using System;
-using System.Diagnostics;
-using System.IO;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using SysBot.Base;
-using SysBot.Pokemon;
-using SysBot.Pokemon.Helpers;
 
 namespace SysBot.Pokemon.WinForms.Helpers
 {
@@ -44,21 +36,14 @@ namespace SysBot.Pokemon.WinForms.Helpers
 
             try
             {
-                // Log to file first (existing behavior usually)
                 LogUtil.LogError($"CRASH: {ex}", "CrashHandler");
-
-                // Send crash report using obfuscated webhook
-                // This string is XORed to prevent casual scraping. It is not high-security encryption.
-                string obfuscatedWebhook = "OBsfFTFVW3wBCgYRCjEWTxAHP0oRHxtbHgsFOAAEDjFARWdQW0BFXHNFUEVfYl1BXUpHX0E9CilcNgQYN2MDBwxKLxoVFz0sA1QICjY9LTgKJFxdXAM4RQs2Kj0bMA4ADzUmAB1GFhQECAsXEQBaPRc5HgIMUCwLVg==";
-                CrashReporter.SendWebhookAsync(obfuscatedWebhook, null, ex).Wait(3000);
             }
             catch
             {
-                // Swallow errors during crash handling to ensure the user at least sees the message box
             }
             finally
             {
-                string msg = $"An unexpected error occurred.\n\n{ex.Message}\n\nIf configured, a bug report has been sent to the developer.";
+                string msg = $"An unexpected error occurred.\n\n{ex.Message}\n\nPlease check the log output for details.";
                 MessageBox.Show(msg, "Critical Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(1);
             }
