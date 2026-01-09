@@ -184,6 +184,13 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
         var speciesName = IsMysteryEgg ? "Mystery Egg" : SpeciesName.GetSpeciesName(Data.Species, language);
         var receive = Data.Species == 0 ? string.Empty : (IsMysteryEgg ? "" : $" ({Data.Nickname})");
 
+        string? imageUrl = null;
+        if (!IsMysteryEgg && Data.Species != 0)
+        {
+            bool canGmax = Data is PK8 pk8 && pk8.CanGigantamax;
+            imageUrl = SysBot.Pokemon.Helpers.TradeExtensions<T>.PokeImg(Data, canGmax, false, null);
+        }
+
         if (Data is PK9)
         {
             string message;
@@ -205,7 +212,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
                 message = $"Initializing trade{receive}. Please be ready.";
             }
 
-            EmbedHelper.SendTradeInitializingEmbedAsync(Trader, speciesName, Code, IsMysteryEgg, message).ConfigureAwait(false);
+            EmbedHelper.SendTradeInitializingEmbedAsync(Trader, speciesName, Code, IsMysteryEgg, imageUrl, message, Data).ConfigureAwait(false);
         }
         else if (Data is PB7)
         {
@@ -214,7 +221,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
         }
         else
         {
-            EmbedHelper.SendTradeInitializingEmbedAsync(Trader, speciesName, Code, IsMysteryEgg).ConfigureAwait(false);
+            EmbedHelper.SendTradeInitializingEmbedAsync(Trader, speciesName, Code, IsMysteryEgg, imageUrl, null, Data).ConfigureAwait(false);
         }
     }
 
@@ -257,9 +264,20 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
         OnFinish?.Invoke(routine);
         StopPeriodicUpdates();
 
+        string userMessage = msg switch
+        {
+            PokeTradeResult.NoTrainerFound => "No partner found.",
+            PokeTradeResult.TrainerTooSlow => "You were too slow.",
+            PokeTradeResult.TrainerLeft => "You left the trade.",
+            PokeTradeResult.TrainerOfferCanceledQuick => "You canceled the offer too quickly.",
+            PokeTradeResult.UserCanceled => "You canceled the trade.",
+            PokeTradeResult.RoutineCancel => "Bot routine was canceled.",
+            _ => msg.ToString()
+        };
+
         var cancelMessage = TotalBatchTrades > 1
-            ? $"Batch trade canceled: {msg}. All remaining trades have been canceled."
-            : msg.ToString();
+            ? $"Batch trade canceled: {userMessage} All remaining trades have been canceled."
+            : userMessage;
 
         EmbedHelper.SendTradeCanceledEmbedAsync(Trader, cancelMessage).ConfigureAwait(false);
     }

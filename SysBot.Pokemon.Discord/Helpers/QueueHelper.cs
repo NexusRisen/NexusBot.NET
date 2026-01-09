@@ -492,7 +492,7 @@ public static class QueueHelper<T> where T : PKM, new()
             };
             var typeIndex = pk.PersonalInfo.Type1;
             var typeName = (typeIndex >= 0 && typeIndex < strings.Length) ? strings[typeIndex] : "Normal";
-            embedImageUrl = $"https://raw.githubusercontent.com/NexusRisen/HomeImages/master/128x128/Egg_{typeName}.png";
+            embedImageUrl = $"https://raw.githubusercontent.com/NexusRisen/HomeImages/ebd562941ff77b1889a297ee50eacfa8cb3589de/128x128/Egg_{typeName}.png";
         }
         else
         {

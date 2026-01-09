@@ -41,6 +41,7 @@ public static class DetailsExtractor<T> where T : PKM, new()
             (pk.Version is GameVersion.SL or GameVersion.VL && SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowTeraType ? $"**Tera Type:** {embedData.TeraType}\n" : "") +
             (pk.Version is GameVersion.SL or GameVersion.VL && SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowScale ? $"**Scale:** {embedData.Scale.Item1} ({embedData.Scale.Item2})\n" : "") +
             (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowLevel ? $"**Level:** {embedData.Level}\n" : "") +
+            (!string.IsNullOrEmpty(embedData.Ball) ? $"**Ball:** {embedData.Ball}\n" : "") +
             (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowMetDate ? $"**Met Date:** {embedData.MetDate}\n" : "") +
             (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowAbility ? $"**Ability:** {embedData.Ability}\n" : "") +
             (SysCord<T>.Runner.Config.TradeSystem.Settings.TradeEmbedSettings.ShowNature ? $"**Nature**: {embedData.Nature}\n" : "") +
@@ -79,7 +80,11 @@ public static class DetailsExtractor<T> where T : PKM, new()
     /// <param name="heldItemUrl">URL for the held item image.</param>
     public static void AddThumbnails(EmbedBuilder embedBuilder, bool isCloneRequest, bool isSpecialRequest, string heldItemUrl)
     {
-        if (!string.IsNullOrEmpty(heldItemUrl))
+        if (isCloneRequest || isSpecialRequest)
+        {
+            embedBuilder.WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/sprites/main/profoak.png");
+        }
+        else if (!string.IsNullOrEmpty(heldItemUrl))
         {
             embedBuilder.WithThumbnailUrl(heldItemUrl);
         }

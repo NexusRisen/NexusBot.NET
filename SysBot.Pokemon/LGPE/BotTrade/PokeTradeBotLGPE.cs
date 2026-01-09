@@ -404,7 +404,6 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
         {
             await Click(A, 1000, token);
         }
-        poke.SendNotification(this, "You have 15 seconds to select your trade pokemon");
         Log("Waiting on Trade Screen...");
 
         await Task.Delay(5_000, token).ConfigureAwait(false);

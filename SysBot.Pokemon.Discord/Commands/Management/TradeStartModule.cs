@@ -109,11 +109,36 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
                 ? TradeExtensions<T>.PokeImg(detail.TradeData, false, true)
                 : string.Empty;
 
+            string description = $"**Receiving**: {tradeTitle}\n**Trade ID**: {detail.ID}";
+
+            if (detail.TradeData != null && !detail.IsMysteryEgg && detail.Type != PokeTradeType.Clone && detail.Type != PokeTradeType.Dump && detail.Type != PokeTradeType.Seed && detail.Type != PokeTradeType.FixOT)
+            {
+                var pkm = detail.TradeData;
+                var strings = GameInfo.GetStrings("en");
+                description += $"\n\n**Level:** {pkm.CurrentLevel}";
+                description += $"\n**Ball:** {strings.balllist[pkm.Ball]}";
+                description += $"\n**Ability:** {strings.abilitylist[pkm.Ability]}";
+                description += $"\n**{strings.natures[(int)pkm.Nature]}** Nature";
+
+                description += "\n\n**Moves:**";
+                ushort[] moves = new ushort[4];
+                pkm.GetMoves(moves.AsSpan());
+                int[] pps = [pkm.Move1_PP, pkm.Move2_PP, pkm.Move3_PP, pkm.Move4_PP];
+                
+                for (int i = 0; i < 4; i++)
+                {
+                    if (moves[i] != 0)
+                    {
+                         description += $"\n{strings.movelist[moves[i]]} ({pps[i]}pp)";
+                    }
+                }
+            }
+
             var embed = new EmbedBuilder()
                 .WithColor(new DiscordColor(r, g, b))
                 .WithThumbnailUrl(embedImageUrl)
                 .WithAuthor($"Up Next: {user.Username}", user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl())
-                .WithDescription($"**Receiving**: {tradeTitle}\n**Trade ID**: {detail.ID}")
+                .WithDescription(description)
                 .WithFooter($"{footerText}\u200B")
                 .WithTimestamp(DateTime.Now)
                 .Build();

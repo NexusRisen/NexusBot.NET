@@ -18,7 +18,8 @@ public static class EmbedHelper
 
     // Common Footer
     private static readonly EmbedFooterBuilder Footer = new EmbedFooterBuilder()
-        .WithText("NexusRisen PokeBot • Powered by SysBot.NET");
+        .WithText("Powered by SysBot.NET")
+        .WithIconUrl("https://raw.githubusercontent.com/NexusRisen/sprites/main/pokeball.png");
 
     public static async Task SendNotificationEmbedAsync(IUser user, string message)
     {
@@ -37,9 +38,9 @@ public static class EmbedHelper
     {
         var embed = new EmbedBuilder()
             .WithTitle("🔄 Ready to Trade!")
-            .WithDescription($"Please enter the following Link Code:")
-            .AddField("Link Code", $"`{code:0000 0000}`", true)
+            .WithDescription($"Please enter the following Link Code:\n# {code:0000 0000}\n\n**Enter this code in your game, but DO NOT search yet.**")
             .WithTimestamp(DateTimeOffset.Now)
+            .WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/sprites/main/tradecode.gif")
             .WithColor(ColorAccent)
             .WithFooter(Footer)
             .Build();
@@ -77,29 +78,57 @@ public static class EmbedHelper
         await user.SendMessageAsync(embed: embed).ConfigureAwait(false);
     }
 
-    public static async Task SendTradeInitializingEmbedAsync(IUser user, string speciesName, int code, bool isMysteryEgg, string? message = null)
+    public static async Task SendTradeInitializingEmbedAsync(IUser user, string speciesName, int code, bool isMysteryEgg, string? imageUrl = null, string? message = null, PKM? pkm = null, bool showMoves = true)
     {
         if (isMysteryEgg)
         {
             speciesName = "**Mystery Egg**";
+            imageUrl ??= "https://raw.githubusercontent.com/NexusRisen/sprites/main/mysteryegg3.png";
         }
+
+        var description = $"# {code:0000 0000}\n";
+
+        if (pkm != null && !isMysteryEgg)
+        {
+            var strings = GameInfo.GetStrings("en");
+            description += $"\n**Level:** {pkm.CurrentLevel}";
+            description += $"\n**Ball:** {strings.balllist[pkm.Ball]}";
+            description += $"\n**Ability:** {strings.abilitylist[pkm.Ability]}";
+            description += $"\n**{strings.natures[(int)pkm.Nature]}** Nature";
+
+            if (showMoves)
+            {
+                description += "\n\n**Moves:**";
+                ushort[] moves = new ushort[4];
+                pkm.GetMoves(moves.AsSpan());
+                int[] pps = [pkm.Move1_PP, pkm.Move2_PP, pkm.Move3_PP, pkm.Move4_PP];
+                
+                for (int i = 0; i < 4; i++)
+                {
+                    if (moves[i] != 0)
+                    {
+                         description += $"\n{strings.movelist[moves[i]]} ({pps[i]}pp)";
+                    }
+                }
+            }
+            description += "\n\n";
+        }
+
+        if (!string.IsNullOrEmpty(message))
+        {
+            description += message;
+        }
+        
+        description += "\n\n**Please enter code in game but do not search yet.**";
 
         var embed = new EmbedBuilder()
             .WithTitle("🚀 Trade Initializing...")
             .AddField("Pokémon", speciesName, true)
-            .AddField("Link Code", $"`{code:0000 0000}`", true)
+            .WithDescription(description)
             .WithTimestamp(DateTimeOffset.Now)
+            .WithThumbnailUrl(imageUrl ?? "https://raw.githubusercontent.com/NexusRisen/sprites/main/initializing.gif")
             .WithColor(ColorAccent) // Use accent color instead of orange
             .WithFooter(Footer);
-
-        if (!string.IsNullOrEmpty(message))
-        {
-            embed.WithDescription(message);
-        }
-        else
-        {
-            embed.WithDescription("Please enter the Link Code and wait for the bot.");
-        }
 
         var builtEmbed = embed.Build();
         await user.SendMessageAsync(embed: builtEmbed).ConfigureAwait(false);
@@ -108,10 +137,11 @@ public static class EmbedHelper
     public static async Task SendTradeSearchingEmbedAsync(IUser user, string trainerName, string inGameName, string? message = null)
     {
         var embed = new EmbedBuilder()
-            .WithTitle($"🔍 Searching for Partner...")
+            .WithTitle($"🔍 Searching For You")
             .AddField("Trainer", trainerName, true)
             .AddField("Bot IGN", inGameName, true)
             .WithTimestamp(DateTimeOffset.Now)
+            .WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/sprites/main/searching.gif")
             .WithColor(ColorWarning)
             .WithFooter(Footer);
 
@@ -121,7 +151,7 @@ public static class EmbedHelper
         }
         else
         {
-            embed.WithDescription("Please stand by, the trade will begin shortly.");
+            embed.WithDescription("Please begin searching code in game.");
         }
 
         var builtEmbed = embed.Build();
