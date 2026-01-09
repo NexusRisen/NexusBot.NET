@@ -76,9 +76,16 @@ namespace SysBot.Pokemon.WinForms
             // Apply dark mode to the main window
             DarkModeHelper.SetDarkMode(this.Handle);
             
+            // Apply Alienware Theme
+            Theme.Apply(this);
+
             Load += async (sender, e) => await InitializeAsync();
 
             TC_Main = new TabControl { Visible = false };
+            // Setup TabControl for Alienware styling even if hidden
+            TC_Main.DrawMode = TabDrawMode.OwnerDrawFixed;
+            TC_Main.DrawItem += Theme.DrawTabControl;
+
             Tab_Bots = new TabPage();
             Tab_Hub = new TabPage();
             Tab_Logs = new TabPage();
@@ -87,6 +94,12 @@ namespace SysBot.Pokemon.WinForms
 
             _searchManager = new SearchManager(RTB_Logs, searchStatusLabel);
             ConfigureSearchEventHandlers();
+        }
+
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            // Use our custom theme background painter
+            Theme.PaintBackground(e.Graphics, this.ClientRectangle);
         }
 
         private void ConfigureSearchEventHandlers()
@@ -1526,11 +1539,25 @@ namespace SysBot.Pokemon.WinForms
         {
             if (sender is not Panel p) return;
             var g = e.Graphics;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             var rect = p.ClientRectangle;
+            
+            // Create chamfered path matching the region
+            using var path = new System.Drawing.Drawing2D.GraphicsPath();
+            int chamfer = 15;
+            // Adjust for border drawing
+            var drawRect = new Rectangle(rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+            
+            path.AddLine(drawRect.Left + chamfer, drawRect.Top, drawRect.Right - chamfer, drawRect.Top);
+            path.AddLine(drawRect.Right, drawRect.Top + chamfer, drawRect.Right, drawRect.Bottom - chamfer);
+            path.AddLine(drawRect.Right - chamfer, drawRect.Bottom, drawRect.Left + chamfer, drawRect.Bottom);
+            path.AddLine(drawRect.Left, drawRect.Bottom - chamfer, drawRect.Left, drawRect.Top + chamfer);
+            path.CloseFigure();
+
             using var bg = new SolidBrush(Theme.SurfaceColor);
             using var border = new Pen(Theme.AccentCyan, 1);
-            g.FillRectangle(bg, rect);
-            g.DrawRectangle(border, rect.Left, rect.Top, rect.Width - 1, rect.Height - 1);
+            g.FillPath(bg, path);
+            g.DrawPath(border, path);
         }
 
         private void PaintAlienAddButton(object sender, PaintEventArgs e)
@@ -1539,10 +1566,22 @@ namespace SysBot.Pokemon.WinForms
             var g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             var rect = btn.ClientRectangle;
+            
+            // Create chamfered path matching the region
+            using var path = new System.Drawing.Drawing2D.GraphicsPath();
+            int chamfer = 15;
+            var drawRect = new Rectangle(rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+            
+            path.AddLine(drawRect.Left + chamfer, drawRect.Top, drawRect.Right - chamfer, drawRect.Top);
+            path.AddLine(drawRect.Right, drawRect.Top + chamfer, drawRect.Right, drawRect.Bottom - chamfer);
+            path.AddLine(drawRect.Right - chamfer, drawRect.Bottom, drawRect.Left + chamfer, drawRect.Bottom);
+            path.AddLine(drawRect.Left, drawRect.Bottom - chamfer, drawRect.Left, drawRect.Top + chamfer);
+            path.CloseFigure();
+
             using var bg = new System.Drawing.Drawing2D.LinearGradientBrush(rect, Color.FromArgb(20, 20, 20), Color.FromArgb(5, 5, 5), System.Drawing.Drawing2D.LinearGradientMode.Vertical);
             using var pen = new Pen(Color.FromArgb(0, 204, 255), 1.5f);
-            g.FillRectangle(bg, rect);
-            g.DrawRectangle(pen, rect.Left, rect.Top, rect.Width - 1, rect.Height - 1);
+            g.FillPath(bg, path);
+            g.DrawPath(pen, path);
             var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
             using var textBrush = new SolidBrush(Color.White);
             g.DrawString(btn.Text, btn.Font, textBrush, rect, sf);

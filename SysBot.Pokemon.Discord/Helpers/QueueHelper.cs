@@ -506,10 +506,13 @@ public static class QueueHelper<T> where T : PKM, new()
         return (embedImageUrl, new DiscordColor(R, G, B));
     }
 
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private static Task<(System.Drawing.Image?, bool)> OverlayBallOnSpecies(string speciesImageUrl, string ballImageUrl) => Task.FromResult<(System.Drawing.Image?, bool)>((null, false));
 
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private static Task<System.Drawing.Image> OverlaySpeciesOnEgg(string eggImageUrl, string speciesImageUrl) => throw new NotSupportedException();
 
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private static async Task<System.Drawing.Image?> LoadImageFromUrl(string url)
     {
         using HttpClient client = new();

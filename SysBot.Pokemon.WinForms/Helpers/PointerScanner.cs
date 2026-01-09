@@ -521,7 +521,7 @@ namespace SysBot.Pokemon.WinForms.Helpers
             using (var fs = new System.IO.FileStream(nsoPath, System.IO.FileMode.Open, System.IO.FileAccess.Read))
             {
                 nsoData = new byte[fs.Length];
-                await fs.ReadAsync(nsoData, 0, (int)fs.Length, token);
+                await fs.ReadExactlyAsync(nsoData, token);
             }
 
             // 2. Scan for each signature

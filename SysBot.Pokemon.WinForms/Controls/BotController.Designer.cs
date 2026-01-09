@@ -13,6 +13,8 @@ namespace SysBot.Pokemon.WinForms
         {
             if (disposing)
             {
+                OnSharedTick -= AnimationTimer_Tick;
+
                 // Unsubscribe event handlers to prevent memory leaks
                 if (contextMenu != null)
                 {
@@ -38,12 +40,6 @@ namespace SysBot.Pokemon.WinForms
                     }
                 }
 
-                if (animationTimer != null)
-                {
-                    animationTimer.Stop();
-                    animationTimer.Dispose();
-                }
-
                 if (components != null)
                 {
                     components.Dispose();
@@ -59,13 +55,8 @@ namespace SysBot.Pokemon.WinForms
             this.components = new System.ComponentModel.Container();
             this.mainPanel = new System.Windows.Forms.Panel();
             this.statusIndicator = new System.Windows.Forms.PictureBox();
-            this.lblStatusValue = new System.Windows.Forms.Label();
-            this.lblBotName = new System.Windows.Forms.Label();
-            this.lblRoutineType = new System.Windows.Forms.Label();
-            this.lblConnectionInfo = new System.Windows.Forms.Label();
             this.btnActions = new System.Windows.Forms.Button();
             this.contextMenu = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.animationTimer = new System.Windows.Forms.Timer(this.components);
             this.mainPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.statusIndicator)).BeginInit();
             this.SuspendLayout();
@@ -82,9 +73,9 @@ namespace SysBot.Pokemon.WinForms
             this.BackColor = System.Drawing.Color.Transparent;
             this.Controls.Add(this.mainPanel);
             this.Font = new System.Drawing.Font("Segoe UI", 9F);
-            this.Margin = new System.Windows.Forms.Padding(0, 0, 0, 100);
+            this.Margin = new System.Windows.Forms.Padding(0, 0, 0, 10);
             this.Name = "BotController";
-            this.Size = new System.Drawing.Size(900, 150);
+            this.Size = new System.Drawing.Size(900, 120);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.BotController_Paint);
             this.MouseEnter += new System.EventHandler(this.BotController_MouseEnter);
             this.MouseLeave += new System.EventHandler(this.BotController_MouseLeave);
@@ -96,10 +87,6 @@ namespace SysBot.Pokemon.WinForms
                                      System.Windows.Forms.AnchorStyles.Right;
             this.mainPanel.BackColor = System.Drawing.Color.Transparent;
             this.mainPanel.Controls.Add(this.statusIndicator);
-            this.mainPanel.Controls.Add(this.lblStatusValue);
-            this.mainPanel.Controls.Add(this.lblBotName);
-            this.mainPanel.Controls.Add(this.lblRoutineType);
-            this.mainPanel.Controls.Add(this.lblConnectionInfo);
             this.mainPanel.Controls.Add(this.btnActions);
             this.mainPanel.Location = new System.Drawing.Point(3, 3);
             this.mainPanel.Name = "mainPanel";
@@ -117,63 +104,6 @@ namespace SysBot.Pokemon.WinForms
             this.statusIndicator.TabIndex = 0;
             this.statusIndicator.TabStop = false;
             this.statusIndicator.Paint += new System.Windows.Forms.PaintEventHandler(this.StatusIndicator_Paint);
-
-            // Bot Name Label
-            this.lblBotName.AutoSize = false;
-            this.lblBotName.BackColor = System.Drawing.Color.Transparent;
-            this.lblBotName.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Bold);
-            this.lblBotName.ForeColor = System.Drawing.Color.FromArgb(239, 239, 239);
-            this.lblBotName.Location = new System.Drawing.Point(70, 15);
-            this.lblBotName.Name = "lblBotName";
-            this.lblBotName.Size = new System.Drawing.Size(400, 25);
-            this.lblBotName.TabIndex = 2;
-            this.lblBotName.Text = "192.168.1.100";
-            this.lblBotName.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.lblBotName.MouseEnter += new System.EventHandler(this.BotController_MouseEnter);
-            this.lblBotName.MouseLeave += new System.EventHandler(this.BotController_MouseLeave);
-
-            // Status Value Label (RUNNING, STOPPED, etc.)
-            this.lblStatusValue.AutoSize = false;
-            this.lblStatusValue.BackColor = System.Drawing.Color.Transparent;
-            this.lblStatusValue.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblStatusValue.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentGreen;
-            this.lblStatusValue.Location = new System.Drawing.Point(70, 42);
-            this.lblStatusValue.Name = "lblStatusValue";
-            this.lblStatusValue.Size = new System.Drawing.Size(180, 16);
-            this.lblStatusValue.TabIndex = 1;
-            this.lblStatusValue.Text = "RUNNING";
-            this.lblStatusValue.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-
-            // Routine Type Label (trade type @ time)
-            this.lblRoutineType.AutoSize = false;
-            this.lblRoutineType.BackColor = System.Drawing.Color.Transparent;
-            this.lblRoutineType.Font = new System.Drawing.Font("Segoe UI", 8.5F);
-            this.lblRoutineType.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan;
-            this.lblRoutineType.Location = new System.Drawing.Point(70, 60);
-            this.lblRoutineType.Name = "lblRoutineType";
-            this.lblRoutineType.Size = new System.Drawing.Size(400, 15);
-            this.lblRoutineType.TabIndex = 3;
-            this.lblRoutineType.Text = "FlexTrade";
-            this.lblRoutineType.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.lblRoutineType.MouseEnter += new System.EventHandler(this.BotController_MouseEnter);
-            this.lblRoutineType.MouseLeave += new System.EventHandler(this.BotController_MouseLeave);
-
-            // Connection Info Label (current activity with arrow icon)
-            this.lblConnectionInfo.Anchor = System.Windows.Forms.AnchorStyles.Top |
-                                           System.Windows.Forms.AnchorStyles.Left |
-                                           System.Windows.Forms.AnchorStyles.Right;
-            this.lblConnectionInfo.AutoEllipsis = true;
-            this.lblConnectionInfo.BackColor = System.Drawing.Color.Transparent;
-            this.lblConnectionInfo.Font = new System.Drawing.Font("Segoe UI", 8F);
-            this.lblConnectionInfo.ForeColor = System.Drawing.Color.FromArgb(176, 176, 176);
-            this.lblConnectionInfo.Location = new System.Drawing.Point(70, 78);
-            this.lblConnectionInfo.Name = "lblConnectionInfo";
-            this.lblConnectionInfo.Size = new System.Drawing.Size(600, 15);
-            this.lblConnectionInfo.TabIndex = 4;
-            this.lblConnectionInfo.Text = "→ Waiting for command...";
-            this.lblConnectionInfo.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.lblConnectionInfo.MouseEnter += new System.EventHandler(this.BotController_MouseEnter);
-            this.lblConnectionInfo.MouseLeave += new System.EventHandler(this.BotController_MouseLeave);
 
             // Actions Button (top-right corner)
             this.btnActions.Anchor = System.Windows.Forms.AnchorStyles.Top |
@@ -205,14 +135,7 @@ namespace SysBot.Pokemon.WinForms
             this.contextMenu.ShowImageMargin = false;
             this.contextMenu.Size = new System.Drawing.Size(150, 4);
 
-            // Animation Timer
-            this.animationTimer.Interval = 50;
-            this.animationTimer.Tick += new System.EventHandler(this.AnimationTimer_Tick);
-            this.animationTimer.Enabled = false; // Disabled to remove animations
-
             // Component initialization
-            this.L_Description = this.lblConnectionInfo;
-            this.L_Left = this.lblBotName;
             this.PB_Lamp = this.statusIndicator;
             this.RCMenu = this.contextMenu;
             this.progressBar = new System.Windows.Forms.Panel();
@@ -226,21 +149,14 @@ namespace SysBot.Pokemon.WinForms
         #endregion
 
         // Legacy controls for compatibility
-        private System.Windows.Forms.Label L_Description;
-        private System.Windows.Forms.Label L_Left;
         private System.Windows.Forms.PictureBox PB_Lamp;
         private System.Windows.Forms.ContextMenuStrip RCMenu;
         private System.Windows.Forms.Panel progressBar;
         private System.Windows.Forms.Button actionButton;
-        private System.Windows.Forms.Timer animationTimer;
 
         // Main controls
         private System.Windows.Forms.Panel mainPanel;
         private System.Windows.Forms.PictureBox statusIndicator;
-        private System.Windows.Forms.Label lblStatusValue;
-        private System.Windows.Forms.Label lblBotName;
-        private System.Windows.Forms.Label lblRoutineType;
-        private System.Windows.Forms.Label lblConnectionInfo;
         private System.Windows.Forms.Button btnActions;
         private System.Windows.Forms.ContextMenuStrip contextMenu;
     }

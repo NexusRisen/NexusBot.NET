@@ -84,6 +84,7 @@ namespace SysBot.Pokemon.WinForms
             botsPanel = new Panel();
             botsPanel.BackColor = Color.FromArgb(8, 8, 8); // Match server rack background
             botsPanel.Padding = new Padding(25, 0, 25, 0); // Reserve space for rails
+            CreateChamferedRegion(botsPanel, 20);
             hubPanel = new Panel();
             logsPanel = new Panel();
 
@@ -145,9 +146,10 @@ namespace SysBot.Pokemon.WinForms
             MinimumSize = new Size(1000, 500); // Increased minimum size
             BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BackColor;
             Font = new Font("Segoe UI", 9F, FontStyle.Regular);
-            FormBorderStyle = FormBorderStyle.Sizable;
             Icon = Resources.icon;
             Name = "Main";
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            MaximizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
             Text = "PokéBot Control Center";
             FormClosing += Main_FormClosing;
@@ -171,7 +173,7 @@ namespace SysBot.Pokemon.WinForms
             EnableDoubleBuffering(mainLayoutPanel);
 
             // Sidebar Panel - Cuztom style
-            sidebarPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BackColor;
+            sidebarPanel.BackColor = Color.Transparent;
             sidebarPanel.Controls.Add(navButtonsPanel);
             sidebarPanel.Controls.Add(sidebarBottomPanel);
             sidebarPanel.Controls.Add(logoPanel);
@@ -184,14 +186,15 @@ namespace SysBot.Pokemon.WinForms
             EnableDoubleBuffering(sidebarPanel);
 
             // Logo Panel - Cuztom gradient
-            logoPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BackColor;
+            logoPanel.BackColor = Color.Transparent;
             logoPanel.Dock = DockStyle.Top;
             logoPanel.Height = 60;
             logoPanel.Location = new Point(0, 0);
             logoPanel.Name = "logoPanel";
-            logoPanel.Size = new Size(240, 60);
-            logoPanel.TabIndex = 2;
+            logoPanel.Size = new Size(200, 60);
+            logoPanel.TabIndex = 0;
             logoPanel.Paint += LogoPanel_Paint;
+            CreateChamferedRegion(logoPanel, 15);
             EnableDoubleBuffering(logoPanel);
 
             // Navigation Buttons Panel
@@ -213,8 +216,11 @@ namespace SysBot.Pokemon.WinForms
 
             // Configure Cuztom-style nav buttons with neon accents
             ConfigureNavButton(btnNavBots, "BOTS", 0, "Manage bot connections", SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan); // Cyan
+            CreateChamferedRegion(btnNavBots, 8);
             ConfigureNavButton(btnNavHub, "CONFIGURATION", 1, "System settings", SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan); // Cyan
+            CreateChamferedRegion(btnNavHub, 8);
             ConfigureNavButton(btnNavLogs, "SYSTEM LOGS", 2, "View activity logs", SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan); // Cyan
+            CreateChamferedRegion(btnNavLogs, 8);
 
             var separator = new Panel();
             separator.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BorderColor;
@@ -224,6 +230,7 @@ namespace SysBot.Pokemon.WinForms
 
             var btnTray = new Button();
             ConfigureNavButton(btnTray, "SEND TO TRAY", 3, "Minimize to system tray", SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan);
+            CreateChamferedRegion(btnTray, 8);
             btnTray.Click += BtnTray_Click;
             navButtonsPanel.Controls.Add(btnTray);
 
@@ -242,6 +249,7 @@ namespace SysBot.Pokemon.WinForms
             sidebarBottomPanel.TabIndex = 0;
             sidebarBottomPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
             sidebarBottomPanel.MaximumSize = new Size(240, 90);
+            CreateChamferedRegion(sidebarBottomPanel, 15);
             EnableDoubleBuffering(sidebarBottomPanel);
 
             // Mode Selector ComboBox - Enhanced style
@@ -255,6 +263,7 @@ namespace SysBot.Pokemon.WinForms
             comboBox1.TabIndex = 10;
             comboBox1.Cursor = Cursors.Hand;
             comboBox1.SelectedIndexChanged += ComboBox1_SelectedIndexChanged;
+            CreateChamferedRegion(comboBox1, 5);
 
             // Update Button - Modern style with proper spacing
             var dpiScale = this.DeviceDpi / 96f;
@@ -277,9 +286,10 @@ namespace SysBot.Pokemon.WinForms
             btnUpdate.Tag = new ButtonAnimationState();
             ConfigureHoverAnimation(btnUpdate);
             ConfigureUpdateButton();
+            CreateChamferedRegion(btnUpdate, 8);
 
             // Content Panel
-            contentPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
+            contentPanel.BackColor = Color.Transparent;
             contentPanel.Controls.Add(botsPanel);
             contentPanel.Controls.Add(hubPanel);
             contentPanel.Controls.Add(logsPanel);
@@ -294,7 +304,7 @@ namespace SysBot.Pokemon.WinForms
             EnableDoubleBuffering(contentPanel);
 
             // Header Panel - Cuztom style
-            headerPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
+            headerPanel.BackColor = Color.Transparent;
             headerPanel.Controls.Add(controlButtonsPanel);
             headerPanel.Controls.Add(titleLabel);
             headerPanel.Dock = DockStyle.Top;
@@ -334,15 +344,18 @@ namespace SysBot.Pokemon.WinForms
 
             // Modern control buttons with clean design
             ConfigureEnhancedControlButton(btnStart, "START", SysBot.Pokemon.WinForms.Helpers.Theme.AccentGreen, "▶");
+            CreateChamferedRegion(btnStart, 12);
             ConfigureEnhancedControlButton(btnStop, "STOP", SysBot.Pokemon.WinForms.Helpers.Theme.AccentRed, "■");
+            CreateChamferedRegion(btnStop, 12);
             ConfigureEnhancedControlButton(btnReboot, "RESTART", SysBot.Pokemon.WinForms.Helpers.Theme.AccentPurple, "↻");
+            CreateChamferedRegion(btnReboot, 12);
 
             btnStart.Click += B_Start_Click;
             btnStop.Click += B_Stop_Click;
             btnReboot.Click += B_RebootStop_Click;
 
             // Bots Panel
-            botsPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BackColor;
+            botsPanel.BackColor = Color.Transparent;
             botsPanel.Controls.Add(FLP_Bots);
             botsPanel.Controls.Add(botHeaderPanel);
             botsPanel.Dock = DockStyle.Fill;
@@ -363,7 +376,7 @@ namespace SysBot.Pokemon.WinForms
             botHeaderPanel.Name = "botHeaderPanel";
             botHeaderPanel.Size = new Size(800, 80);
             botHeaderPanel.TabIndex = 1;
-            CreateRoundedPanel(botHeaderPanel);
+            CreateChamferedRegion(botHeaderPanel, 20);
             EnableDoubleBuffering(botHeaderPanel);
 
             // Add Bot Panel
@@ -382,6 +395,7 @@ namespace SysBot.Pokemon.WinForms
             pnlIP.BackColor = Color.Transparent;
             pnlIP.Name = "pnlIP";
             pnlIP.Paint += PaintAlienInputPanel;
+            CreateChamferedRegion(pnlIP, 15);
             
             var lblIP = new Label();
             lblIP.Text = "IP ADDRESS";
@@ -404,6 +418,7 @@ namespace SysBot.Pokemon.WinForms
             TB_IP.TabIndex = 0;
             TB_IP.Text = "192.168.0.1";
             TB_IP.TextAlign = HorizontalAlignment.Center;
+            CreateChamferedRegion(TB_IP, 5);
             pnlIP.Controls.Add(TB_IP);
             addBotPanel.Controls.Add(pnlIP);
 
@@ -414,6 +429,7 @@ namespace SysBot.Pokemon.WinForms
             pnlPort.BackColor = Color.Transparent;
             pnlPort.Name = "pnlPort";
             pnlPort.Paint += PaintAlienInputPanel;
+            CreateChamferedRegion(pnlPort, 15);
             
             var lblPort = new Label();
             lblPort.Text = "PORT";
@@ -432,6 +448,7 @@ namespace SysBot.Pokemon.WinForms
             NUD_Port.Maximum = new decimal(new int[] { 65535, 0, 0, 0 });
             NUD_Port.Value = new decimal(new int[] { 6000, 0, 0, 0 });
             NUD_Port.TextAlign = HorizontalAlignment.Center;
+            CreateChamferedRegion(NUD_Port, 5);
             pnlPort.Controls.Add(NUD_Port);
             addBotPanel.Controls.Add(pnlPort);
 
@@ -458,6 +475,7 @@ namespace SysBot.Pokemon.WinForms
             CB_Protocol.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
             CB_Protocol.SelectedIndexChanged += CB_Protocol_SelectedIndexChanged;
             CB_Protocol.ResumeLayout();
+            CreateChamferedRegion(CB_Protocol, 5);
             pnlProtocol.Controls.Add(CB_Protocol);
             addBotPanel.Controls.Add(pnlProtocol);
 
@@ -468,6 +486,7 @@ namespace SysBot.Pokemon.WinForms
             pnlRoutine.BackColor = Color.Transparent;
             pnlRoutine.Name = "pnlRoutine";
             pnlRoutine.Paint += PaintAlienInputPanel;
+            CreateChamferedRegion(pnlRoutine, 15);
             
             var lblRoutine = new Label();
             lblRoutine.Text = "ROUTINE";
@@ -481,6 +500,7 @@ namespace SysBot.Pokemon.WinForms
             // CB_Routine
             ConfigureComboBox(CB_Routine, 15, 20, 130);
             CB_Routine.BackColor = Color.FromArgb(12, 12, 12);
+            CreateChamferedRegion(CB_Routine, 5);
             pnlRoutine.Controls.Add(CB_Routine);
             addBotPanel.Controls.Add(pnlRoutine);
 
@@ -502,6 +522,7 @@ namespace SysBot.Pokemon.WinForms
             B_New.Click += B_New_Click;
             B_New.Cursor = Cursors.Hand;
             B_New.Paint += PaintAlienAddButton;
+            CreateChamferedRegion(B_New, 15);
             addBotPanel.Controls.Add(B_New);
 
             // Bots Flow Layout Panel
@@ -543,7 +564,7 @@ namespace SysBot.Pokemon.WinForms
             pgContainer.Name = "pgContainer";
             pgContainer.Padding = new Padding(2);
             pgContainer.Size = new Size(840, 520);
-            CreateRoundedPanel(pgContainer);
+            ConfigureAlienContainer(pgContainer);
             EnableDoubleBuffering(pgContainer);
             hubPanel.Controls.Add(pgContainer);
 
@@ -583,27 +604,27 @@ namespace SysBot.Pokemon.WinForms
             // Logs Container - Cuztom style
             var logsContainer = new Panel();
             logsContainer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            logsContainer.BackColor = Color.FromArgb(18, 18, 18);
+            logsContainer.BackColor = Color.FromArgb(180, 18, 18, 18);
             logsContainer.Location = new Point(10, 60);
             logsContainer.Margin = new Padding(0, 5, 0, 0);
             logsContainer.Name = "logsContainer";
             logsContainer.Padding = new Padding(2);
             logsContainer.Size = new Size(840, 470);
-            CreateRoundedPanel(logsContainer);
+            ConfigureAlienContainer(logsContainer);
             EnableDoubleBuffering(logsContainer);
             logsPanel.Controls.Add(logsContainer);
             logsPanel.Controls.Add(logsHeaderPanel);
 
             // Logs Header Panel - Cuztom style
             logsHeaderPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            logsHeaderPanel.BackColor = Color.FromArgb(18, 18, 18);
+            logsHeaderPanel.BackColor = Color.FromArgb(180, 18, 18, 18);
             logsHeaderPanel.Height = 45;
             logsHeaderPanel.Location = new Point(10, 10);
             logsHeaderPanel.Name = "logsHeaderPanel";
             logsHeaderPanel.Padding = new Padding(15, 8, 15, 8);
             logsHeaderPanel.Size = new Size(840, 45);
             logsHeaderPanel.TabIndex = 1;
-            CreateRoundedPanel(logsHeaderPanel);
+            CreateChamferedRegion(logsHeaderPanel, 15);
             EnableDoubleBuffering(logsHeaderPanel);
 
             // Search Panel
@@ -678,7 +699,7 @@ namespace SysBot.Pokemon.WinForms
             btnAutoScroll.Cursor = Cursors.Hand;
             btnAutoScroll.Click += BtnAutoScroll_Click;
             ConfigureGlowButton(btnAutoScroll);
-            CreateRoundedButton(btnAutoScroll);
+            CreateChamferedRegion(btnAutoScroll, 8);
 
             // Export Logs Button
             btnExportLogs = new Button();
@@ -697,7 +718,7 @@ namespace SysBot.Pokemon.WinForms
             btnExportLogs.Cursor = Cursors.Hand;
             btnExportLogs.Click += BtnExportLogs_Click;
             ConfigureGlowButton(btnExportLogs);
-            CreateRoundedButton(btnExportLogs);
+            CreateChamferedRegion(btnExportLogs, 8);
 
             // Clear Logs Button - Cuztom style
             btnClearLogs.Anchor = AnchorStyles.Top | AnchorStyles.Right;
@@ -715,7 +736,7 @@ namespace SysBot.Pokemon.WinForms
             btnClearLogs.Cursor = Cursors.Hand;
             btnClearLogs.Click += BtnClearLogs_Click;
             ConfigureGlowButton(btnClearLogs);
-            CreateRoundedButton(btnClearLogs);
+            CreateChamferedRegion(btnClearLogs, 8);
 
 
             // Rich Text Box - Cuztom style
@@ -747,7 +768,7 @@ namespace SysBot.Pokemon.WinForms
 
             // Dev Panel
             devPanel.Dock = DockStyle.Fill;
-            devPanel.BackColor = Color.FromArgb(18, 18, 18);
+            devPanel.BackColor = Color.Transparent;
             devPanel.Name = "devPanel";
             devPanel.Visible = false; // Hidden by default
             
@@ -779,6 +800,7 @@ namespace SysBot.Pokemon.WinForms
             grpConnection.Size = new Size(800, 120); // Increased height to accommodate Game Selection
             grpConnection.Margin = new Padding(0, 0, 0, 20); // Spacing
             // grpConnection.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right; // FlowLayout handles position, but size needs management
+            CreateChamferedRegion(grpConnection, 10);
             devFlowPanel.Controls.Add(grpConnection);
 
             // Game Selector
@@ -797,6 +819,7 @@ namespace SysBot.Pokemon.WinForms
             cbGame.BackColor = Color.FromArgb(12, 12, 12);
             cbGame.ForeColor = Color.Cyan;
             cbGame.Name = "cbGameVersion";
+            CreateChamferedRegion(cbGame, 5);
             grpConnection.Controls.Add(cbGame);
 
             // IP Address
@@ -812,6 +835,7 @@ namespace SysBot.Pokemon.WinForms
             txtIP.BackColor = Color.FromArgb(12, 12, 12);
             txtIP.ForeColor = Color.White;
             txtIP.Text = "192.168.0.1"; // Default placeholder
+            CreateChamferedRegion(txtIP, 5);
             grpConnection.Controls.Add(txtIP);
 
             // Port
@@ -827,6 +851,7 @@ namespace SysBot.Pokemon.WinForms
             txtPort.BackColor = Color.FromArgb(12, 12, 12);
             txtPort.ForeColor = Color.White;
             txtPort.Text = "6000"; // Default sys-botbase port
+            CreateChamferedRegion(txtPort, 5);
             grpConnection.Controls.Add(txtPort);
 
             // Connect Button
@@ -839,6 +864,7 @@ namespace SysBot.Pokemon.WinForms
             btnDevConnect.FlatAppearance.MouseDownBackColor = Color.FromArgb(0, 80, 80);
             btnDevConnect.ForeColor = Color.Cyan;
             btnDevConnect.FlatStyle = FlatStyle.Flat;
+            CreateChamferedRegion(btnDevConnect, 8);
             grpConnection.Controls.Add(btnDevConnect);
             
             // Connection Status
@@ -855,6 +881,7 @@ namespace SysBot.Pokemon.WinForms
             grpScanner.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
             grpScanner.Size = new Size(800, 340); // Increased height for grid layout
             grpScanner.Margin = new Padding(0, 0, 0, 20);
+            CreateChamferedRegion(grpScanner, 10);
             devFlowPanel.Controls.Add(grpScanner);
 
             // Row 1: Pattern Input (Y=30)
@@ -867,6 +894,7 @@ namespace SysBot.Pokemon.WinForms
             txtPattern.Size = new Size(300, 25);
             txtPattern.BackColor = Color.FromArgb(12, 12, 12);
             txtPattern.ForeColor = Color.White;
+            CreateChamferedRegion(txtPattern, 5);
             grpScanner.Controls.Add(txtPattern);
 
             lblRegion.Text = "Region:";
@@ -881,6 +909,7 @@ namespace SysBot.Pokemon.WinForms
             cbRegion.Size = new Size(100, 25);
             cbRegion.BackColor = Color.FromArgb(12, 12, 12);
             cbRegion.ForeColor = Color.Cyan;
+            CreateChamferedRegion(cbRegion, 5);
             grpScanner.Controls.Add(cbRegion);
 
             btnScan.Text = "Scan";
@@ -891,6 +920,7 @@ namespace SysBot.Pokemon.WinForms
             btnScan.FlatAppearance.MouseDownBackColor = Color.FromArgb(0, 80, 80);
             btnScan.ForeColor = Color.Cyan;
             btnScan.FlatStyle = FlatStyle.Flat;
+            CreateChamferedRegion(btnScan, 8);
             grpScanner.Controls.Add(btnScan);
 
             // Row 2: Scan Options (Y=70) - Start Offset & Length
@@ -905,6 +935,7 @@ namespace SysBot.Pokemon.WinForms
             txtStart.BackColor = Color.FromArgb(12, 12, 12);
             txtStart.ForeColor = Color.White;
             txtStart.Text = "0x0";
+            CreateChamferedRegion(txtStart, 5);
             grpScanner.Controls.Add(txtStart);
 
             lblLength.Text = "Length:";
@@ -918,6 +949,7 @@ namespace SysBot.Pokemon.WinForms
             txtLength.BackColor = Color.FromArgb(12, 12, 12);
             txtLength.ForeColor = Color.White;
             txtLength.Text = "0x4000000";
+            CreateChamferedRegion(txtLength, 5);
             grpScanner.Controls.Add(txtLength);
 
             // Row 3: Signature Tools (Y=110)
@@ -934,6 +966,7 @@ namespace SysBot.Pokemon.WinForms
             txtSigOffset.BackColor = Color.FromArgb(12, 12, 12);
             txtSigOffset.ForeColor = Color.White;
             txtSigOffset.Name = "txtSigOffset";
+            CreateChamferedRegion(txtSigOffset, 5);
             grpScanner.Controls.Add(txtSigOffset);
 
             var btnFindSig = new Button();
@@ -945,6 +978,7 @@ namespace SysBot.Pokemon.WinForms
             btnFindSig.ForeColor = Color.Cyan;
             btnFindSig.FlatStyle = FlatStyle.Flat;
             btnFindSig.Name = "btnFindSig";
+            CreateChamferedRegion(btnFindSig, 8);
             grpScanner.Controls.Add(btnFindSig);
 
             var btnDumpMain = new Button();
@@ -956,6 +990,7 @@ namespace SysBot.Pokemon.WinForms
             btnDumpMain.ForeColor = Color.White;
             btnDumpMain.FlatStyle = FlatStyle.Flat;
             btnDumpMain.Name = "btnDumpMain";
+            CreateChamferedRegion(btnDumpMain, 8);
             grpScanner.Controls.Add(btnDumpMain);
 
             // Row 4: Advanced Actions (Y=150)
@@ -968,6 +1003,7 @@ namespace SysBot.Pokemon.WinForms
             btnAutoUpdate.ForeColor = Color.White;
             btnAutoUpdate.FlatStyle = FlatStyle.Flat;
             btnAutoUpdate.Name = "btnAutoUpdate";
+            CreateChamferedRegion(btnAutoUpdate, 8);
             grpScanner.Controls.Add(btnAutoUpdate);
 
             var btnFindChain = new Button();
@@ -979,6 +1015,7 @@ namespace SysBot.Pokemon.WinForms
             btnFindChain.ForeColor = Color.White;
             btnFindChain.FlatStyle = FlatStyle.Flat;
             btnFindChain.Name = "btnFindChain";
+            CreateChamferedRegion(btnFindChain, 8);
             grpScanner.Controls.Add(btnFindChain);
 
             var btnAutoScan = new Button();
@@ -990,6 +1027,7 @@ namespace SysBot.Pokemon.WinForms
             btnAutoScan.ForeColor = Color.Cyan;
             btnAutoScan.FlatStyle = FlatStyle.Flat;
             btnAutoScan.Name = "btnAutoScan";
+            CreateChamferedRegion(btnAutoScan, 8);
             grpScanner.Controls.Add(btnAutoScan);
 
             var btnVerify = new Button();
@@ -1001,6 +1039,7 @@ namespace SysBot.Pokemon.WinForms
             btnVerify.ForeColor = Color.White;
             btnVerify.FlatStyle = FlatStyle.Flat;
             btnVerify.Name = "btnVerify";
+            CreateChamferedRegion(btnVerify, 8);
             grpScanner.Controls.Add(btnVerify);
             
             // Row 5: Status (Y=190)
@@ -1052,6 +1091,7 @@ namespace SysBot.Pokemon.WinForms
             btnMonitorToggle.FlatAppearance.MouseDownBackColor = Color.FromArgb(0, 80, 80);
             btnMonitorToggle.ForeColor = Color.Cyan;
             btnMonitorToggle.FlatStyle = FlatStyle.Flat;
+            CreateChamferedRegion(btnMonitorToggle, 8);
             grpMonitor.Controls.Add(btnMonitorToggle);
 
             // Length
@@ -1077,6 +1117,7 @@ namespace SysBot.Pokemon.WinForms
             chkCachePointer.Location = new Point(570, 27);
             chkCachePointer.AutoSize = true;
             chkCachePointer.ForeColor = Color.White;
+            CreateChamferedRegion(chkCachePointer, 5);
             grpMonitor.Controls.Add(chkCachePointer);
 
             // Copy Address Button
@@ -1087,6 +1128,7 @@ namespace SysBot.Pokemon.WinForms
             btnCopyAddress.BackColor = Color.FromArgb(64, 64, 64);
             btnCopyAddress.ForeColor = Color.White;
             btnCopyAddress.FlatStyle = FlatStyle.Flat;
+            CreateChamferedRegion(btnCopyAddress, 8);
             grpMonitor.Controls.Add(btnCopyAddress);
 
             // Monitor Value
@@ -1259,6 +1301,7 @@ namespace SysBot.Pokemon.WinForms
             checkBox.TextAlign = ContentAlignment.MiddleCenter;
             checkBox.UseVisualStyleBackColor = false;
             checkBox.Cursor = Cursors.Hand;
+            CreateChamferedRegion(checkBox, 5);
             
             // Ensure checked state changes text color for better visibility
             checkBox.CheckedChanged += (s, e) => 
@@ -1296,6 +1339,7 @@ namespace SysBot.Pokemon.WinForms
             btn.TextAlign = ContentAlignment.MiddleLeft;
             btn.UseVisualStyleBackColor = false;
             btn.Tag = new NavButtonState { NeonColor = neonColor, Index = index };
+            CreateChamferedRegion(btn, 12);
 
             btn.Paint += (s, e) => {
                 var navState = btn.Tag as NavButtonState;
@@ -1432,7 +1476,7 @@ namespace SysBot.Pokemon.WinForms
             btn.Tag = animState;
 
             // Create rounded corners with custom region
-            CreateRoundedButton(btn);
+            CreateChamferedRegion(btn, 12);
             ConfigureEnhancedHoverAnimation(btn);
 
             // Add custom paint for modern glass effect
@@ -1530,16 +1574,41 @@ namespace SysBot.Pokemon.WinForms
             };
         }
 
-        private void CreateRoundedPanel(Panel panel)
+        private void CreateChamferedRegion(Control control, int chamfer)
         {
+            void UpdateRegion()
+            {
+                if (control.Region != null) control.Region.Dispose();
+                using var path = new GraphicsPath();
+                var rect = control.ClientRectangle;
+                // Ensure we don't cross if small
+                int c = Math.Min(chamfer, Math.Min(rect.Width, rect.Height) / 2);
+                
+                path.AddLine(rect.Left + c, rect.Top, rect.Right - c, rect.Top);
+                path.AddLine(rect.Right, rect.Top + c, rect.Right, rect.Bottom - c);
+                path.AddLine(rect.Right - c, rect.Bottom, rect.Left + c, rect.Bottom);
+                path.AddLine(rect.Left, rect.Bottom - c, rect.Left, rect.Top + c);
+                path.CloseFigure();
+                control.Region = new Region(path);
+            }
+
+            control.SizeChanged += (s, e) => UpdateRegion();
+            UpdateRegion();
+        }
+
+        private void ConfigureAlienContainer(Panel panel)
+        {
+            CreateChamferedRegion(panel, 15);
+
             panel.Paint += (s, e) => {
                 var g = e.Graphics;
                 g.SmoothingMode = SmoothingMode.AntiAlias;
                 g.CompositingQuality = CompositingQuality.HighQuality;
 
                 var rect = panel.ClientRectangle;
-                rect.Width -= 1;
-                rect.Height -= 1;
+                // Fix: Do not shrink rect to avoid black borders/corners
+                // rect.Width -= 1; 
+                // rect.Height -= 1;
 
                 // Alien Chamfer Style
                 using var path = new GraphicsPath();
@@ -1550,8 +1619,6 @@ namespace SysBot.Pokemon.WinForms
                 path.AddLine(rect.Left, rect.Bottom - chamfer, rect.Left, rect.Top + chamfer);
                 path.CloseFigure();
                 
-                panel.Region = new Region(path);
-
                 // 1. Background (Dark)
                 using (var brush = new SolidBrush(Color.FromArgb(10, 10, 10)))
                 {
@@ -1588,32 +1655,20 @@ namespace SysBot.Pokemon.WinForms
             };
         }
 
-        private void CreateRoundedButton(Button btn)
-        {
-            btn.Paint += (s, e) => {
-                if (btn.Region != null) btn.Region.Dispose();
 
-                using var path = new GraphicsPath();
-                var rect = btn.ClientRectangle;
-                int chamfer = 6;
-                path.AddLine(rect.Left + chamfer, rect.Top, rect.Right - chamfer, rect.Top);
-                path.AddLine(rect.Right, rect.Top + chamfer, rect.Right, rect.Bottom - chamfer);
-                path.AddLine(rect.Right - chamfer, rect.Bottom, rect.Left + chamfer, rect.Bottom);
-                path.AddLine(rect.Left, rect.Bottom - chamfer, rect.Left, rect.Top + chamfer);
-                path.CloseFigure();
-                btn.Region = new Region(path);
-            };
-
-            btn.Invalidate();
-        }
 
         private void CreateCircularRegion(Control control)
         {
-            control.Region?.Dispose();
+            void UpdateRegion()
+            {
+                if (control.Region != null) control.Region.Dispose();
+                using var path = new GraphicsPath();
+                path.AddEllipse(0, 0, control.Width, control.Height);
+                control.Region = new Region(path);
+            }
 
-            using var path = new GraphicsPath();
-            path.AddEllipse(0, 0, control.Width, control.Height);
-            control.Region = new Region(path);
+            control.SizeChanged += (s, e) => UpdateRegion();
+            UpdateRegion();
         }
 
         private void ConfigureUpdateButton()
@@ -1756,13 +1811,19 @@ namespace SysBot.Pokemon.WinForms
             // Draw Alienware-style background
             using (var bgPath = new GraphicsPath())
             {
-                bgPath.AddRectangle(rect);
+                int chamfer = 15;
+                bgPath.AddLine(rect.Left + chamfer, rect.Top, rect.Right - chamfer, rect.Top);
+                bgPath.AddLine(rect.Right, rect.Top + chamfer, rect.Right, rect.Bottom - chamfer);
+                bgPath.AddLine(rect.Right - chamfer, rect.Bottom, rect.Left + chamfer, rect.Bottom);
+                bgPath.AddLine(rect.Left, rect.Bottom - chamfer, rect.Left, rect.Top + chamfer);
+                bgPath.CloseFigure();
+
                 using (var pgBrush = new PathGradientBrush(bgPath))
                 {
                     pgBrush.CenterColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
                     pgBrush.SurroundColors = new[] { SysBot.Pokemon.WinForms.Helpers.Theme.BackColor };
                     pgBrush.FocusScales = new PointF(0.8f, 0.5f);
-                    e.Graphics.FillRectangle(pgBrush, rect);
+                    e.Graphics.FillPath(pgBrush, bgPath);
                 }
             }
 

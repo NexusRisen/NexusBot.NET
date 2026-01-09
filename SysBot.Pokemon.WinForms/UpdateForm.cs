@@ -16,7 +16,7 @@ namespace SysBot.Pokemon.WinForms
         private Button buttonDownload;
         private Label labelUpdateInfo;
         private Label labelChangelogTitle;
-        private WebBrowser webBrowserChangelog;
+        private FlowLayoutPanel flowPanelChangelog;
         private ProgressBar progressBarDownload;
         private Label labelDownloadStatus;
         private Panel panelHeader;
@@ -37,6 +37,11 @@ namespace SysBot.Pokemon.WinForms
             UpdateFormText();
         }
 
+        protected override void OnPaintBackground(PaintEventArgs e)
+        {
+            SysBot.Pokemon.WinForms.Helpers.Theme.PaintBackground(e.Graphics, this.ClientRectangle);
+        }
+
         private void InitializeComponent()
         {
             // Initialize controls
@@ -44,7 +49,7 @@ namespace SysBot.Pokemon.WinForms
             labelUpdateInfo = new Label();
             buttonDownload = new Button();
             labelChangelogTitle = new Label();
-            webBrowserChangelog = new WebBrowser();
+            flowPanelChangelog = new FlowLayoutPanel();
             progressBarDownload = new ProgressBar();
             labelDownloadStatus = new Label();
 
@@ -52,13 +57,14 @@ namespace SysBot.Pokemon.WinForms
             ClientSize = new Size(700, 550);
             MinimumSize = new Size(600, 500);
             Font = new Font("Segoe UI", 9F, FontStyle.Regular);
-            BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BackColor;
-            ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.TextColor;
+            
+            // Apply Theme
+            SysBot.Pokemon.WinForms.Helpers.Theme.Apply(this);
 
             // Header Panel
             panelHeader.Dock = DockStyle.Top;
             panelHeader.Height = 80;
-            panelHeader.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
+            panelHeader.BackColor = Color.Transparent;
             panelHeader.Padding = new Padding(20);
 
             // Update Info Label
@@ -93,13 +99,21 @@ namespace SysBot.Pokemon.WinForms
             labelChangelogTitle.ForeColor = Color.FromArgb(0, 120, 215);
             labelChangelogTitle.Text = $"What's New in {newVersion}";
 
-            // WebBrowser (Changelog)
-            webBrowserChangelog.Location = new Point(20, 130);
-            webBrowserChangelog.Size = new Size(660, 320);
-            webBrowserChangelog.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right;
-            webBrowserChangelog.ScriptErrorsSuppressed = true;
-            webBrowserChangelog.ScrollBarsEnabled = true;
-            webBrowserChangelog.IsWebBrowserContextMenuEnabled = false;
+            // FlowLayoutPanel (Changelog)
+            flowPanelChangelog.Location = new Point(20, 130);
+            flowPanelChangelog.Size = new Size(660, 320);
+            flowPanelChangelog.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Bottom | AnchorStyles.Right;
+            flowPanelChangelog.BackColor = Color.Transparent;
+            flowPanelChangelog.AutoScroll = true;
+            flowPanelChangelog.FlowDirection = FlowDirection.TopDown;
+            flowPanelChangelog.WrapContents = false;
+            flowPanelChangelog.Resize += (s, e) =>
+            {
+                foreach (Control c in flowPanelChangelog.Controls)
+                {
+                    c.MaximumSize = new Size(flowPanelChangelog.Width - 30, 0);
+                }
+            };
 
             // Progress Bar
             progressBarDownload.Location = new Point(20, 465);
@@ -131,7 +145,7 @@ namespace SysBot.Pokemon.WinForms
             // Add Controls
             Controls.Add(panelHeader);
             Controls.Add(labelChangelogTitle);
-            Controls.Add(webBrowserChangelog);
+            Controls.Add(flowPanelChangelog);
             Controls.Add(progressBarDownload);
             Controls.Add(labelDownloadStatus);
             Controls.Add(buttonDownload);
@@ -152,81 +166,90 @@ namespace SysBot.Pokemon.WinForms
             {
                 // We don't need to instantiate UpdateChecker, just call static methods
                 string markdown = await UpdateChecker.FetchChangelogAsync();
-                string html = ConvertMarkdownToHtml(markdown);
-                webBrowserChangelog.DocumentText = html;
+                RenderChangelog(markdown);
             }
             catch (Exception ex)
             {
-                webBrowserChangelog.DocumentText = $"<html><body><p>Error loading changelog: {ex.Message}</p></body></html>";
+                flowPanelChangelog.Controls.Clear();
+                var lbl = new Label
+                {
+                    Text = $"Error loading changelog: {ex.Message}",
+                    ForeColor = Color.Red,
+                    AutoSize = true,
+                    MaximumSize = new Size(flowPanelChangelog.Width - 30, 0)
+                };
+                flowPanelChangelog.Controls.Add(lbl);
             }
         }
 
-        private static string ConvertMarkdownToHtml(string markdown)
+        private void RenderChangelog(string markdown)
         {
-            if (string.IsNullOrWhiteSpace(markdown)) return "<html><body><p>No changelog available.</p></body></html>";
+            flowPanelChangelog.Controls.Clear();
+            flowPanelChangelog.SuspendLayout();
 
-            // Basic Markdown to HTML conversion
-            string htmlBody = markdown
-                .Replace("&", "&amp;")
-                .Replace("<", "&lt;")
-                .Replace(">", "&gt;")
-                .Replace("\r\n", "\n");
+            if (string.IsNullOrWhiteSpace(markdown))
+            {
+                flowPanelChangelog.ResumeLayout();
+                return;
+            }
 
-            // Headers
-            htmlBody = Header3Regex().Replace(htmlBody, "<h3>$1</h3>");
-            htmlBody = Header2Regex().Replace(htmlBody, "<h2>$1</h2>");
-            htmlBody = Header1Regex().Replace(htmlBody, "<h1>$1</h1>");
+            var lines = markdown.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            foreach (var line in lines)
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
 
-            // Bold
-            htmlBody = BoldRegex().Replace(htmlBody, "<strong>$1</strong>");
-            
-            // Lists
-            htmlBody = ListRegex().Replace(htmlBody, "<li>$1</li>");
-            
-            // Wrap lists (simplified)
-            htmlBody = htmlBody.Replace("</li>\n<li>", "</li><li>");
-            
-            // Code blocks (inline)
-            htmlBody = CodeRegex().Replace(htmlBody, "<code>$1</code>");
+                var lbl = new Label
+                {
+                    AutoSize = true,
+                    MaximumSize = new Size(flowPanelChangelog.Width - 30, 0),
+                    BackColor = Color.Transparent,
+                    Margin = new Padding(0, 0, 0, 5) // Spacing
+                };
 
-            // Line breaks
-            htmlBody = htmlBody.Replace("\n", "<br/>");
+                if (line.StartsWith("### "))
+                {
+                    lbl.Text = line.Substring(4).Trim();
+                    lbl.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan;
+                    lbl.Margin = new Padding(0, 10, 0, 5);
+                }
+                else if (line.StartsWith("## "))
+                {
+                    lbl.Text = line.Substring(3).Trim();
+                    lbl.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
+                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.TextColor;
+                    lbl.Margin = new Padding(0, 15, 0, 5);
+                }
+                else if (line.StartsWith("# "))
+                {
+                    lbl.Text = line.Substring(2).Trim();
+                    lbl.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan;
+                    lbl.Margin = new Padding(0, 10, 0, 5);
+                }
+                else if (line.Trim().StartsWith("- "))
+                {
+                    lbl.Text = "• " + line.Trim().Substring(2);
+                    lbl.Font = new Font("Segoe UI", 9F);
+                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.TextColor;
+                    lbl.Padding = new Padding(10, 0, 0, 0); // Indent
+                }
+                else
+                {
+                    lbl.Text = line.Trim();
+                    lbl.Font = new Font("Segoe UI", 9F);
+                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.TextColor;
+                }
+                
+                // Strip bold markers for now
+                lbl.Text = lbl.Text.Replace("**", "");
+                lbl.Text = lbl.Text.Replace("`", "");
 
-            string css = @"
-                <style>
-                    body { font-family: 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: #dcdcdc; padding: 15px; background-color: #050505; }
-                    h1 { font-size: 22px; color: #00ffff; margin-bottom: 10px; border-bottom: 2px solid #282828; padding-bottom: 8px; }
-                    h2 { font-size: 18px; color: #dcdcdc; margin-top: 20px; margin-bottom: 10px; font-weight: 600; }
-                    h3 { font-size: 16px; font-weight: bold; margin-top: 15px; margin-bottom: 5px; color: #00ffff; }
-                    ul { margin-top: 5px; margin-bottom: 15px; padding-left: 20px; }
-                    li { margin-bottom: 5px; }
-                    code { background-color: #141414; padding: 2px 5px; border-radius: 4px; font-family: Consolas, monospace; color: #ff00ff; border: 1px solid #282828; }
-                    strong { font-weight: 700; color: #ffffff; }
-                    p { margin-bottom: 10px; }
-                    a { color: #00ffff; text-decoration: none; }
-                    a:hover { text-decoration: underline; }
-                </style>";
+                flowPanelChangelog.Controls.Add(lbl);
+            }
 
-            return $"<!DOCTYPE html><html><head>{css}</head><body>{htmlBody}</body></html>";
+            flowPanelChangelog.ResumeLayout();
         }
-
-        [GeneratedRegex(@"^### (.*)$", RegexOptions.Multiline)]
-        private static partial Regex Header3Regex();
-
-        [GeneratedRegex(@"^## (.*)$", RegexOptions.Multiline)]
-        private static partial Regex Header2Regex();
-
-        [GeneratedRegex(@"^# (.*)$", RegexOptions.Multiline)]
-        private static partial Regex Header1Regex();
-
-        [GeneratedRegex(@"\*\*(.*?)\*\*", RegexOptions.None)]
-        private static partial Regex BoldRegex();
-
-        [GeneratedRegex(@"^\s*-\s+(.*)$", RegexOptions.Multiline)]
-        private static partial Regex ListRegex();
-
-        [GeneratedRegex(@"`(.*?)`", RegexOptions.None)]
-        private static partial Regex CodeRegex();
 
         public void PerformUpdate()
         {
