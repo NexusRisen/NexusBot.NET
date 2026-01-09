@@ -292,7 +292,7 @@ namespace SysBot.Pokemon.WinForms.Helpers
             return (ulong)((long)pcPage + imm);
         }
 
-        internal static ulong DecodeAdrpAdd(ulong pc, uint instr1, uint instr2)
+        public static ulong DecodeAdrpAdd(ulong pc, uint instr1, uint instr2)
         {
             // Instr1: ADRP Xd, Page
             ulong page = DecodeAdrp(pc, instr1);
@@ -586,35 +586,6 @@ namespace SysBot.Pokemon.WinForms.Helpers
             }
             
             return sb.ToString();
-        }
-
-        // --- Known Signatures Database ---
-        // These are examples. The user needs to populate this with real signatures found via "Find Sig".
-        public static List<PointerSignature> GetKnownSignatures()
-        {
-            return new List<PointerSignature>
-            {
-                // Example: BoxStart (Hypothetical Signature)
-                new PointerSignature 
-                { 
-                    Name = "BoxStartPokemonPointer", 
-                    Signature = "E0 03 1F 2A ?? ?? ?? 90", // Example pattern
-                    Encoding = PointerEncoding.AdrpAdd,
-                    Offset = 4 // Offset to the ADRP instruction relative to match start
-                },
-                new PointerSignature 
-                { 
-                    Name = "OverworldPointer", 
-                    Signature = "E1 03 1F 2A ?? ?? ?? 90", 
-                    Encoding = PointerEncoding.AdrpLdr 
-                },
-                 new PointerSignature 
-                { 
-                    Name = "MyStatusPointer", 
-                    Signature = "F3 03 1F 2A ?? ?? ?? 90", 
-                    Encoding = PointerEncoding.AdrpLdr 
-                }
-            };
         }
 
         public static async Task<string> VerifyLoadedOffsetsAsync(

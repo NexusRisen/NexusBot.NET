@@ -77,14 +77,14 @@ namespace SysBot.Pokemon.WinForms
             DarkModeHelper.SetDarkMode(this.Handle);
             
             // Apply Alienware Theme
-            Theme.Apply(this);
+            WinFormsTheme.Apply(this);
 
             Load += async (sender, e) => await InitializeAsync();
 
             TC_Main = new TabControl { Visible = false };
             // Setup TabControl for Alienware styling even if hidden
             TC_Main.DrawMode = TabDrawMode.OwnerDrawFixed;
-            TC_Main.DrawItem += Theme.DrawTabControl;
+            TC_Main.DrawItem += WinFormsTheme.DrawTabControl;
 
             Tab_Bots = new TabPage();
             Tab_Hub = new TabPage();
@@ -99,7 +99,7 @@ namespace SysBot.Pokemon.WinForms
         protected override void OnPaintBackground(PaintEventArgs e)
         {
             // Use our custom theme background painter
-            Theme.PaintBackground(e.Graphics, this.ClientRectangle);
+            WinFormsTheme.PaintBackground(e.Graphics, this.ClientRectangle);
         }
 
         private void ConfigureSearchEventHandlers()
@@ -844,7 +844,7 @@ namespace SysBot.Pokemon.WinForms
         private void SendAll(BotControlCommand cmd)
         {
             foreach (var c in FLP_Bots.Controls.OfType<BotController>())
-                c.SendCommand(cmd, false);
+                c.SendCommand(cmd);
 
             LogUtil.LogText($"All bots have been issued a command to {cmd}.");
         }
@@ -1519,7 +1519,7 @@ namespace SysBot.Pokemon.WinForms
                 var batch = controllers.Skip(i).Take(batchSize);
                 foreach (var controller in batch)
                 {
-                    controller.SendCommand(BotControlCommand.Start, false);
+                    controller.SendCommand(BotControlCommand.Start);
                 }
 
                 if (i + batchSize < controllers.Count)
@@ -1554,8 +1554,8 @@ namespace SysBot.Pokemon.WinForms
             path.AddLine(drawRect.Left, drawRect.Bottom - chamfer, drawRect.Left, drawRect.Top + chamfer);
             path.CloseFigure();
 
-            using var bg = new SolidBrush(Theme.SurfaceColor);
-            using var border = new Pen(Theme.AccentCyan, 1);
+            using var bg = new SolidBrush(WinFormsTheme.SurfaceColor);
+            using var border = new Pen(WinFormsTheme.AccentCyan, 1);
             g.FillPath(bg, path);
             g.DrawPath(border, path);
         }
@@ -2049,7 +2049,7 @@ namespace SysBot.Pokemon.WinForms
                 });
 
                 // Get signatures (in future, load from config/file)
-                var signatures = PointerScanner.GetKnownSignatures();
+                var signatures = Helpers.PointerSignatures.GetSignaturesForGame("PLZA");
                 
                 // Run scan
                 var results = await PointerScanner.ScanFileForSignaturesAsync(ofd.FileName, signatures, progress, CancellationToken.None);

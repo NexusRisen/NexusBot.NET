@@ -67,7 +67,7 @@ namespace SysBot.Pokemon.WinForms
         private static readonly object _timerLock = new();
         private static int _instanceCount = 0;
         
-        private void CreateChamferedRegion(Control control, int chamfer)
+        private static void CreateChamferedRegion(Control control, int chamfer)
         {
             void UpdateRegion()
             {
@@ -88,11 +88,11 @@ namespace SysBot.Pokemon.WinForms
                 control.Region = new Region(path);
             }
 
-            control.SizeChanged += (s, e) => UpdateRegion();
+            control.SizeChanged += (_, _) => UpdateRegion();
             UpdateRegion();
         }
 
-        private void CreateCircularRegion(Control control)
+        private static void CreateCircularRegion(Control control)
         {
             void UpdateRegion()
             {
@@ -102,11 +102,11 @@ namespace SysBot.Pokemon.WinForms
                 control.Region = new Region(path);
             }
 
-            control.SizeChanged += (s, e) => UpdateRegion();
+            control.SizeChanged += (_, _) => UpdateRegion();
             UpdateRegion();
         }
 
-        private void InitializeAnimationTimer()
+        private static void InitializeAnimationTimer()
         {
             lock (_timerLock)
             {
@@ -153,7 +153,7 @@ namespace SysBot.Pokemon.WinForms
                 return;
 
             // Apply Alienware Theme
-            Theme.Apply(this);
+            WinFormsTheme.Apply(this);
 
             ConfigureContextMenu();
             ConfigureChildControls();
@@ -168,32 +168,8 @@ namespace SysBot.Pokemon.WinForms
             InitializeAnimationTimer();
             OnSharedTick += AnimationTimer_Tick;
             
-            mainPanel.Resize += (s, e) => UpdateRegion();
             mainPanel.Paint += MainPanel_Paint;
             statusIndicator.Paint += StatusIndicator_Paint;
-            UpdateRegion();
-        }
-        
-        private Size _lastSize = Size.Empty;
-        
-        private void UpdateRegion()
-        {
-            if (mainPanel == null || mainPanel.IsDisposed) return;
-            
-            // Optimization: Only update region if size actually changed
-            if (mainPanel.Size == _lastSize) return;
-            _lastSize = mainPanel.Size;
-            
-            var rect = mainPanel.ClientRectangle;
-            using var path = new GraphicsPath();
-            int chamfer = 25;
-            path.AddLine(rect.Left + chamfer, rect.Top, rect.Right - chamfer, rect.Top);
-            path.AddLine(rect.Right, rect.Top + chamfer, rect.Right, rect.Bottom - chamfer);
-            path.AddLine(rect.Right - chamfer, rect.Bottom, rect.Left + chamfer, rect.Bottom);
-            path.AddLine(rect.Left, rect.Bottom - chamfer, rect.Left, rect.Top + chamfer);
-            path.CloseFigure();
-            
-            mainPanel.Region = new Region(path);
         }
         
         protected override void OnVisibleChanged(EventArgs e)
@@ -327,8 +303,6 @@ namespace SysBot.Pokemon.WinForms
             remove.Click += (_, __) => TryRemove();
             contextMenu.Items.Add(remove);
             contextMenu.Opening += RcMenuOnOpening;
-
-            RCMenu = contextMenu;
         }
 
         private void ConfigureChildControls()
@@ -531,7 +505,7 @@ namespace SysBot.Pokemon.WinForms
             Remove?.Invoke(this, EventArgs.Empty);
         }
 
-        public void SendCommand(BotControlCommand cmd, bool echo = true)
+        public void SendCommand(BotControlCommand cmd)
         {
             if (Runner?.Config.Global.SkipConsoleBotCreation != false)
             {
@@ -932,7 +906,7 @@ namespace SysBot.Pokemon.WinForms
                     g.DrawString(_statusValueText, _fontStatus, b, 70, 42);
 
                 // Routine Type
-                using (var b = new SolidBrush(Theme.AccentCyan))
+                using (var b = new SolidBrush(WinFormsTheme.AccentCyan))
                     g.DrawString(_routineTypeText, _fontRoutine, b, 70, 60);
 
                 // Connection Info

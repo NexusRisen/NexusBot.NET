@@ -127,7 +127,7 @@ namespace SysBot.Pokemon.WinForms
             this.btnActions.MouseLeave += new System.EventHandler(this.BtnActions_MouseLeave);
 
             // Context Menu
-            this.contextMenu.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
+            this.contextMenu.BackColor = SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.SurfaceColor;
             this.contextMenu.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.contextMenu.ForeColor = System.Drawing.Color.White;
             this.contextMenu.Name = "contextMenu";
@@ -136,23 +136,12 @@ namespace SysBot.Pokemon.WinForms
             this.contextMenu.Size = new System.Drawing.Size(150, 4);
 
             // Component initialization
-            this.PB_Lamp = this.statusIndicator;
-            this.RCMenu = this.contextMenu;
-            this.progressBar = new System.Windows.Forms.Panel();
-            this.actionButton = this.btnActions;
-
             this.mainPanel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.statusIndicator)).EndInit();
             this.ResumeLayout(false);
         }
 
         #endregion
-
-        // Legacy controls for compatibility
-        private System.Windows.Forms.PictureBox PB_Lamp;
-        private System.Windows.Forms.ContextMenuStrip RCMenu;
-        private System.Windows.Forms.Panel progressBar;
-        private System.Windows.Forms.Button actionButton;
 
         // Main controls
         private System.Windows.Forms.Panel mainPanel;

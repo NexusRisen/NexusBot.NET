@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace SysBot.Pokemon.WinForms.Helpers
 {
-    public static class Theme
+    public static class WinFormsTheme
     {
         // Alienware / PokeBot Dark Theme Palette
         public static readonly Color BackColor = Color.FromArgb(5, 5, 5);          // Deepest Black

@@ -466,21 +466,6 @@ public static class QueueHelper<T> where T : PKM, new()
         return (int)((timestamp % int.MaxValue) * 1000 + randomValue);
     }
 
-    private static string GetImageFolderPath()
-    {
-        string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        string imagesFolder = Path.Combine(baseDirectory, "Images");
-
-        if (!Directory.Exists(imagesFolder))
-        {
-            Directory.CreateDirectory(imagesFolder);
-        }
-
-        return imagesFolder;
-    }
-
-    private static string SaveImageLocally(System.Drawing.Image image) => string.Empty;
-
     private static async Task<(string, DiscordColor)> PrepareEmbedDetails(T pk)
     {
         string embedImageUrl;
@@ -504,43 +489,6 @@ public static class QueueHelper<T> where T : PKM, new()
 
         (int R, int G, int B) = await GetDominantColorAsync(embedImageUrl);
         return (embedImageUrl, new DiscordColor(R, G, B));
-    }
-
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    private static Task<(System.Drawing.Image?, bool)> OverlayBallOnSpecies(string speciesImageUrl, string ballImageUrl) => Task.FromResult<(System.Drawing.Image?, bool)>((null, false));
-
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    private static Task<System.Drawing.Image> OverlaySpeciesOnEgg(string eggImageUrl, string speciesImageUrl) => throw new NotSupportedException();
-
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    private static async Task<System.Drawing.Image?> LoadImageFromUrl(string url)
-    {
-        using HttpClient client = new();
-        HttpResponseMessage response = await client.GetAsync(url);
-        if (!response.IsSuccessStatusCode)
-        {
-            Console.WriteLine($"Failed to load image from {url}. Status code: {response.StatusCode}");
-            return null;
-        }
-
-        Stream stream = await response.Content.ReadAsStreamAsync();
-        if (stream == null || stream.Length == 0)
-        {
-            Console.WriteLine($"No data or empty stream received from {url}");
-            return null;
-        }
-
-        try
-        {
-#pragma warning disable CA1416 // Validate platform compatibility
-            return System.Drawing.Image.FromStream(stream);
-#pragma warning restore CA1416 // Validate platform compatibility
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"Failed to create image from stream. URL: {url}, Exception: {ex}");
-            return null;
-        }
     }
 
     private static async Task ScheduleFileDeletion(string filePath, int delayInMilliseconds)

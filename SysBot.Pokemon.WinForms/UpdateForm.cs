@@ -39,7 +39,7 @@ namespace SysBot.Pokemon.WinForms
 
         protected override void OnPaintBackground(PaintEventArgs e)
         {
-            SysBot.Pokemon.WinForms.Helpers.Theme.PaintBackground(e.Graphics, this.ClientRectangle);
+            SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.PaintBackground(e.Graphics, this.ClientRectangle);
         }
 
         private void InitializeComponent()
@@ -59,7 +59,7 @@ namespace SysBot.Pokemon.WinForms
             Font = new Font("Segoe UI", 9F, FontStyle.Regular);
             
             // Apply Theme
-            SysBot.Pokemon.WinForms.Helpers.Theme.Apply(this);
+            SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.Apply(this);
 
             // Header Panel
             panelHeader.Dock = DockStyle.Top;
@@ -72,7 +72,7 @@ namespace SysBot.Pokemon.WinForms
             labelUpdateInfo.Dock = DockStyle.Fill;
             labelUpdateInfo.TextAlign = ContentAlignment.MiddleLeft;
             labelUpdateInfo.Font = new Font("Segoe UI", 12F, FontStyle.Regular);
-            labelUpdateInfo.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.TextColor;
+            labelUpdateInfo.ForeColor = SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.TextColor;
             
             if (isUpdateRequired)
             {
@@ -210,35 +210,35 @@ namespace SysBot.Pokemon.WinForms
                 {
                     lbl.Text = line.Substring(4).Trim();
                     lbl.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan;
+                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.AccentCyan;
                     lbl.Margin = new Padding(0, 10, 0, 5);
                 }
                 else if (line.StartsWith("## "))
                 {
                     lbl.Text = line.Substring(3).Trim();
                     lbl.Font = new Font("Segoe UI", 11F, FontStyle.Bold);
-                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.TextColor;
+                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.TextColor;
                     lbl.Margin = new Padding(0, 15, 0, 5);
                 }
                 else if (line.StartsWith("# "))
                 {
                     lbl.Text = line.Substring(2).Trim();
                     lbl.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan;
+                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.AccentCyan;
                     lbl.Margin = new Padding(0, 10, 0, 5);
                 }
                 else if (line.Trim().StartsWith("- "))
                 {
                     lbl.Text = "• " + line.Trim().Substring(2);
                     lbl.Font = new Font("Segoe UI", 9F);
-                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.TextColor;
+                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.TextColor;
                     lbl.Padding = new Padding(10, 0, 0, 0); // Indent
                 }
                 else
                 {
                     lbl.Text = line.Trim();
                     lbl.Font = new Font("Segoe UI", 9F);
-                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.TextColor;
+                    lbl.ForeColor = SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.TextColor;
                 }
                 
                 // Strip bold markers for now
@@ -307,7 +307,7 @@ namespace SysBot.Pokemon.WinForms
         {
             buttonDownload.Enabled = true;
             buttonDownload.Text = isUpdateAvailable ? "Download & Install Update" : "Re-Install Current Version";
-            buttonDownload.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan;
+            buttonDownload.BackColor = SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.AccentCyan;
             progressBarDownload.Visible = false;
             labelDownloadStatus.Visible = false;
         }
