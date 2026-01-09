@@ -1527,8 +1527,8 @@ namespace SysBot.Pokemon.WinForms
             if (sender is not Panel p) return;
             var g = e.Graphics;
             var rect = p.ClientRectangle;
-            using var bg = new SolidBrush(Color.FromArgb(12, 12, 12));
-            using var border = new Pen(Color.FromArgb(0, 204, 255), 1);
+            using var bg = new SolidBrush(Theme.SurfaceColor);
+            using var border = new Pen(Theme.AccentCyan, 1);
             g.FillRectangle(bg, rect);
             g.DrawRectangle(border, rect.Left, rect.Top, rect.Width - 1, rect.Height - 1);
         }

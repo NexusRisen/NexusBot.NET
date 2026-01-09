@@ -52,13 +52,13 @@ namespace SysBot.Pokemon.WinForms
             ClientSize = new Size(700, 550);
             MinimumSize = new Size(600, 500);
             Font = new Font("Segoe UI", 9F, FontStyle.Regular);
-            BackColor = Color.White;
-            ForeColor = Color.FromArgb(50, 50, 50);
+            BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BackColor;
+            ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.TextColor;
 
             // Header Panel
             panelHeader.Dock = DockStyle.Top;
             panelHeader.Height = 80;
-            panelHeader.BackColor = Color.FromArgb(240, 244, 248);
+            panelHeader.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
             panelHeader.Padding = new Padding(20);
 
             // Update Info Label
@@ -66,7 +66,7 @@ namespace SysBot.Pokemon.WinForms
             labelUpdateInfo.Dock = DockStyle.Fill;
             labelUpdateInfo.TextAlign = ContentAlignment.MiddleLeft;
             labelUpdateInfo.Font = new Font("Segoe UI", 12F, FontStyle.Regular);
-            labelUpdateInfo.ForeColor = Color.FromArgb(30, 30, 30);
+            labelUpdateInfo.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.TextColor;
             
             if (isUpdateRequired)
             {
@@ -194,16 +194,16 @@ namespace SysBot.Pokemon.WinForms
 
             string css = @"
                 <style>
-                    body { font-family: 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: #333; padding: 15px; background-color: #ffffff; }
-                    h1 { font-size: 22px; color: #0078d7; margin-bottom: 10px; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px; }
-                    h2 { font-size: 18px; color: #2c3e50; margin-top: 20px; margin-bottom: 10px; font-weight: 600; }
-                    h3 { font-size: 16px; font-weight: bold; margin-top: 15px; margin-bottom: 5px; }
+                    body { font-family: 'Segoe UI', sans-serif; font-size: 14px; line-height: 1.6; color: #dcdcdc; padding: 15px; background-color: #050505; }
+                    h1 { font-size: 22px; color: #00ffff; margin-bottom: 10px; border-bottom: 2px solid #282828; padding-bottom: 8px; }
+                    h2 { font-size: 18px; color: #dcdcdc; margin-top: 20px; margin-bottom: 10px; font-weight: 600; }
+                    h3 { font-size: 16px; font-weight: bold; margin-top: 15px; margin-bottom: 5px; color: #00ffff; }
                     ul { margin-top: 5px; margin-bottom: 15px; padding-left: 20px; }
                     li { margin-bottom: 5px; }
-                    code { background-color: #f6f8fa; padding: 2px 5px; border-radius: 4px; font-family: Consolas, monospace; color: #d63384; border: 1px solid #e1e4e8; }
-                    strong { font-weight: 700; color: #24292e; }
+                    code { background-color: #141414; padding: 2px 5px; border-radius: 4px; font-family: Consolas, monospace; color: #ff00ff; border: 1px solid #282828; }
+                    strong { font-weight: 700; color: #ffffff; }
                     p { margin-bottom: 10px; }
-                    a { color: #0366d6; text-decoration: none; }
+                    a { color: #00ffff; text-decoration: none; }
                     a:hover { text-decoration: underline; }
                 </style>";
 
@@ -284,7 +284,7 @@ namespace SysBot.Pokemon.WinForms
         {
             buttonDownload.Enabled = true;
             buttonDownload.Text = isUpdateAvailable ? "Download & Install Update" : "Re-Install Current Version";
-            buttonDownload.BackColor = Color.FromArgb(0, 100, 100);
+            buttonDownload.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan;
             progressBarDownload.Visible = false;
             labelDownloadStatus.Visible = false;
         }

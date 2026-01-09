@@ -143,7 +143,7 @@ namespace SysBot.Pokemon.WinForms
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1100, 600); // Increased default size
             MinimumSize = new Size(1000, 500); // Increased minimum size
-            BackColor = Color.FromArgb(0, 0, 0);
+            BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BackColor;
             Font = new Font("Segoe UI", 9F, FontStyle.Regular);
             FormBorderStyle = FormBorderStyle.Sizable;
             Icon = Resources.icon;
@@ -171,7 +171,7 @@ namespace SysBot.Pokemon.WinForms
             EnableDoubleBuffering(mainLayoutPanel);
 
             // Sidebar Panel - Cuztom style
-            sidebarPanel.BackColor = Color.Black;
+            sidebarPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BackColor;
             sidebarPanel.Controls.Add(navButtonsPanel);
             sidebarPanel.Controls.Add(sidebarBottomPanel);
             sidebarPanel.Controls.Add(logoPanel);
@@ -184,7 +184,7 @@ namespace SysBot.Pokemon.WinForms
             EnableDoubleBuffering(sidebarPanel);
 
             // Logo Panel - Cuztom gradient
-            logoPanel.BackColor = Color.Black;
+            logoPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BackColor;
             logoPanel.Dock = DockStyle.Top;
             logoPanel.Height = 60;
             logoPanel.Location = new Point(0, 0);
@@ -212,18 +212,18 @@ namespace SysBot.Pokemon.WinForms
             EnableDoubleBuffering(navButtonsPanel);
 
             // Configure Cuztom-style nav buttons with neon accents
-            ConfigureNavButton(btnNavBots, "BOTS", 0, "Manage bot connections", Color.FromArgb(0, 204, 255)); // Cyan
-            ConfigureNavButton(btnNavHub, "CONFIGURATION", 1, "System settings", Color.FromArgb(0, 204, 255)); // Cyan
-            ConfigureNavButton(btnNavLogs, "SYSTEM LOGS", 2, "View activity logs", Color.FromArgb(0, 204, 255)); // Cyan
+            ConfigureNavButton(btnNavBots, "BOTS", 0, "Manage bot connections", SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan); // Cyan
+            ConfigureNavButton(btnNavHub, "CONFIGURATION", 1, "System settings", SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan); // Cyan
+            ConfigureNavButton(btnNavLogs, "SYSTEM LOGS", 2, "View activity logs", SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan); // Cyan
 
             var separator = new Panel();
-            separator.BackColor = Color.FromArgb(5, 5, 5);
+            separator.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BorderColor;
             separator.Size = new Size(200, 1);
             separator.Margin = new Padding(20, 20, 20, 20);
             navButtonsPanel.Controls.Add(separator);
 
             var btnTray = new Button();
-            ConfigureNavButton(btnTray, "SEND TO TRAY", 3, "Minimize to system tray", Color.FromArgb(0, 204, 255));
+            ConfigureNavButton(btnTray, "SEND TO TRAY", 3, "Minimize to system tray", SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan);
             btnTray.Click += BtnTray_Click;
             navButtonsPanel.Controls.Add(btnTray);
 
@@ -240,17 +240,17 @@ namespace SysBot.Pokemon.WinForms
             sidebarBottomPanel.Name = "sidebarBottomPanel";
             sidebarBottomPanel.Padding = new Padding(10, 5, 10, 10);
             sidebarBottomPanel.TabIndex = 0;
-            sidebarBottomPanel.BackColor = Color.FromArgb(12, 12, 12);
+            sidebarBottomPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
             sidebarBottomPanel.MaximumSize = new Size(240, 90);
             EnableDoubleBuffering(sidebarBottomPanel);
 
             // Mode Selector ComboBox - Enhanced style
             comboBox1.Dock = DockStyle.Top;
-            comboBox1.BackColor = Color.FromArgb(12, 12, 12);
+            comboBox1.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
             comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBox1.FlatStyle = FlatStyle.Flat;
             comboBox1.Font = new Font("Segoe UI", 9F);
-            comboBox1.ForeColor = Color.FromArgb(0, 204, 255);
+            comboBox1.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan;
             comboBox1.Name = "comboBox1";
             comboBox1.TabIndex = 10;
             comboBox1.Cursor = Cursors.Hand;
@@ -259,13 +259,13 @@ namespace SysBot.Pokemon.WinForms
             // Update Button - Modern style with proper spacing
             var dpiScale = this.DeviceDpi / 96f;
             btnUpdate.Dock = DockStyle.Bottom;
-            btnUpdate.BackColor = Color.FromArgb(0, 100, 100);
+            btnUpdate.BackColor = Color.FromArgb(0, 100, 100); // Keep distinct for now
             btnUpdate.FlatAppearance.BorderSize = 0;
             btnUpdate.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 150, 150);
             btnUpdate.FlatAppearance.MouseDownBackColor = Color.FromArgb(0, 80, 80);
             btnUpdate.FlatStyle = FlatStyle.Flat;
             btnUpdate.Font = ScaleFont(new Font("Segoe UI", 9F, FontStyle.Bold));
-            btnUpdate.ForeColor = Color.Cyan;
+            btnUpdate.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan;
             btnUpdate.Height = 32;
             btnUpdate.Margin = new Padding(0, 8, 0, 0);  // Add gap between combo and button
             btnUpdate.Name = "btnUpdate";
@@ -279,7 +279,7 @@ namespace SysBot.Pokemon.WinForms
             ConfigureUpdateButton();
 
             // Content Panel
-            contentPanel.BackColor = Color.FromArgb(18, 18, 18);
+            contentPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
             contentPanel.Controls.Add(botsPanel);
             contentPanel.Controls.Add(hubPanel);
             contentPanel.Controls.Add(logsPanel);
@@ -294,7 +294,7 @@ namespace SysBot.Pokemon.WinForms
             EnableDoubleBuffering(contentPanel);
 
             // Header Panel - Cuztom style
-            headerPanel.BackColor = Color.FromArgb(18, 18, 18);
+            headerPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
             headerPanel.Controls.Add(controlButtonsPanel);
             headerPanel.Controls.Add(titleLabel);
             headerPanel.Dock = DockStyle.Top;
@@ -310,7 +310,7 @@ namespace SysBot.Pokemon.WinForms
             // Title Label
             titleLabel.AutoSize = true;
             titleLabel.Font = ScaleFont(new Font("Segoe UI", 16F, FontStyle.Bold));
-            titleLabel.ForeColor = Color.FromArgb(239, 239, 239);
+            titleLabel.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.TextColor;
             titleLabel.Location = new Point(20, 18);
             titleLabel.Name = "titleLabel";
             titleLabel.TabIndex = 0;
@@ -333,16 +333,16 @@ namespace SysBot.Pokemon.WinForms
             controlButtonsPanel.WrapContents = false;
 
             // Modern control buttons with clean design
-            ConfigureEnhancedControlButton(btnStart, "START", Color.FromArgb(90, 186, 71), "▶");
-            ConfigureEnhancedControlButton(btnStop, "STOP", Color.FromArgb(236, 98, 95), "■");
-            ConfigureEnhancedControlButton(btnReboot, "RESTART", Color.FromArgb(102, 192, 244), "↻");
+            ConfigureEnhancedControlButton(btnStart, "START", SysBot.Pokemon.WinForms.Helpers.Theme.AccentGreen, "▶");
+            ConfigureEnhancedControlButton(btnStop, "STOP", SysBot.Pokemon.WinForms.Helpers.Theme.AccentRed, "■");
+            ConfigureEnhancedControlButton(btnReboot, "RESTART", SysBot.Pokemon.WinForms.Helpers.Theme.AccentPurple, "↻");
 
             btnStart.Click += B_Start_Click;
             btnStop.Click += B_Stop_Click;
             btnReboot.Click += B_RebootStop_Click;
 
             // Bots Panel
-            botsPanel.BackColor = Color.FromArgb(8, 8, 8);
+            botsPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.BackColor;
             botsPanel.Controls.Add(FLP_Bots);
             botsPanel.Controls.Add(botHeaderPanel);
             botsPanel.Dock = DockStyle.Fill;
@@ -356,7 +356,7 @@ namespace SysBot.Pokemon.WinForms
 
             // Bot Header Panel - Cuztom style
             botHeaderPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            botHeaderPanel.BackColor = Color.FromArgb(18, 18, 18);
+            botHeaderPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
             botHeaderPanel.Controls.Add(addBotPanel);
             botHeaderPanel.Height = 80;
             botHeaderPanel.Location = new Point(30, 10);
@@ -445,7 +445,7 @@ namespace SysBot.Pokemon.WinForms
             
             var lblProtocol = new Label();
             lblProtocol.Text = "PROTOCOL";
-            lblProtocol.ForeColor = Color.FromArgb(0, 255, 255);
+            lblProtocol.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan;
             lblProtocol.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
             lblProtocol.Location = new Point(15, 5);
             lblProtocol.AutoSize = true;
@@ -455,7 +455,7 @@ namespace SysBot.Pokemon.WinForms
             // CB_Protocol
             CB_Protocol.SuspendLayout();
             ConfigureComboBox(CB_Protocol, 15, 20, 130);
-            CB_Protocol.BackColor = Color.FromArgb(12, 12, 12);
+            CB_Protocol.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
             CB_Protocol.SelectedIndexChanged += CB_Protocol_SelectedIndexChanged;
             CB_Protocol.ResumeLayout();
             pnlProtocol.Controls.Add(CB_Protocol);
@@ -1759,15 +1759,15 @@ namespace SysBot.Pokemon.WinForms
                 bgPath.AddRectangle(rect);
                 using (var pgBrush = new PathGradientBrush(bgPath))
                 {
-                    pgBrush.CenterColor = Color.FromArgb(20, 20, 20);
-                    pgBrush.SurroundColors = new[] { Color.Black };
+                    pgBrush.CenterColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
+                    pgBrush.SurroundColors = new[] { SysBot.Pokemon.WinForms.Helpers.Theme.BackColor };
                     pgBrush.FocusScales = new PointF(0.8f, 0.5f);
                     e.Graphics.FillRectangle(pgBrush, rect);
                 }
             }
 
             // Draw cyan accent lines
-            using (var pen = new Pen(Color.FromArgb(40, 0, 204, 255), 1))
+            using (var pen = new Pen(Color.FromArgb(40, SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan), 1))
             {
                 e.Graphics.DrawLine(pen, 0, 0, rect.Width, 0);
                 e.Graphics.DrawLine(pen, 0, rect.Height - 1, rect.Width, rect.Height - 1);
@@ -1789,14 +1789,14 @@ namespace SysBot.Pokemon.WinForms
             var textRect = new RectangleF(x, y, textSize.Width, textSize.Height);
             using (var metalBrush = new LinearGradientBrush(
                 textRect,
-                Color.FromArgb(255, 0, 255, 255), // Cyan
+                SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan,
                 Color.FromArgb(255, 0, 100, 150),   // Dark Blue
                 LinearGradientMode.Vertical))
             {
                 metalBrush.SetBlendTriangularShape(0.5f);
 
                 // Shadow
-                using (var shadowBrush = new SolidBrush(Color.FromArgb(80, 0, 255, 255)))
+                using (var shadowBrush = new SolidBrush(Color.FromArgb(80, SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan)))
                 {
                     g.DrawString(text, font, shadowBrush, x + 2, y + 2);
                 }
@@ -1842,8 +1842,8 @@ namespace SysBot.Pokemon.WinForms
             var glowAlpha = (int)(baseAlpha + (animState.HoverProgress * 25));
             
             using (var bgBrush = new LinearGradientBrush(rect, 
-                Color.FromArgb(glowAlpha, Color.Cyan),
-                Color.FromArgb(glowAlpha / 2, Color.DarkCyan),
+                Color.FromArgb(glowAlpha, SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan),
+                Color.FromArgb(glowAlpha / 2, Color.FromArgb(0, 100, 100)),
                 LinearGradientMode.Vertical))
             {
                 g.FillPath(bgBrush, path);
@@ -1862,7 +1862,7 @@ namespace SysBot.Pokemon.WinForms
                 glowPath.AddLine(glowRect.Left, glowRect.Bottom - glowChamfer, glowRect.Left, glowRect.Top + glowChamfer);
                 glowPath.CloseFigure();
 
-                using var glowBrush = new SolidBrush(Color.FromArgb((int)(20 * animState.HoverProgress), Color.Cyan));
+                using var glowBrush = new SolidBrush(Color.FromArgb((int)(20 * animState.HoverProgress), SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan));
                 for (int i = 0; i < glowSize; i++)
                 {
                     g.FillPath(glowBrush, glowPath);

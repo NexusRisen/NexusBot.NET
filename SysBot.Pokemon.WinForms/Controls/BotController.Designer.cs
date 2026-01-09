@@ -136,7 +136,7 @@ namespace SysBot.Pokemon.WinForms
             this.lblStatusValue.AutoSize = false;
             this.lblStatusValue.BackColor = System.Drawing.Color.Transparent;
             this.lblStatusValue.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
-            this.lblStatusValue.ForeColor = System.Drawing.Color.FromArgb(90, 186, 71);
+            this.lblStatusValue.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentGreen;
             this.lblStatusValue.Location = new System.Drawing.Point(70, 42);
             this.lblStatusValue.Name = "lblStatusValue";
             this.lblStatusValue.Size = new System.Drawing.Size(180, 16);
@@ -148,7 +148,7 @@ namespace SysBot.Pokemon.WinForms
             this.lblRoutineType.AutoSize = false;
             this.lblRoutineType.BackColor = System.Drawing.Color.Transparent;
             this.lblRoutineType.Font = new System.Drawing.Font("Segoe UI", 8.5F);
-            this.lblRoutineType.ForeColor = System.Drawing.Color.FromArgb(139, 179, 217);
+            this.lblRoutineType.ForeColor = SysBot.Pokemon.WinForms.Helpers.Theme.AccentCyan;
             this.lblRoutineType.Location = new System.Drawing.Point(70, 60);
             this.lblRoutineType.Name = "lblRoutineType";
             this.lblRoutineType.Size = new System.Drawing.Size(400, 15);
@@ -197,7 +197,7 @@ namespace SysBot.Pokemon.WinForms
             this.btnActions.MouseLeave += new System.EventHandler(this.BtnActions_MouseLeave);
 
             // Context Menu
-            this.contextMenu.BackColor = System.Drawing.Color.FromArgb(35, 45, 60);
+            this.contextMenu.BackColor = SysBot.Pokemon.WinForms.Helpers.Theme.SurfaceColor;
             this.contextMenu.Font = new System.Drawing.Font("Segoe UI", 9F);
             this.contextMenu.ForeColor = System.Drawing.Color.White;
             this.contextMenu.Name = "contextMenu";
