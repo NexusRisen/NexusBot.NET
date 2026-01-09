@@ -1,108 +1,152 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SysBot.Base;
 
 namespace SysBot.Pokemon.WinForms.Helpers
 {
-    public class MemoryScanner
+    public static class MemoryScanner
     {
-        private readonly ISwitchConnectionAsync Connection;
-        private const int ChunkSize = 0x100000; // 1MB chunks
-
-        public MemoryScanner(ISwitchConnectionAsync connection)
+        public class ScanResult
         {
-            Connection = connection;
+            public ulong Address { get; set; }
+            public ulong OffsetFromBase { get; set; }
+            public string Region { get; set; } = string.Empty;
         }
 
-        public async Task<string> AnalyzeAddressAsync(ulong address)
+        public static async Task<List<ScanResult>> ScanPatternAsync(
+            ISwitchConnectionAsync connection,
+            string patternStr,
+            ulong startAddress,
+            ulong length,
+            CancellationToken token,
+            IProgress<float>? progress = null)
         {
-            try
-            {
-                ulong heapBase = await Connection.GetHeapBaseAsync(CancellationToken.None).ConfigureAwait(false);
-                if (address >= heapBase && address < heapBase + 0x40000000) // Assuming 1GB heap for safety check
-                {
-                    return $"[Heap+0x{address - heapBase:X}]";
-                }
+            var results = new List<ScanResult>();
+            var (pattern, mask) = ParsePattern(patternStr);
+            if (pattern.Length == 0) return results;
 
-                ulong mainBase = await Connection.GetMainNsoBaseAsync(CancellationToken.None).ConfigureAwait(false);
-                if (address >= mainBase && address < mainBase + 0x8000000) // Assuming 128MB main
-                {
-                    return $"[Main+0x{address - mainBase:X}]";
-                }
+            const int chunkSize = 0x10000; // 64KB chunks
+            // Overlap by pattern length - 1 to catch patterns crossing chunk boundaries
+            int overlap = pattern.Length - 1;
+            
+            ulong currentAddress = startAddress;
+            ulong endAddress = startAddress + length;
+            ulong totalBytes = length;
+            ulong bytesRead = 0;
 
-                return $"0x{address:X} (Unknown Region)";
-            }
-            catch
-            {
-                return $"0x{address:X}";
-            }
-        }
+            byte[]? buffer = null;
 
-        public async Task<List<ulong>> ScanPattern(byte[] pattern, ulong startAddress, ulong length, IProgress<string> progress, CancellationToken token)
-        {
-            var results = new List<ulong>();
-            ulong current = startAddress;
-            ulong end = startAddress + length;
-
-            progress?.Report($"Starting scan from 0x{startAddress:X} to 0x{end:X}...");
-
-            while (current < end)
+            while (currentAddress < endAddress)
             {
                 if (token.IsCancellationRequested) break;
 
-                ulong remaining = end - current;
-                int readSize = (int)Math.Min(remaining, (ulong)ChunkSize);
-
-                try
+                // Calculate read size
+                int readSize = chunkSize;
+                if (currentAddress + (ulong)readSize > endAddress)
                 {
-                    // Read chunk
-                    byte[] buffer = await Connection.ReadBytesAbsoluteAsync(current, readSize, token).ConfigureAwait(false);
-
-                    // Search in buffer
-                    var matches = FindPatternInBuffer(buffer, pattern);
-                    foreach (var offset in matches)
-                    {
-                        results.Add(current + (ulong)offset);
-                        progress?.Report($"Found match at 0x{current + (ulong)offset:X}");
-                    }
-
-                    // Handle boundary issue: The pattern might span across two chunks.
-                    // We should actually overlap reads by pattern.Length - 1, but for simplicity we'll skip for now 
-                    // or implement a small backtrack.
-                    if (pattern.Length > 1 && remaining > (ulong)readSize)
-                    {
-                        current -= (ulong)(pattern.Length - 1);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    progress?.Report($"Error reading at 0x{current:X}: {ex.Message}");
+                    readSize = (int)(endAddress - currentAddress);
                 }
 
-                current += (ulong)readSize;
+                // Read memory
+                // We use ReadBytesAbsoluteAsync. If startAddress is MainBase, it's effectively reading Main.
+                try 
+                {
+                    buffer = await connection.ReadBytesAbsoluteAsync(currentAddress, readSize, token).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    // If read fails (e.g. invalid memory), skip this chunk? 
+                    // Or maybe we hit a gap. For now, let's just advance.
+                    currentAddress += (ulong)readSize;
+                    bytesRead += (ulong)readSize;
+                    progress?.Report((float)bytesRead / totalBytes);
+                    continue;
+                }
+
+                // Search in buffer
+                var matches = SearchInBuffer(buffer, pattern, mask);
+                foreach (var offset in matches)
+                {
+                    var matchAddr = currentAddress + (ulong)offset;
+                    results.Add(new ScanResult
+                    {
+                        Address = matchAddr,
+                        OffsetFromBase = matchAddr - startAddress,
+                        Region = "Main" // Assumption for now
+                    });
+                }
+
+                // Advance
+                // If we found matches, we still advance.
+                // We overlap to ensure we don't miss patterns on the boundary.
+                // But simple approach: just advance by readSize, but we need to handle the overlap.
+                // If we simply read chunks, patterns crossing 64KB boundary won't match.
+                // Correct approach: Next read starts at currentAddress + chunkSize - overlap.
+                // BUT, to avoid re-reading too much, we can just handle it carefully.
+                // For simplicity/performance trade-off in this MVP: 
+                // We will advance by (readSize - overlap) to ensure coverage.
                 
-                // Report progress every chunk
-                int percent = (int)((current - startAddress) * 100 / length);
-                progress?.Report($"Scanning... {percent}% (Found {results.Count})");
+                if (readSize < overlap) break; // Should not happen given chunk size
+
+                ulong advance = (ulong)(readSize - overlap);
+                if (advance == 0) advance = 1; // Prevent infinite loop if pattern is huge (unlikely)
+
+                currentAddress += advance;
+                bytesRead += advance;
+                
+                progress?.Report((float)bytesRead / totalBytes);
             }
 
             return results;
         }
 
-        private List<int> FindPatternInBuffer(byte[] buffer, byte[] pattern)
+        public static (byte[] pattern, bool[] mask) ParsePattern(string input)
+        {
+            var parts = input.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            var pattern = new byte[parts.Length];
+            var mask = new bool[parts.Length];
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                if (parts[i] == "??" || parts[i] == "?")
+                {
+                    mask[i] = false; // Wildcard
+                    pattern[i] = 0;
+                }
+                else
+                {
+                    if (byte.TryParse(parts[i], NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var b))
+                    {
+                        mask[i] = true;
+                        pattern[i] = b;
+                    }
+                    else
+                    {
+                        // Invalid format treatment? Treat as wildcard or fail?
+                        // Let's treat as wildcard for safety or error?
+                        // Better to treat as wildcard if unsure, or throw.
+                        mask[i] = false;
+                    }
+                }
+            }
+            return (pattern, mask);
+        }
+
+        public static List<int> SearchInBuffer(byte[] buffer, byte[] pattern, bool[] mask)
         {
             var matches = new List<int>();
-            for (int i = 0; i <= buffer.Length - pattern.Length; i++)
+            int end = buffer.Length - pattern.Length;
+
+            for (int i = 0; i <= end; i++)
             {
                 bool match = true;
                 for (int j = 0; j < pattern.Length; j++)
                 {
-                    // Support wildcard (optional)? For now strict match.
-                    if (buffer[i + j] != pattern[j])
+                    if (mask[j] && buffer[i + j] != pattern[j])
                     {
                         match = false;
                         break;

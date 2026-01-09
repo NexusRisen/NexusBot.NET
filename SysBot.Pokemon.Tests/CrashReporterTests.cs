@@ -9,7 +9,7 @@ namespace SysBot.Pokemon.Tests
 {
     public class CrashReporterTests
     {
-        private TestLogForwarder _logForwarder;
+        private TestLogForwarder _logForwarder = null!;
 
         [SetUp]
         public void Setup()

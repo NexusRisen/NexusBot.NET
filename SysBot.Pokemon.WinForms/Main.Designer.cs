@@ -776,21 +776,39 @@ namespace SysBot.Pokemon.WinForms
             grpConnection.Text = "Manual Connection";
             grpConnection.ForeColor = Color.White;
             grpConnection.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
-            grpConnection.Size = new Size(800, 80);
+            grpConnection.Size = new Size(800, 120); // Increased height to accommodate Game Selection
             grpConnection.Margin = new Padding(0, 0, 0, 20); // Spacing
             // grpConnection.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right; // FlowLayout handles position, but size needs management
             devFlowPanel.Controls.Add(grpConnection);
 
+            // Game Selector
+            var lblGame = new Label();
+            lblGame.Text = "Game:";
+            lblGame.Location = new Point(20, 70); // Moved to second row
+            lblGame.AutoSize = true;
+            lblGame.ForeColor = Color.White;
+            grpConnection.Controls.Add(lblGame);
+
+            var cbGame = new ComboBox();
+            cbGame.Items.AddRange(new object[] { "PLZA", "SV", "LA", "SWSH", "BDSP" });
+            cbGame.SelectedIndex = 0;
+            cbGame.Location = new Point(80, 67); // Moved to second row
+            cbGame.Size = new Size(80, 25);
+            cbGame.BackColor = Color.FromArgb(12, 12, 12);
+            cbGame.ForeColor = Color.Cyan;
+            cbGame.Name = "cbGameVersion";
+            grpConnection.Controls.Add(cbGame);
+
             // IP Address
             lblIP = new Label();
             lblIP.Text = "IP Address:";
-            lblIP.Location = new Point(20, 30);
+            lblIP.Location = new Point(20, 30); // Adjusted X
             lblIP.AutoSize = true;
             grpConnection.Controls.Add(lblIP);
 
             txtIP = new TextBox();
-            txtIP.Location = new Point(110, 27);
-            txtIP.Size = new Size(150, 25);
+            txtIP.Location = new Point(100, 27); // Adjusted X
+            txtIP.Size = new Size(140, 25);
             txtIP.BackColor = Color.FromArgb(12, 12, 12);
             txtIP.ForeColor = Color.White;
             txtIP.Text = "192.168.0.1"; // Default placeholder
@@ -799,13 +817,13 @@ namespace SysBot.Pokemon.WinForms
             // Port
             lblPort = new Label();
             lblPort.Text = "Port:";
-            lblPort.Location = new Point(280, 30);
+            lblPort.Location = new Point(260, 30); // Adjusted X
             lblPort.AutoSize = true;
             grpConnection.Controls.Add(lblPort);
 
             txtPort = new TextBox();
-            txtPort.Location = new Point(330, 27);
-            txtPort.Size = new Size(80, 25);
+            txtPort.Location = new Point(300, 27); // Adjusted X
+            txtPort.Size = new Size(60, 25);
             txtPort.BackColor = Color.FromArgb(12, 12, 12);
             txtPort.ForeColor = Color.White;
             txtPort.Text = "6000"; // Default sys-botbase port
@@ -814,7 +832,7 @@ namespace SysBot.Pokemon.WinForms
             // Connect Button
             btnDevConnect = new Button();
             btnDevConnect.Text = "Connect";
-            btnDevConnect.Location = new Point(440, 25);
+            btnDevConnect.Location = new Point(380, 25); // Adjusted X
             btnDevConnect.Size = new Size(120, 30);
             btnDevConnect.BackColor = Color.FromArgb(0, 100, 100);
             btnDevConnect.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 150, 150);
@@ -826,7 +844,7 @@ namespace SysBot.Pokemon.WinForms
             // Connection Status
             lblConnStatus = new Label();
             lblConnStatus.Text = "Not Connected";
-            lblConnStatus.Location = new Point(580, 30);
+            lblConnStatus.Location = new Point(520, 30); // Adjusted X
             lblConnStatus.AutoSize = true;
             lblConnStatus.ForeColor = Color.Red;
             grpConnection.Controls.Add(lblConnStatus);
@@ -835,38 +853,38 @@ namespace SysBot.Pokemon.WinForms
             grpScanner.Text = "Memory Scanner";
             grpScanner.ForeColor = Color.White;
             grpScanner.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
-            grpScanner.Size = new Size(800, 250);
+            grpScanner.Size = new Size(800, 340); // Increased height for grid layout
             grpScanner.Margin = new Padding(0, 0, 0, 20);
             devFlowPanel.Controls.Add(grpScanner);
 
-            // Pattern Input
+            // Row 1: Pattern Input (Y=30)
             lblPattern.Text = "Pattern (Hex):";
-            lblPattern.Location = new Point(20, 30);
+            lblPattern.Location = new Point(20, 33);
             lblPattern.AutoSize = true;
             grpScanner.Controls.Add(lblPattern);
 
-            txtPattern.Location = new Point(120, 27);
+            txtPattern.Location = new Point(120, 30);
             txtPattern.Size = new Size(300, 25);
             txtPattern.BackColor = Color.FromArgb(12, 12, 12);
             txtPattern.ForeColor = Color.White;
             grpScanner.Controls.Add(txtPattern);
 
-            // Region Selector
             lblRegion.Text = "Region:";
-            lblRegion.Location = new Point(450, 30);
+            lblRegion.Location = new Point(440, 33);
             lblRegion.AutoSize = true;
             grpScanner.Controls.Add(lblRegion);
 
+            cbRegion.Items.Clear();
             cbRegion.Items.AddRange(new object[] { "Heap", "Main" });
             cbRegion.SelectedIndex = 0;
-            cbRegion.Location = new Point(510, 27);
+            cbRegion.Location = new Point(500, 30);
+            cbRegion.Size = new Size(100, 25);
             cbRegion.BackColor = Color.FromArgb(12, 12, 12);
             cbRegion.ForeColor = Color.Cyan;
             grpScanner.Controls.Add(cbRegion);
 
-            // Scan Button
             btnScan.Text = "Scan";
-            btnScan.Location = new Point(650, 25);
+            btnScan.Location = new Point(620, 28);
             btnScan.Size = new Size(100, 30);
             btnScan.BackColor = Color.FromArgb(0, 100, 100);
             btnScan.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 150, 150);
@@ -875,16 +893,126 @@ namespace SysBot.Pokemon.WinForms
             btnScan.FlatStyle = FlatStyle.Flat;
             grpScanner.Controls.Add(btnScan);
 
-            // Status Label
+            // Row 2: Scan Options (Y=70) - Start Offset & Length
+            lblStart.Text = "Start Offset:";
+            lblStart.Location = new Point(20, 73);
+            lblStart.AutoSize = true;
+            lblStart.ForeColor = Color.White;
+            grpScanner.Controls.Add(lblStart);
+
+            txtStart.Location = new Point(120, 70);
+            txtStart.Size = new Size(120, 25);
+            txtStart.BackColor = Color.FromArgb(12, 12, 12);
+            txtStart.ForeColor = Color.White;
+            txtStart.Text = "0x0";
+            grpScanner.Controls.Add(txtStart);
+
+            lblLength.Text = "Length:";
+            lblLength.Location = new Point(260, 73);
+            lblLength.AutoSize = true;
+            lblLength.ForeColor = Color.White;
+            grpScanner.Controls.Add(lblLength);
+
+            txtLength.Location = new Point(320, 70);
+            txtLength.Size = new Size(120, 25);
+            txtLength.BackColor = Color.FromArgb(12, 12, 12);
+            txtLength.ForeColor = Color.White;
+            txtLength.Text = "0x4000000";
+            grpScanner.Controls.Add(txtLength);
+
+            // Row 3: Signature Tools (Y=110)
+            var lblSigOffset = new Label();
+            lblSigOffset.Text = "Offset (Hex):";
+            lblSigOffset.Location = new Point(20, 113);
+            lblSigOffset.AutoSize = true;
+            lblSigOffset.ForeColor = Color.White;
+            grpScanner.Controls.Add(lblSigOffset);
+
+            var txtSigOffset = new TextBox();
+            txtSigOffset.Location = new Point(120, 110);
+            txtSigOffset.Size = new Size(120, 25);
+            txtSigOffset.BackColor = Color.FromArgb(12, 12, 12);
+            txtSigOffset.ForeColor = Color.White;
+            txtSigOffset.Name = "txtSigOffset";
+            grpScanner.Controls.Add(txtSigOffset);
+
+            var btnFindSig = new Button();
+            btnFindSig.Text = "Find Sig";
+            btnFindSig.Location = new Point(260, 108);
+            btnFindSig.Size = new Size(100, 30);
+            btnFindSig.BackColor = Color.FromArgb(0, 80, 80);
+            btnFindSig.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 120, 120);
+            btnFindSig.ForeColor = Color.Cyan;
+            btnFindSig.FlatStyle = FlatStyle.Flat;
+            btnFindSig.Name = "btnFindSig";
+            grpScanner.Controls.Add(btnFindSig);
+
+            var btnDumpMain = new Button();
+            btnDumpMain.Text = "Dump NSO";
+            btnDumpMain.Location = new Point(380, 108);
+            btnDumpMain.Size = new Size(100, 30);
+            btnDumpMain.BackColor = Color.FromArgb(80, 0, 0); 
+            btnDumpMain.FlatAppearance.MouseOverBackColor = Color.FromArgb(120, 0, 0);
+            btnDumpMain.ForeColor = Color.White;
+            btnDumpMain.FlatStyle = FlatStyle.Flat;
+            btnDumpMain.Name = "btnDumpMain";
+            grpScanner.Controls.Add(btnDumpMain);
+
+            // Row 4: Advanced Actions (Y=150)
+            var btnAutoUpdate = new Button();
+            btnAutoUpdate.Text = "Auto-Update Pointers";
+            btnAutoUpdate.Location = new Point(20, 148);
+            btnAutoUpdate.Size = new Size(160, 30);
+            btnAutoUpdate.BackColor = Color.FromArgb(100, 0, 100); 
+            btnAutoUpdate.FlatAppearance.MouseOverBackColor = Color.FromArgb(150, 0, 150);
+            btnAutoUpdate.ForeColor = Color.White;
+            btnAutoUpdate.FlatStyle = FlatStyle.Flat;
+            btnAutoUpdate.Name = "btnAutoUpdate";
+            grpScanner.Controls.Add(btnAutoUpdate);
+
+            var btnFindChain = new Button();
+            btnFindChain.Text = "Find Pointer Chain";
+            btnFindChain.Location = new Point(200, 148);
+            btnFindChain.Size = new Size(160, 30);
+            btnFindChain.BackColor = Color.FromArgb(0, 0, 100); 
+            btnFindChain.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 0, 150);
+            btnFindChain.ForeColor = Color.White;
+            btnFindChain.FlatStyle = FlatStyle.Flat;
+            btnFindChain.Name = "btnFindChain";
+            grpScanner.Controls.Add(btnFindChain);
+
+            var btnAutoScan = new Button();
+            btnAutoScan.Text = "Auto-Find";
+            btnAutoScan.Location = new Point(380, 148);
+            btnAutoScan.Size = new Size(100, 30);
+            btnAutoScan.BackColor = Color.FromArgb(0, 80, 80);
+            btnAutoScan.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 120, 120);
+            btnAutoScan.ForeColor = Color.Cyan;
+            btnAutoScan.FlatStyle = FlatStyle.Flat;
+            btnAutoScan.Name = "btnAutoScan";
+            grpScanner.Controls.Add(btnAutoScan);
+
+            var btnVerify = new Button();
+            btnVerify.Text = "Verify Live";
+            btnVerify.Location = new Point(500, 148);
+            btnVerify.Size = new Size(100, 30);
+            btnVerify.BackColor = Color.FromArgb(0, 100, 0);
+            btnVerify.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 150, 0);
+            btnVerify.ForeColor = Color.White;
+            btnVerify.FlatStyle = FlatStyle.Flat;
+            btnVerify.Name = "btnVerify";
+            grpScanner.Controls.Add(btnVerify);
+            
+            // Row 5: Status (Y=190)
             lblScanStatus.Text = "Ready";
-            lblScanStatus.Location = new Point(20, 60);
+            lblScanStatus.Location = new Point(20, 190);
             lblScanStatus.AutoSize = true;
             lblScanStatus.ForeColor = Color.Gray;
             grpScanner.Controls.Add(lblScanStatus);
 
-            // Results Box
-            rtbResults.Location = new Point(20, 90);
-            rtbResults.Size = new Size(760, 140);
+            // Row 6: Results (Y=210)
+            rtbResults.Location = new Point(20, 210);
+            rtbResults.Size = new Size(760, 100);
             rtbResults.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbResults.BackColor = Color.FromArgb(12, 12, 12);
             rtbResults.ForeColor = Color.White;
@@ -896,7 +1024,7 @@ namespace SysBot.Pokemon.WinForms
             grpMonitor.Text = "Memory Monitor & Pointer Tools";
             grpMonitor.ForeColor = Color.White;
             grpMonitor.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
-            grpMonitor.Size = new Size(800, 200);
+            grpMonitor.Size = new Size(800, 300);
             grpMonitor.Margin = new Padding(0, 0, 0, 20);
             devFlowPanel.Controls.Add(grpMonitor);
 
@@ -926,11 +1054,47 @@ namespace SysBot.Pokemon.WinForms
             btnMonitorToggle.FlatStyle = FlatStyle.Flat;
             grpMonitor.Controls.Add(btnMonitorToggle);
 
+            // Length
+            lblLengthVal = new Label();
+            lblLengthVal.Text = "Len:";
+            lblLengthVal.Location = new Point(450, 30);
+            lblLengthVal.AutoSize = true;
+            grpMonitor.Controls.Add(lblLengthVal);
+
+            numLength = new NumericUpDown();
+            numLength.Location = new Point(490, 27);
+            numLength.Size = new Size(60, 25);
+            numLength.BackColor = Color.FromArgb(12, 12, 12);
+            numLength.ForeColor = Color.White;
+            numLength.Minimum = 1;
+            numLength.Maximum = 1024;
+            numLength.Value = 4;
+            grpMonitor.Controls.Add(numLength);
+
+            // Cache Checkbox
+            chkCachePointer = new CheckBox();
+            chkCachePointer.Text = "Cache Ptr";
+            chkCachePointer.Location = new Point(570, 27);
+            chkCachePointer.AutoSize = true;
+            chkCachePointer.ForeColor = Color.White;
+            grpMonitor.Controls.Add(chkCachePointer);
+
+            // Copy Address Button
+            btnCopyAddress = new Button();
+            btnCopyAddress.Text = "Copy Addr";
+            btnCopyAddress.Location = new Point(680, 25);
+            btnCopyAddress.Size = new Size(100, 30);
+            btnCopyAddress.BackColor = Color.FromArgb(64, 64, 64);
+            btnCopyAddress.ForeColor = Color.White;
+            btnCopyAddress.FlatStyle = FlatStyle.Flat;
+            grpMonitor.Controls.Add(btnCopyAddress);
+
             // Monitor Value
             lblMonitorValue = new Label();
             lblMonitorValue.Text = "Value (Hex):";
             lblMonitorValue.Location = new Point(20, 70);
             lblMonitorValue.AutoSize = true;
+            grpMonitor.Controls.Add(lblMonitorValue);
             
             // Add Resize Event to handle GroupBox width in FlowLayoutPanel
             devFlowPanel.Resize += (s, e) => {
@@ -939,29 +1103,31 @@ namespace SysBot.Pokemon.WinForms
                 grpScanner.Width = newWidth;
                 grpMonitor.Width = newWidth;
             };
-            grpMonitor.Controls.Add(lblMonitorValue);
 
             txtMonitorValue = new TextBox();
             txtMonitorValue.Location = new Point(140, 67);
-            txtMonitorValue.Size = new Size(300, 25);
+            txtMonitorValue.Size = new Size(640, 100);
+            txtMonitorValue.Multiline = true;
+            txtMonitorValue.ScrollBars = ScrollBars.Vertical;
             txtMonitorValue.BackColor = Color.FromArgb(12, 12, 12);
             txtMonitorValue.ForeColor = Color.White;
-            txtMonitorValue.ReadOnly = true;
+            txtMonitorValue.Font = new Font("Consolas", 10F);
+            txtMonitorValue.ReadOnly = false;
             grpMonitor.Controls.Add(txtMonitorValue);
 
             // Pointer Info
             lblPointerInfo = new Label();
             lblPointerInfo.Text = "Pointer Info:";
-            lblPointerInfo.Location = new Point(20, 110);
+            lblPointerInfo.Location = new Point(20, 180);
             lblPointerInfo.AutoSize = true;
             grpMonitor.Controls.Add(lblPointerInfo);
 
             txtPointerInfo = new TextBox();
-            txtPointerInfo.Location = new Point(140, 107);
-            txtPointerInfo.Size = new Size(400, 25);
+            txtPointerInfo.Location = new Point(140, 177);
+            txtPointerInfo.Size = new Size(640, 25);
             txtPointerInfo.BackColor = Color.FromArgb(12, 12, 12);
             txtPointerInfo.ForeColor = Color.White;
-            txtPointerInfo.ReadOnly = true;
+            txtPointerInfo.ReadOnly = false;
             grpMonitor.Controls.Add(txtPointerInfo);
 
             // Spacer for scrolling
@@ -2094,6 +2260,10 @@ namespace SysBot.Pokemon.WinForms
         private System.Windows.Forms.TextBox txtMonitorValue;
         private System.Windows.Forms.Label lblPointerInfo;
         private System.Windows.Forms.TextBox txtPointerInfo;
+        private System.Windows.Forms.Label lblLengthVal;
+        private System.Windows.Forms.NumericUpDown numLength;
+        private System.Windows.Forms.CheckBox chkCachePointer;
+        private System.Windows.Forms.Button btnCopyAddress;
         private System.Windows.Forms.Timer monitorTimer;
 
         private NotifyIcon trayIcon;

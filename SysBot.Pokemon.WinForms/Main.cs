@@ -14,6 +14,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace SysBot.Pokemon.WinForms
@@ -470,6 +471,81 @@ namespace SysBot.Pokemon.WinForms
                     LogUtil.LogError($"Log cleanup failed: {ex.Message}", "System");
                 }
             };
+
+            // Developer Tools Wiring
+            if (btnDevConnect != null) btnDevConnect.Click += BtnDevConnect_Click;
+            if (btnMonitorToggle != null) btnMonitorToggle.Click += BtnMonitorToggle_Click;
+            if (monitorTimer != null) monitorTimer.Tick += MonitorTimer_Tick;
+            if (txtMonitorValue != null) txtMonitorValue.KeyDown += TxtMonitorValue_KeyDown;
+            if (btnCopyAddress != null) btnCopyAddress.Click += BtnCopyAddress_Click;
+            if (btnScan != null) btnScan.Click += BtnScan_Click;
+            
+            // Wire up AutoScan if found
+            if (grpScanner != null)
+            {
+                var btnAutoScan = grpScanner.Controls["btnAutoScan"] as Button;
+                if (btnAutoScan != null) btnAutoScan.Click += BtnAutoScan_Click;
+                
+                var btnDumpMain = grpScanner.Controls["btnDumpMain"] as Button;
+                if (btnDumpMain != null) btnDumpMain.Click += BtnDumpMain_Click;
+                
+                var btnFindSig = grpScanner.Controls["btnFindSig"] as Button;
+                if (btnFindSig != null) btnFindSig.Click += BtnFindSig_Click;
+
+                var btnAutoUpdate = grpScanner.Controls["btnAutoUpdate"] as Button;
+                if (btnAutoUpdate != null) btnAutoUpdate.Click += BtnAutoUpdate_Click;
+
+                var btnFindChain = grpScanner.Controls["btnFindChain"] as Button;
+                if (btnFindChain != null) btnFindChain.Click += BtnFindChain_Click;
+
+                var btnVerify = grpScanner.Controls["btnVerify"] as Button;
+                if (btnVerify != null) btnVerify.Click += BtnVerify_Click;
+            }
+        }
+
+        private async void BtnVerify_Click(object? sender, EventArgs e)
+        {
+            if (_devConnection?.Connected != true)
+            {
+                MessageBox.Show("Not connected to Switch!");
+                return;
+            }
+
+            var cbGame = grpConnection.Controls["cbGameVersion"] as ComboBox;
+            var selectedGame = cbGame?.SelectedItem?.ToString() ?? "PLZA";
+
+            var btnVerify = sender as Button;
+            if (btnVerify != null) btnVerify.Enabled = false;
+            
+            lblScanStatus.Text = "Verifying...";
+            lblScanStatus.ForeColor = Color.Yellow;
+            rtbResults.Clear();
+
+            var progress = new Progress<string>(s => 
+            {
+                rtbResults.AppendText(s + Environment.NewLine);
+                rtbResults.ScrollToCaret();
+            });
+
+            try
+            {
+                string result = await PointerScanner.VerifyLoadedOffsetsAsync(_devConnection, selectedGame, progress, CancellationToken.None);
+                rtbResults.AppendText("----------------" + Environment.NewLine);
+                rtbResults.AppendText(result + Environment.NewLine);
+                
+                lblScanStatus.Text = "Done";
+                lblScanStatus.ForeColor = Color.Green;
+            }
+            catch (Exception ex)
+            {
+                rtbResults.AppendText($"Error: {ex.Message}{Environment.NewLine}");
+                lblScanStatus.Text = "Error";
+                lblScanStatus.ForeColor = Color.Red;
+            }
+            finally
+            {
+                if (btnVerify != null) btnVerify.Enabled = true;
+            }
         }
 
         private ProgramConfig GetCurrentConfiguration()
@@ -1491,6 +1567,647 @@ namespace SysBot.Pokemon.WinForms
                 File.WriteAllText(sfd.FileName, RTB_Logs.Text ?? string.Empty);
             }
         }
+
+        #region Developer Tools
+
+        private ISwitchConnectionAsync? _devConnection;
+        private string? _devCachedPointerInput;
+        private ulong _devCachedPointerAddress;
+
+        private async void BtnDevConnect_Click(object? sender, EventArgs e)
+        {
+            if (_devConnection?.Connected == true)
+            {
+                _devConnection.Disconnect();
+                _devConnection = null;
+                btnDevConnect.Text = "Connect";
+                lblConnStatus.Text = "Disconnected";
+                lblConnStatus.ForeColor = Color.Red;
+                return;
+            }
+
+            try
+            {
+                var ip = txtIP.Text;
+                if (string.IsNullOrWhiteSpace(ip))
+                {
+                    MessageBox.Show("Please enter a valid IP address.");
+                    return;
+                }
+
+                if (!int.TryParse(txtPort.Text, out int port))
+                {
+                    MessageBox.Show("Please enter a valid port number.");
+                    return;
+                }
+
+                btnDevConnect.Enabled = false;
+                btnDevConnect.Text = "Connecting...";
+
+                var config = new SwitchConnectionConfig { IP = ip, Port = port, Protocol = SwitchProtocol.WiFi };
+                _devConnection = SwitchSocketAsync.CreateInstance(config);
+                
+                // Connect is synchronous, so run on background thread
+                await Task.Run(() => _devConnection.Connect());
+                
+                btnDevConnect.Text = "Disconnect";
+                lblConnStatus.Text = "Connected";
+                lblConnStatus.ForeColor = Color.Green;
+                btnDevConnect.Enabled = true;
+
+                // Validate Game
+                var cbGame = grpConnection.Controls["cbGameVersion"] as ComboBox;
+                var selectedGame = cbGame?.SelectedItem?.ToString() ?? "PLZA";
+                
+                var titleID = await _devConnection.GetTitleID(CancellationToken.None);
+                bool valid = false;
+                string expected = "";
+
+                switch (selectedGame)
+                {
+                    case "PLZA":
+                        valid = titleID == "0100F43008C44000";
+                        expected = "0100F43008C44000 (PLZA)";
+                        break;
+                    case "SV":
+                        valid = titleID == "010028D01402E000" || titleID == "01006F8002326000";
+                        expected = "010028D01402E000 or 01006F8002326000 (SV)";
+                        break;
+                    case "LA":
+                        valid = titleID == "01001F5010DFA000";
+                        expected = "01001F5010DFA000 (LA)";
+                        break;
+                    case "SWSH":
+                        valid = titleID == "01008DB008C2C000" || titleID == "0100ABF008968000";
+                        expected = "01008DB008C2C000 or 0100ABF008968000 (SWSH)";
+                        break;
+                    case "BDSP":
+                        valid = titleID == "0100000011D90000" || titleID == "010018E011D92000";
+                        expected = "0100000011D90000 or 010018E011D92000 (BDSP)";
+                        break;
+                }
+
+                if (!valid)
+                {
+                    MessageBox.Show($"Warning: Connected game TitleID ({titleID}) does not match selected game ({selectedGame}).\nExpected: {expected}", "Game Mismatch", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Connection failed: {ex.Message}");
+                _devConnection = null;
+                btnDevConnect.Text = "Connect";
+                btnDevConnect.Enabled = true;
+            }
+        }
+
+        private async void BtnScan_Click(object? sender, EventArgs e)
+        {
+            if (_devConnection?.Connected != true)
+            {
+                MessageBox.Show("Not connected to Switch!");
+                return;
+            }
+
+            var pattern = txtPattern.Text.Trim();
+            if (string.IsNullOrWhiteSpace(pattern))
+            {
+                MessageBox.Show("Please enter a hex pattern.");
+                return;
+            }
+
+            btnScan.Enabled = false;
+            lblScanStatus.Text = "Scanning...";
+            lblScanStatus.ForeColor = Color.Yellow;
+            rtbResults.Clear();
+
+            try
+            {
+                ulong startAddress = 0;
+                ulong length = 0x04000000; // Default 64MB scan for now
+
+                // Check if user specified length
+                if (txtLength != null && !string.IsNullOrWhiteSpace(txtLength.Text))
+                {
+                    if (ulong.TryParse(txtLength.Text.Trim().Replace("0x", "", StringComparison.OrdinalIgnoreCase), 
+                        System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out ulong userLen))
+                    {
+                        length = userLen;
+                    }
+                }
+
+                var region = cbRegion.SelectedItem?.ToString();
+                if (region == "Heap")
+                {
+                    startAddress = await _devConnection.GetHeapBaseAsync(CancellationToken.None);
+                }
+                else // Main
+                {
+                    startAddress = await _devConnection.GetMainNsoBaseAsync(CancellationToken.None);
+                }
+                
+                // Add offset if specified
+                if (txtStart != null && !string.IsNullOrWhiteSpace(txtStart.Text))
+                {
+                    if (ulong.TryParse(txtStart.Text.Trim().Replace("0x", "", StringComparison.OrdinalIgnoreCase), 
+                        System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out ulong offset))
+                    {
+                        startAddress += offset;
+                    }
+                }
+
+                var progress = new Progress<float>(p => 
+                {
+                    // Update on UI thread
+                    if (InvokeRequired)
+                    {
+                        BeginInvoke((MethodInvoker)(() => lblScanStatus.Text = $"Scanning... {(p * 100):F1}%"));
+                    }
+                    else
+                    {
+                        lblScanStatus.Text = $"Scanning... {(p * 100):F1}%";
+                    }
+                });
+
+                var results = await MemoryScanner.ScanPatternAsync(_devConnection, pattern, startAddress, length, CancellationToken.None, progress);
+
+                lblScanStatus.Text = $"Found {results.Count} matches.";
+                lblScanStatus.ForeColor = results.Count > 0 ? Color.Green : Color.White;
+                
+                foreach (var result in results)
+                {
+                    rtbResults.AppendText($"Found at: {result.Address:X16} (Base+{result.OffsetFromBase:X}){Environment.NewLine}");
+                }
+            }
+            catch (Exception ex)
+            {
+                lblScanStatus.Text = "Error";
+                lblScanStatus.ForeColor = Color.Red;
+                MessageBox.Show($"Scan failed: {ex.Message}");
+            }
+            finally
+            {
+                btnScan.Enabled = true;
+            }
+        }
+
+        private async void BtnAutoScan_Click(object? sender, EventArgs e)
+        {
+            if (_devConnection?.Connected != true)
+            {
+                MessageBox.Show("Not connected to Switch!");
+                return;
+            }
+
+            var clickedButton = sender as Button;
+            var cbGame = grpConnection.Controls["cbGameVersion"] as ComboBox;
+            var gameVersion = cbGame?.SelectedItem?.ToString() ?? "PLZA";
+
+            var signatures = PointerSignatures.GetSignaturesForGame(gameVersion);
+            if (signatures.Count == 0)
+            {
+                MessageBox.Show($"No signatures defined for {gameVersion} yet.");
+                return;
+            }
+
+            lblScanStatus.Text = "Auto-Scanning...";
+            lblScanStatus.ForeColor = Color.Yellow;
+            rtbResults.Clear();
+            rtbResults.AppendText($"--- Auto-Scan Results for {gameVersion} ---{Environment.NewLine}");
+
+            // Disable buttons
+            if (clickedButton != null) clickedButton.Enabled = false;
+
+            try
+            {
+                var progress = new Progress<string>(status => lblScanStatus.Text = status);
+                string autoScanResult = await PointerChainScanner.AutoScanAndGenerateAsync(_devConnection, gameVersion, progress, CancellationToken.None);
+                rtbResults.AppendText(autoScanResult);
+                
+                lblScanStatus.Text = "Auto-Scan Complete";
+                lblScanStatus.ForeColor = Color.Green;
+            }
+            catch (Exception ex)
+            {
+                lblScanStatus.Text = "Error";
+                lblScanStatus.ForeColor = Color.Red;
+                rtbResults.AppendText($"Error: {ex.Message}{Environment.NewLine}");
+            }
+            finally
+            {
+                if (clickedButton != null) clickedButton.Enabled = true;
+            }
+        }
+
+
+
+        private async void BtnFindChain_Click(object? sender, EventArgs e)
+        {
+            if (_devConnection?.Connected != true)
+            {
+                MessageBox.Show("Not connected to Switch!");
+                return;
+            }
+
+            var clickedButton = sender as Button;
+            var input = txtMonitorAddr?.Text?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                MessageBox.Show("Enter a target address in the monitor Address box.");
+                return;
+            }
+
+            var cleaned = input.Replace("0x", "", StringComparison.OrdinalIgnoreCase);
+            if (!ulong.TryParse(cleaned, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out var targetAddress))
+            {
+                MessageBox.Show("Invalid address format.");
+                return;
+            }
+
+            if (clickedButton != null) clickedButton.Enabled = false;
+
+            lblScanStatus.Text = "Finding pointer chains...";
+            lblScanStatus.ForeColor = Color.Yellow;
+            rtbResults.Clear();
+
+            try
+            {
+                var heapBase = await _devConnection.GetHeapBaseAsync(CancellationToken.None);
+                var mainBase = await _devConnection.GetMainNsoBaseAsync(CancellationToken.None);
+
+                lblScanStatus.Text = "Dumping Heap...";
+                var heapDump = await PointerChainScanner.DumpMemoryAsync(_devConnection, heapBase, 0x10000000, "Heap", null, CancellationToken.None);
+
+                lblScanStatus.Text = "Dumping Main...";
+                var mainDump = await PointerChainScanner.DumpMemoryAsync(_devConnection, mainBase, 0x4000000, "Main", null, CancellationToken.None);
+
+                lblScanStatus.Text = "Searching for chains...";
+                var chains = PointerChainScanner.FindPointerChains(heapDump, mainDump, targetAddress, 2, 0);
+
+                if (chains.Count == 0)
+                {
+                    lblScanStatus.Text = "No chains found";
+                    lblScanStatus.ForeColor = Color.Orange;
+                    rtbResults.AppendText("No pointer chains found in the scanned dumps.");
+                    return;
+                }
+
+                lblScanStatus.Text = $"Found {chains.Count} chains";
+                lblScanStatus.ForeColor = Color.Green;
+
+                for (int i = 0; i < chains.Count; i++)
+                {
+                    var code = PointerChainScanner.FormatChainAsCode(chains[i], "TargetPointer");
+                    rtbResults.AppendText(code + Environment.NewLine);
+                }
+            }
+            catch (Exception ex)
+            {
+                lblScanStatus.Text = "Error";
+                lblScanStatus.ForeColor = Color.Red;
+                rtbResults.AppendText($"Error: {ex.Message}{Environment.NewLine}");
+            }
+            finally
+            {
+                if (clickedButton != null) clickedButton.Enabled = true;
+            }
+        }
+
+        private async void BtnDumpMain_Click(object? sender, EventArgs e)
+        {
+            if (_devConnection?.Connected != true)
+            {
+                MessageBox.Show("Not connected to Switch!");
+                return;
+            }
+
+            using var sfd = new SaveFileDialog();
+            sfd.FileName = "main.nso";
+            sfd.Filter = "NSO Files|*.nso|All Files|*.*";
+            if (sfd.ShowDialog() != DialogResult.OK) return;
+
+            lblScanStatus.Text = "Dumping...";
+            lblScanStatus.ForeColor = Color.Yellow;
+            var clickedButton = sender as Button;
+            if (clickedButton != null) clickedButton.Enabled = false;
+
+            try
+            {
+                var progress = new Progress<float>(p => 
+                {
+                    if (InvokeRequired) BeginInvoke((MethodInvoker)(() => lblScanStatus.Text = $"Dumping... {(p * 100):F1}%"));
+                    else lblScanStatus.Text = $"Dumping... {(p * 100):F1}%";
+                });
+
+                await PointerScanner.DumpMainToDiskAsync(_devConnection, sfd.FileName, progress, CancellationToken.None);
+                
+                lblScanStatus.Text = "Dump Complete";
+                lblScanStatus.ForeColor = Color.Green;
+                MessageBox.Show($"Dump saved to {sfd.FileName}");
+            }
+            catch (Exception ex)
+            {
+                lblScanStatus.Text = "Error";
+                lblScanStatus.ForeColor = Color.Red;
+                MessageBox.Show($"Dump failed: {ex.Message}");
+            }
+            finally
+            {
+                if (clickedButton != null) clickedButton.Enabled = true;
+            }
+        }
+
+        private async void BtnFindSig_Click(object? sender, EventArgs e)
+        {
+            if (_devConnection?.Connected != true)
+            {
+                MessageBox.Show("Not connected to Switch!");
+                return;
+            }
+
+            var txtOffset = grpScanner.Controls["txtSigOffset"] as TextBox;
+            var offsetStr = txtOffset?.Text?.Trim() ?? "";
+            
+            if (string.IsNullOrWhiteSpace(offsetStr))
+            {
+                MessageBox.Show("Please enter an offset (hex).");
+                return;
+            }
+
+            if (!ulong.TryParse(offsetStr.Replace("0x", "", StringComparison.OrdinalIgnoreCase), 
+                System.Globalization.NumberStyles.HexNumber, null, out ulong offset))
+            {
+                MessageBox.Show("Invalid offset format.");
+                return;
+            }
+
+            lblScanStatus.Text = "Finding Sig...";
+            lblScanStatus.ForeColor = Color.Yellow;
+            rtbResults.Clear();
+            var clickedButton = sender as Button;
+            if (clickedButton != null) clickedButton.Enabled = false;
+
+            try
+            {
+                var progress = new Progress<float>(p => 
+                {
+                     if (InvokeRequired) BeginInvoke((MethodInvoker)(() => lblScanStatus.Text = $"Scanning... {(p * 100):F1}%"));
+                     else lblScanStatus.Text = $"Scanning... {(p * 100):F1}%";
+                });
+
+                var results = await PointerScanner.FindSignaturesForOffsetAsync(_devConnection, offset, progress, CancellationToken.None);
+                
+                if (results.Count > 0)
+                {
+                    lblScanStatus.Text = $"Found {results.Count} signatures";
+                    lblScanStatus.ForeColor = Color.Green;
+                    
+                    foreach (var sig in results)
+                    {
+                        rtbResults.AppendText($"// {sig.Name} (Encoding: {sig.Encoding}){Environment.NewLine}");
+                        rtbResults.AppendText($"Signature: \"{sig.Signature}\"{Environment.NewLine}");
+                        rtbResults.AppendText($"// Add to PointerSignatures.cs{Environment.NewLine}{Environment.NewLine}");
+                    }
+                }
+                else
+                {
+                    lblScanStatus.Text = "No references found";
+                    lblScanStatus.ForeColor = Color.Orange;
+                    rtbResults.AppendText("No code references found for this offset in the scanned region (first 64MB).");
+                }
+            }
+            catch (Exception ex)
+            {
+                lblScanStatus.Text = "Error";
+                lblScanStatus.ForeColor = Color.Red;
+                MessageBox.Show($"Search failed: {ex.Message}");
+            }
+            finally
+            {
+                if (clickedButton != null) clickedButton.Enabled = true;
+            }
+        }
+
+        private async void BtnAutoUpdate_Click(object? sender, EventArgs e)
+        {
+            using var ofd = new OpenFileDialog();
+            ofd.Filter = "NSO Files|*.nso|All Files|*.*";
+            ofd.Title = "Select Main NSO to Analyze";
+            if (ofd.ShowDialog() != DialogResult.OK) return;
+
+            lblScanStatus.Text = "Analyzing NSO...";
+            lblScanStatus.ForeColor = Color.Yellow;
+            rtbResults.Clear();
+            var clickedButton = sender as Button;
+            if (clickedButton != null) clickedButton.Enabled = false;
+
+            try
+            {
+                var progress = new Progress<float>(p => 
+                {
+                     if (InvokeRequired) BeginInvoke((MethodInvoker)(() => lblScanStatus.Text = $"Analyzing... {(p * 100):F1}%"));
+                     else lblScanStatus.Text = $"Analyzing... {(p * 100):F1}%";
+                });
+
+                // Get signatures (in future, load from config/file)
+                var signatures = PointerScanner.GetKnownSignatures();
+                
+                // Run scan
+                var results = await PointerScanner.ScanFileForSignaturesAsync(ofd.FileName, signatures, progress, CancellationToken.None);
+                
+                if (results.Count > 0)
+                {
+                    lblScanStatus.Text = $"Resolved {results.Count} pointers";
+                    lblScanStatus.ForeColor = Color.Green;
+                    
+                    var code = PointerScanner.GeneratePokeDataOffsetsCode(results);
+                    rtbResults.Text = code;
+                }
+                else
+                {
+                    lblScanStatus.Text = "No pointers resolved";
+                    lblScanStatus.ForeColor = Color.Orange;
+                    rtbResults.AppendText("No known signatures matched in this NSO.");
+                }
+            }
+            catch (Exception ex)
+            {
+                lblScanStatus.Text = "Error";
+                lblScanStatus.ForeColor = Color.Red;
+                MessageBox.Show($"Analysis failed: {ex.Message}");
+            }
+            finally
+            {
+                if (clickedButton != null) clickedButton.Enabled = true;
+            }
+        }
+
+        private void BtnCopyAddress_Click(object? sender, EventArgs e)
+        {
+            var text = txtMonitorAddr?.Text;
+            if (string.IsNullOrWhiteSpace(text))
+                return;
+            try
+            {
+                Clipboard.SetText(text.Trim());
+            }
+            catch
+            {
+            }
+        }
+
+        private void BtnMonitorToggle_Click(object? sender, EventArgs e)
+        {
+            if (monitorTimer.Enabled)
+            {
+                monitorTimer.Stop();
+                btnMonitorToggle.Text = "Start Monitor";
+            }
+            else
+            {
+                if (_devConnection?.Connected != true)
+                {
+                    MessageBox.Show("Not connected to Switch!");
+                    return;
+                }
+                
+                monitorTimer.Start();
+                btnMonitorToggle.Text = "Stop Monitor";
+            }
+        }
+
+        private async void MonitorTimer_Tick(object? sender, EventArgs e)
+        {
+            if (_devConnection?.Connected != true)
+            {
+                monitorTimer.Stop();
+                btnMonitorToggle.Text = "Start Monitor";
+                return;
+            }
+
+            try
+            {
+                var readLen = numLength != null ? (int)numLength.Value : 4;
+                if (readLen <= 0)
+                    readLen = 4;
+
+                var pointerInput = txtPointerInfo?.Text ?? string.Empty;
+                var monitorAddrInput = txtMonitorAddr?.Text ?? string.Empty;
+
+                var hasPointer = !string.IsNullOrWhiteSpace(pointerInput);
+                var hasMonitorAddr = !string.IsNullOrWhiteSpace(monitorAddrInput);
+                if (!hasPointer && !hasMonitorAddr)
+                    return;
+
+                ulong address;
+
+                if (hasPointer)
+                {
+                    if (chkCachePointer?.Checked == true &&
+                        _devCachedPointerAddress != 0 &&
+                        string.Equals(_devCachedPointerInput, pointerInput, StringComparison.Ordinal))
+                    {
+                        address = _devCachedPointerAddress;
+                    }
+                    else
+                    {
+                        var (jumps, isHeap) = PointerParser.Parse(pointerInput);
+                        if (!jumps.Any())
+                            return;
+
+                        address = isHeap
+                            ? await _devConnection.PointerRelative(jumps, CancellationToken.None)
+                            : await _devConnection.PointerAll(jumps, CancellationToken.None);
+
+                        _devCachedPointerInput = pointerInput;
+                        _devCachedPointerAddress = address;
+                    }
+                }
+                else
+                {
+                    var cleaned = monitorAddrInput.Trim().Replace("0x", "", StringComparison.OrdinalIgnoreCase);
+                    if (!ulong.TryParse(cleaned, System.Globalization.NumberStyles.HexNumber, System.Globalization.CultureInfo.InvariantCulture, out address))
+                        return;
+                }
+
+                if (txtMonitorAddr != null)
+                    txtMonitorAddr.Text = address.ToString("X16");
+
+                var data = await _devConnection.ReadBytesAbsoluteAsync(address, readLen, CancellationToken.None);
+                var hex = BitConverter.ToString(data).Replace("-", " ");
+                if (txtMonitorValue != null && !txtMonitorValue.Focused)
+                    txtMonitorValue.Text = hex;
+            }
+            catch
+            {
+            }
+        }
+
+        private async void TxtMonitorValue_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter && e.Control)
+            {
+                e.SuppressKeyPress = true; // Prevent ding sound
+                if (_devConnection?.Connected != true) return;
+
+                try
+                {
+                    var pointerInput = txtPointerInfo?.Text ?? string.Empty;
+                    var valStr = (txtMonitorValue?.Text ?? string.Empty)
+                        .Replace("0x", "", StringComparison.OrdinalIgnoreCase)
+                        .Replace(" ", "")
+                        .Replace("-", "")
+                        .Replace("\r", "")
+                        .Replace("\n", "")
+                        .Replace("\t", "");
+
+                    if (string.IsNullOrWhiteSpace(pointerInput))
+                        return;
+                    
+                    var (jumps, isHeap) = PointerParser.Parse(pointerInput);
+                    if (!jumps.Any()) return;
+
+                    // Resolve address
+                    ulong address = isHeap
+                        ? await _devConnection.PointerRelative(jumps, CancellationToken.None)
+                        : await _devConnection.PointerAll(jumps, CancellationToken.None);
+
+                    _devCachedPointerInput = pointerInput;
+                    _devCachedPointerAddress = address;
+                    if (txtMonitorAddr != null)
+                        txtMonitorAddr.Text = address.ToString("X16");
+                    
+                    // Parse value
+                    if ((valStr.Length % 2) != 0)
+                        return;
+
+                    byte[] data = new byte[valStr.Length / 2];
+                    for (int i = 0; i < data.Length; i++)
+                        data[i] = Convert.ToByte(valStr.Substring(i * 2, 2), 16);
+
+                    await _devConnection.WriteBytesAbsoluteAsync(data, address, CancellationToken.None);
+                    
+                    // Visual feedback?
+                    if (txtMonitorValue == null)
+                        return;
+                    var old = txtMonitorValue.BackColor;
+                    txtMonitorValue.BackColor = Color.LightGreen;
+                    await Task.Delay(200);
+                    txtMonitorValue.BackColor = old;
+                }
+                catch
+                {
+                    if (txtMonitorValue == null)
+                        return;
+                    var old = txtMonitorValue.BackColor;
+                    txtMonitorValue.BackColor = Color.Salmon;
+                    await Task.Delay(200);
+                    txtMonitorValue.BackColor = old;
+                }
+            }
+        }
+
+        #endregion
     }
 
     public sealed class SearchManager
