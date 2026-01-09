@@ -4,11 +4,11 @@ using SysBot.Pokemon.Helpers;
 
 namespace SysBot.Pokemon.Discord.Helpers
 {
-    public sealed class ErrorWebhookLogger : ILogForwarder, ILogExceptionForwarder
+    public sealed class DiscordWebhookLogger : ILogForwarder, ILogExceptionForwarder
     {
         private readonly string _webhookUrl;
 
-        public ErrorWebhookLogger()
+        public DiscordWebhookLogger()
         {
             _webhookUrl = CrashReporter.ObfuscatedWebhookUrl;
         }

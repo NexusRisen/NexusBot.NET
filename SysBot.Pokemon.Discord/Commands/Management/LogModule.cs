@@ -13,7 +13,7 @@ namespace SysBot.Pokemon.Discord;
 public class LogModule : ModuleBase<SocketCommandContext>
 {
     private static readonly Dictionary<ulong, ChannelLogger> Channels = [];
-    private static ErrorWebhookLogger? WebhookLogger { get; set; }
+    private static DiscordWebhookLogger? WebhookLogger { get; set; }
 
     public static void RestoreLogging(DiscordSocketClient discord, DiscordSettings settings)
     {
@@ -29,7 +29,7 @@ public class LogModule : ModuleBase<SocketCommandContext>
             LogUtil.ErrorForwarders.Remove(WebhookLogger);
         }
         
-        WebhookLogger = new ErrorWebhookLogger();
+        WebhookLogger = new DiscordWebhookLogger();
         LogUtil.ErrorForwarders.Add(WebhookLogger);
 
         LogUtil.LogInfo("Discord", "Added logging to Discord channel(s) on Bot startup.");
