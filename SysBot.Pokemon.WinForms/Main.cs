@@ -493,27 +493,13 @@ namespace SysBot.Pokemon.WinForms
             if (btnCopyAddress != null) btnCopyAddress.Click += BtnCopyAddress_Click;
             if (btnScan != null) btnScan.Click += BtnScan_Click;
             
-            // Wire up AutoScan if found
-            if (grpScanner != null)
-            {
-                var btnAutoScan = grpScanner.Controls["btnAutoScan"] as Button;
-                if (btnAutoScan != null) btnAutoScan.Click += BtnAutoScan_Click;
-                
-                var btnDumpMain = grpScanner.Controls["btnDumpMain"] as Button;
-                if (btnDumpMain != null) btnDumpMain.Click += BtnDumpMain_Click;
-                
-                var btnFindSig = grpScanner.Controls["btnFindSig"] as Button;
-                if (btnFindSig != null) btnFindSig.Click += BtnFindSig_Click;
-
-                var btnAutoUpdate = grpScanner.Controls["btnAutoUpdate"] as Button;
-                if (btnAutoUpdate != null) btnAutoUpdate.Click += BtnAutoUpdate_Click;
-
-                var btnFindChain = grpScanner.Controls["btnFindChain"] as Button;
-                if (btnFindChain != null) btnFindChain.Click += BtnFindChain_Click;
-
-                var btnVerify = grpScanner.Controls["btnVerify"] as Button;
-                if (btnVerify != null) btnVerify.Click += BtnVerify_Click;
-            }
+            // Wire up AutoScan
+            if (btnAutoScan != null) btnAutoScan.Click += BtnAutoScan_Click;
+            if (btnDumpMain != null) btnDumpMain.Click += BtnDumpMain_Click;
+            if (btnFindSig != null) btnFindSig.Click += BtnFindSig_Click;
+            if (btnAutoUpdate != null) btnAutoUpdate.Click += BtnAutoUpdate_Click;
+            if (btnFindChain != null) btnFindChain.Click += BtnFindChain_Click;
+            if (btnVerify != null) btnVerify.Click += BtnVerify_Click;
         }
 
         private async void BtnVerify_Click(object? sender, EventArgs e)
@@ -524,7 +510,7 @@ namespace SysBot.Pokemon.WinForms
                 return;
             }
 
-            var cbGame = grpConnection.Controls["cbGameVersion"] as ComboBox;
+            var cbGame = cbGameVersion;
             var selectedGame = cbGame?.SelectedItem?.ToString() ?? "PLZA";
 
             var btnVerify = sender as Button;
@@ -1535,17 +1521,131 @@ namespace SysBot.Pokemon.WinForms
 
         
 
-        private void PaintAlienInputPanel(object sender, PaintEventArgs e)
+        private void PaintAlienTechPanel(object sender, PaintEventArgs e)
         {
             if (sender is not Panel p) return;
             var g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
             var rect = p.ClientRectangle;
             
+            var drawRect = new Rectangle(rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+
+            // Full Chamfered Path
+            using var path = new System.Drawing.Drawing2D.GraphicsPath();
+            int chamfer = 20;
+            
+            // Complex Alienware Shape
+            path.AddLine(drawRect.Left + chamfer, drawRect.Top, drawRect.Right - chamfer, drawRect.Top);
+            path.AddLine(drawRect.Right, drawRect.Top + chamfer, drawRect.Right, drawRect.Bottom - chamfer);
+            path.AddLine(drawRect.Right - chamfer, drawRect.Bottom, drawRect.Left + chamfer, drawRect.Bottom);
+            path.AddLine(drawRect.Left, drawRect.Bottom - chamfer, drawRect.Left, drawRect.Top + chamfer);
+            path.CloseFigure();
+
+            // 1. Background - Dark Glass
+            using (var brush = new System.Drawing.Drawing2D.LinearGradientBrush(drawRect, 
+                Color.FromArgb(240, 10, 10, 10), 
+                Color.FromArgb(220, 5, 5, 5), 
+                45f))
+            {
+                g.FillPath(brush, path);
+            }
+
+            // 2. Tech Grid Background (Subtle)
+            using (var gridPen = new Pen(Color.FromArgb(15, 255, 255, 255), 1))
+            {
+                // Horizontal lines only for "server rack" look
+                for (int y = drawRect.Top + 40; y < drawRect.Bottom; y += 40)
+                {
+                    g.DrawLine(gridPen, drawRect.Left + 5, y, drawRect.Right - 5, y);
+                }
+            }
+
+            // 3. Border - Neutral Grey/White
+            using (var pen = new Pen(Color.FromArgb(60, 255, 255, 255), 1))
+            {
+                g.DrawPath(pen, path);
+            }
+
+            // 4. Tech Accents (Corner Brackets) - Subtle Blue/Cyan but not overwhelming
+            using (var accentPen = new Pen(Color.FromArgb(100, 0, 200, 255), 2))
+            {
+                int cornerSize = 15;
+                // Top Left
+                g.DrawLine(accentPen, drawRect.Left, drawRect.Top + cornerSize, drawRect.Left, drawRect.Top);
+                g.DrawLine(accentPen, drawRect.Left, drawRect.Top, drawRect.Left + cornerSize, drawRect.Top);
+
+                // Top Right
+                g.DrawLine(accentPen, drawRect.Right, drawRect.Top + cornerSize, drawRect.Right, drawRect.Top);
+                g.DrawLine(accentPen, drawRect.Right, drawRect.Top, drawRect.Right - cornerSize, drawRect.Top);
+
+                // Bottom Left
+                g.DrawLine(accentPen, drawRect.Left, drawRect.Bottom - cornerSize, drawRect.Left, drawRect.Bottom);
+                g.DrawLine(accentPen, drawRect.Left, drawRect.Bottom, drawRect.Left + cornerSize, drawRect.Bottom);
+
+                // Bottom Right
+                g.DrawLine(accentPen, drawRect.Right, drawRect.Bottom - cornerSize, drawRect.Right, drawRect.Bottom);
+                g.DrawLine(accentPen, drawRect.Right, drawRect.Bottom, drawRect.Right - cornerSize, drawRect.Bottom);
+            }
+        }
+
+        private void PaintAlienInputPanel(object sender, PaintEventArgs e)
+        {
+            PaintGlassPanel(sender, e, 15);
+        }
+
+        private void PaintAlienInputPanelSmall(object sender, PaintEventArgs e)
+        {
+            PaintGlassPanel(sender, e, 8);
+        }
+
+        private void PaintGlassPanel(object sender, PaintEventArgs e, int chamfer)
+        {
+            if (sender is not Panel p) return;
+            var g = e.Graphics;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            var rect = p.ClientRectangle;
+            
+            var drawRect = new Rectangle(rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+
+            // Full Chamfered Path (Glass Style)
+            using var path = new System.Drawing.Drawing2D.GraphicsPath();
+            
+            // Top Line
+            path.AddLine(drawRect.Left + chamfer, drawRect.Top, drawRect.Right - chamfer, drawRect.Top);
+            // Right Line
+            path.AddLine(drawRect.Right, drawRect.Top + chamfer, drawRect.Right, drawRect.Bottom - chamfer);
+            // Bottom Line
+            path.AddLine(drawRect.Right - chamfer, drawRect.Bottom, drawRect.Left + chamfer, drawRect.Bottom);
+            // Left Line
+            path.AddLine(drawRect.Left, drawRect.Bottom - chamfer, drawRect.Left, drawRect.Top + chamfer);
+            path.CloseFigure();
+
+            // 1. Background - Transparent Glass Effect
+            using (var brush = new System.Drawing.Drawing2D.LinearGradientBrush(drawRect, 
+                Color.FromArgb(10, 200, 200, 200),  // Faint white tint top
+                Color.FromArgb(5, 100, 100, 100),   // Almost clear bottom
+                90f))
+            {
+                g.FillPath(brush, path);
+            }
+
+            // 2. Subtle Border (White/Grey)
+            using (var pen = new Pen(Color.FromArgb(30, 255, 255, 255), 1))
+            {
+                g.DrawPath(pen, path);
+            }
+        }
+
+        private void PaintAlienTechButton(object sender, PaintEventArgs e)
+        {
+            if (sender is not Button btn) return;
+            var g = e.Graphics;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            var rect = btn.ClientRectangle;
+            
             // Create chamfered path matching the region
             using var path = new System.Drawing.Drawing2D.GraphicsPath();
-            int chamfer = 15;
-            // Adjust for border drawing
+            int chamfer = 10;
             var drawRect = new Rectangle(rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
             
             path.AddLine(drawRect.Left + chamfer, drawRect.Top, drawRect.Right - chamfer, drawRect.Top);
@@ -1554,10 +1654,38 @@ namespace SysBot.Pokemon.WinForms
             path.AddLine(drawRect.Left, drawRect.Bottom - chamfer, drawRect.Left, drawRect.Top + chamfer);
             path.CloseFigure();
 
-            using var bg = new SolidBrush(WinFormsTheme.SurfaceColor);
-            using var border = new Pen(WinFormsTheme.AccentCyan, 1);
-            g.FillPath(bg, path);
-            g.DrawPath(border, path);
+            // Background - Darker than add button
+            using (var bg = new System.Drawing.Drawing2D.LinearGradientBrush(rect, 
+                Color.FromArgb(30, 30, 30), 
+                Color.FromArgb(10, 10, 10), 
+                System.Drawing.Drawing2D.LinearGradientMode.Vertical))
+            {
+                g.FillPath(bg, path);
+            }
+
+            // Border - Use ForeColor (Cyan/Red/Green)
+            using (var pen = new Pen(btn.ForeColor, 1))
+            {
+                g.DrawPath(pen, path);
+            }
+            
+            // Text
+            var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+            using (var textBrush = new SolidBrush(btn.ForeColor))
+            {
+                g.DrawString(btn.Text, btn.Font, textBrush, rect, sf);
+            }
+            
+            // Tech Accents (Corner Brackets)
+            using (var accentPen = new Pen(Color.FromArgb(100, btn.ForeColor), 2))
+            {
+                int cornerSize = 5;
+                g.DrawLine(accentPen, drawRect.Left, drawRect.Top + cornerSize, drawRect.Left, drawRect.Top);
+                g.DrawLine(accentPen, drawRect.Left, drawRect.Top, drawRect.Left + cornerSize, drawRect.Top);
+                
+                g.DrawLine(accentPen, drawRect.Right, drawRect.Bottom - cornerSize, drawRect.Right, drawRect.Bottom);
+                g.DrawLine(accentPen, drawRect.Right, drawRect.Bottom, drawRect.Right - cornerSize, drawRect.Bottom);
+            }
         }
 
         private void PaintAlienAddButton(object sender, PaintEventArgs e)
@@ -1579,7 +1707,7 @@ namespace SysBot.Pokemon.WinForms
             path.CloseFigure();
 
             using var bg = new System.Drawing.Drawing2D.LinearGradientBrush(rect, Color.FromArgb(20, 20, 20), Color.FromArgb(5, 5, 5), System.Drawing.Drawing2D.LinearGradientMode.Vertical);
-            using var pen = new Pen(Color.FromArgb(0, 204, 255), 1.5f);
+            using var pen = new Pen(Color.White, 1.5f);
             g.FillPath(bg, path);
             g.DrawPath(pen, path);
             var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
@@ -1655,7 +1783,7 @@ namespace SysBot.Pokemon.WinForms
                 btnDevConnect.Enabled = true;
 
                 // Validate Game
-                var cbGame = grpConnection.Controls["cbGameVersion"] as ComboBox;
+                var cbGame = cbGameVersion;
                 var selectedGame = cbGame?.SelectedItem?.ToString() ?? "PLZA";
                 
                 var titleID = await _devConnection.GetTitleID(CancellationToken.None);
@@ -1799,7 +1927,7 @@ namespace SysBot.Pokemon.WinForms
             }
 
             var clickedButton = sender as Button;
-            var cbGame = grpConnection.Controls["cbGameVersion"] as ComboBox;
+            var cbGame = cbGameVersion;
             var gameVersion = cbGame?.SelectedItem?.ToString() ?? "PLZA";
 
             var signatures = PointerSignatures.GetSignaturesForGame(gameVersion);
@@ -1964,8 +2092,7 @@ namespace SysBot.Pokemon.WinForms
                 return;
             }
 
-            var txtOffset = grpScanner.Controls["txtSigOffset"] as TextBox;
-            var offsetStr = txtOffset?.Text?.Trim() ?? "";
+            var offsetStr = txtSigOffset?.Text?.Trim() ?? "";
             
             if (string.IsNullOrWhiteSpace(offsetStr))
             {

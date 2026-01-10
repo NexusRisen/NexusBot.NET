@@ -59,7 +59,6 @@ namespace SysBot.Pokemon.WinForms
 
             devPanel = new Panel();
             lblDevTitle = new Label();
-            grpScanner = new GroupBox();
             txtPattern = new TextBox();
             lblPattern = new Label();
             cbRegion = new ComboBox();
@@ -127,7 +126,6 @@ namespace SysBot.Pokemon.WinForms
             logsPanel.SuspendLayout();
             logsHeaderPanel.SuspendLayout();
             devPanel.SuspendLayout();
-            grpScanner.SuspendLayout();
             searchPanel.SuspendLayout();
             searchOptionsPanel.SuspendLayout();
             SuspendLayout();
@@ -344,11 +342,11 @@ namespace SysBot.Pokemon.WinForms
 
             // Modern control buttons with clean design
             ConfigureEnhancedControlButton(btnStart, "START", SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.AccentGreen, "▶");
-            CreateChamferedRegion(btnStart, 12);
+            // CreateChamferedRegion(btnStart, 12);
             ConfigureEnhancedControlButton(btnStop, "STOP", SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.AccentRed, "■");
-            CreateChamferedRegion(btnStop, 12);
+            // CreateChamferedRegion(btnStop, 12);
             ConfigureEnhancedControlButton(btnReboot, "RESTART", SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.AccentPurple, "↻");
-            CreateChamferedRegion(btnReboot, 12);
+            // CreateChamferedRegion(btnReboot, 12);
 
             btnStart.Click += B_Start_Click;
             btnStop.Click += B_Stop_Click;
@@ -369,7 +367,7 @@ namespace SysBot.Pokemon.WinForms
 
             // Bot Header Panel - Cuztom style
             botHeaderPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            botHeaderPanel.BackColor = SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.SurfaceColor;
+            botHeaderPanel.BackColor = Color.Transparent;
             botHeaderPanel.Controls.Add(addBotPanel);
             botHeaderPanel.Height = 80;
             botHeaderPanel.Location = new Point(30, 10);
@@ -395,11 +393,11 @@ namespace SysBot.Pokemon.WinForms
             pnlIP.BackColor = Color.Transparent;
             pnlIP.Name = "pnlIP";
             pnlIP.Paint += PaintAlienInputPanel;
-            CreateChamferedRegion(pnlIP, 15);
+            // CreateChamferedRegion(pnlIP, 15); // Removed for smooth edges
             
             var lblIP = new Label();
             lblIP.Text = "IP ADDRESS";
-            lblIP.ForeColor = Color.FromArgb(0, 255, 255);
+            lblIP.ForeColor = Color.LightGray; // Neutral
             lblIP.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
             lblIP.Location = new Point(15, 5);
             lblIP.AutoSize = true;
@@ -407,7 +405,7 @@ namespace SysBot.Pokemon.WinForms
             pnlIP.Controls.Add(lblIP);
 
             // TB_IP
-            TB_IP.BackColor = Color.FromArgb(12, 12, 12);
+            TB_IP.BackColor = Color.FromArgb(20, 20, 20); // Dark neutral
             TB_IP.BorderStyle = BorderStyle.None;
             TB_IP.Font = ScaleFont(new Font("Segoe UI", 9F));
             TB_IP.ForeColor = Color.White;
@@ -418,7 +416,7 @@ namespace SysBot.Pokemon.WinForms
             TB_IP.TabIndex = 0;
             TB_IP.Text = "192.168.0.1";
             TB_IP.TextAlign = HorizontalAlignment.Center;
-            CreateChamferedRegion(TB_IP, 5);
+            // CreateChamferedRegion(TB_IP, 5); // Removed for smooth edges
             pnlIP.Controls.Add(TB_IP);
             addBotPanel.Controls.Add(pnlIP);
 
@@ -429,11 +427,11 @@ namespace SysBot.Pokemon.WinForms
             pnlPort.BackColor = Color.Transparent;
             pnlPort.Name = "pnlPort";
             pnlPort.Paint += PaintAlienInputPanel;
-            CreateChamferedRegion(pnlPort, 15);
+            // CreateChamferedRegion(pnlPort, 15); // Removed for smooth edges
             
             var lblPort = new Label();
             lblPort.Text = "PORT";
-            lblPort.ForeColor = Color.FromArgb(0, 255, 255);
+            lblPort.ForeColor = Color.LightGray; // Neutral
             lblPort.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
             lblPort.Location = new Point(15, 5);
             lblPort.AutoSize = true;
@@ -442,13 +440,13 @@ namespace SysBot.Pokemon.WinForms
 
             // NUD_Port
             ConfigureNumericUpDown(NUD_Port, 15, 20, 50);
-            NUD_Port.BackColor = Color.FromArgb(12, 12, 12);
+            NUD_Port.BackColor = Color.FromArgb(20, 20, 20); // Dark neutral
             NUD_Port.BorderStyle = BorderStyle.None;
             NUD_Port.ForeColor = Color.White;
             NUD_Port.Maximum = new decimal(new int[] { 65535, 0, 0, 0 });
             NUD_Port.Value = new decimal(new int[] { 6000, 0, 0, 0 });
             NUD_Port.TextAlign = HorizontalAlignment.Center;
-            CreateChamferedRegion(NUD_Port, 5);
+            // CreateChamferedRegion(NUD_Port, 5); // Removed for smooth edges
             pnlPort.Controls.Add(NUD_Port);
             addBotPanel.Controls.Add(pnlPort);
 
@@ -462,7 +460,7 @@ namespace SysBot.Pokemon.WinForms
             
             var lblProtocol = new Label();
             lblProtocol.Text = "PROTOCOL";
-            lblProtocol.ForeColor = SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.AccentCyan;
+            lblProtocol.ForeColor = Color.LightGray; // Neutral
             lblProtocol.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
             lblProtocol.Location = new Point(15, 5);
             lblProtocol.AutoSize = true;
@@ -472,10 +470,10 @@ namespace SysBot.Pokemon.WinForms
             // CB_Protocol
             CB_Protocol.SuspendLayout();
             ConfigureComboBox(CB_Protocol, 15, 20, 130);
-            CB_Protocol.BackColor = SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.SurfaceColor;
+            CB_Protocol.BackColor = Color.FromArgb(20, 20, 20); // Dark neutral
             CB_Protocol.SelectedIndexChanged += CB_Protocol_SelectedIndexChanged;
             CB_Protocol.ResumeLayout();
-            CreateChamferedRegion(CB_Protocol, 5);
+            // CreateChamferedRegion(CB_Protocol, 5); // Removed for smooth edges
             pnlProtocol.Controls.Add(CB_Protocol);
             addBotPanel.Controls.Add(pnlProtocol);
 
@@ -486,11 +484,11 @@ namespace SysBot.Pokemon.WinForms
             pnlRoutine.BackColor = Color.Transparent;
             pnlRoutine.Name = "pnlRoutine";
             pnlRoutine.Paint += PaintAlienInputPanel;
-            CreateChamferedRegion(pnlRoutine, 15);
+            // CreateChamferedRegion(pnlRoutine, 15); // Removed for smooth edges
             
             var lblRoutine = new Label();
             lblRoutine.Text = "ROUTINE";
-            lblRoutine.ForeColor = Color.FromArgb(0, 255, 255);
+            lblRoutine.ForeColor = Color.LightGray; // Neutral
             lblRoutine.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
             lblRoutine.Location = new Point(15, 5);
             lblRoutine.AutoSize = true;
@@ -499,8 +497,8 @@ namespace SysBot.Pokemon.WinForms
 
             // CB_Routine
             ConfigureComboBox(CB_Routine, 15, 20, 130);
-            CB_Routine.BackColor = Color.FromArgb(12, 12, 12);
-            CreateChamferedRegion(CB_Routine, 5);
+            CB_Routine.BackColor = Color.FromArgb(20, 20, 20); // Dark neutral
+            // CreateChamferedRegion(CB_Routine, 5); // Removed for smooth edges
             pnlRoutine.Controls.Add(CB_Routine);
             addBotPanel.Controls.Add(pnlRoutine);
 
@@ -546,7 +544,7 @@ namespace SysBot.Pokemon.WinForms
 
             // Hub Panel
             hubPanel.BackColor = Color.Transparent;
-            hubPanel.Controls.Add(PG_Hub);
+            // hubPanel.Controls.Add(PG_Hub); // Moved inside container
             hubPanel.Dock = DockStyle.Fill;
             hubPanel.Location = new Point(0, 60);
             hubPanel.Name = "hubPanel";
@@ -556,29 +554,61 @@ namespace SysBot.Pokemon.WinForms
             hubPanel.Visible = false;
             EnableDoubleBuffering(hubPanel);
 
-            // Property Grid Container - Cuztom style
+            // Hub Header Panel
+            var hubHeaderPanel = new Panel();
+            hubHeaderPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            hubHeaderPanel.BackColor = Color.Transparent;
+            hubHeaderPanel.Height = 40;
+            hubHeaderPanel.Location = new Point(10, 10);
+            hubHeaderPanel.Name = "hubHeaderPanel";
+            hubHeaderPanel.Size = new Size(840, 40);
+            hubHeaderPanel.TabIndex = 0;
+            hubHeaderPanel.Paint += PaintAlienInputPanel; // Consistent Glass Style
+            hubPanel.Controls.Add(hubHeaderPanel);
+
+            // Hub Title Label
+            var lblHubTitle = new Label();
+            lblHubTitle.Text = "CORE CONFIGURATION";
+            lblHubTitle.Font = ScaleFont(new Font("Segoe UI", 12F, FontStyle.Bold));
+            lblHubTitle.ForeColor = Color.White;
+            lblHubTitle.AutoSize = true;
+            lblHubTitle.Location = new Point(15, 8);
+            lblHubTitle.BackColor = Color.Transparent;
+            hubHeaderPanel.Controls.Add(lblHubTitle);
+
+            // Hub Subtitle/Status
+            var lblHubStatus = new Label();
+            lblHubStatus.Text = "SYSTEM ONLINE";
+            lblHubStatus.Font = ScaleFont(new Font("Segoe UI", 8F));
+            lblHubStatus.ForeColor = Color.FromArgb(0, 200, 255); // Cyan Accent
+            lblHubStatus.AutoSize = true;
+            lblHubStatus.Location = new Point(200, 14);
+            lblHubStatus.BackColor = Color.Transparent;
+            hubHeaderPanel.Controls.Add(lblHubStatus);
+
+            // Property Grid Container - Alien Tech Style
             var pgContainer = new Panel();
             pgContainer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            pgContainer.BackColor = Color.FromArgb(12, 12, 12);
-            pgContainer.Location = new Point(10, 10);
+            pgContainer.BackColor = Color.Transparent;
+            pgContainer.Location = new Point(10, 60); // Moved down for header
             pgContainer.Name = "pgContainer";
-            pgContainer.Padding = new Padding(2);
-            pgContainer.Size = new Size(840, 520);
-            ConfigureAlienContainer(pgContainer);
+            pgContainer.Padding = new Padding(15); // Increased padding for tech border
+            pgContainer.Size = new Size(840, 470);
+            pgContainer.Paint += PaintAlienTechPanel; // Enhanced Alienware Style
             EnableDoubleBuffering(pgContainer);
             hubPanel.Controls.Add(pgContainer);
 
             // Property Grid - Cuztom colors
-            PG_Hub.BackColor = Color.FromArgb(12, 12, 12);
-            PG_Hub.CategoryForeColor = Color.FromArgb(0, 204, 255);
-            PG_Hub.CategorySplitterColor = Color.FromArgb(12, 12, 12);
+            PG_Hub.BackColor = Color.FromArgb(12, 12, 12); // Keep dark background
+            PG_Hub.CategoryForeColor = Color.White; // Neutral White
+            PG_Hub.CategorySplitterColor = Color.FromArgb(20, 20, 20);
             PG_Hub.CommandsBackColor = Color.FromArgb(18, 18, 18);
             PG_Hub.CommandsForeColor = Color.White;
             PG_Hub.Dock = DockStyle.Fill;
             PG_Hub.Font = ScaleFont(new Font("Segoe UI", 9F));
-            PG_Hub.HelpBackColor = Color.FromArgb(18, 18, 18);
-            PG_Hub.HelpForeColor = Color.FromArgb(0, 204, 255);
-            PG_Hub.LineColor = Color.FromArgb(12, 12, 12);
+            PG_Hub.HelpBackColor = Color.FromArgb(15, 15, 15);
+            PG_Hub.HelpForeColor = Color.FromArgb(200, 200, 200); // Light Grey
+            PG_Hub.LineColor = Color.FromArgb(40, 40, 40); // Darker Grey
             PG_Hub.Location = new Point(2, 2);
             PG_Hub.Name = "PG_Hub";
             PG_Hub.PropertySort = PropertySort.Categorized;
@@ -604,27 +634,29 @@ namespace SysBot.Pokemon.WinForms
             // Logs Container - Cuztom style
             var logsContainer = new Panel();
             logsContainer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            logsContainer.BackColor = Color.FromArgb(180, 18, 18, 18);
+            logsContainer.BackColor = Color.Transparent;
             logsContainer.Location = new Point(10, 60);
             logsContainer.Margin = new Padding(0, 5, 0, 0);
             logsContainer.Name = "logsContainer";
             logsContainer.Padding = new Padding(2);
             logsContainer.Size = new Size(840, 470);
-            ConfigureAlienContainer(logsContainer);
+            // ConfigureAlienContainer(logsContainer); // Removed
+            logsContainer.Paint += PaintAlienInputPanel; // Glass Style
             EnableDoubleBuffering(logsContainer);
             logsPanel.Controls.Add(logsContainer);
             logsPanel.Controls.Add(logsHeaderPanel);
 
             // Logs Header Panel - Cuztom style
             logsHeaderPanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            logsHeaderPanel.BackColor = Color.FromArgb(180, 18, 18, 18);
+            logsHeaderPanel.BackColor = Color.Transparent;
             logsHeaderPanel.Height = 45;
             logsHeaderPanel.Location = new Point(10, 10);
             logsHeaderPanel.Name = "logsHeaderPanel";
             logsHeaderPanel.Padding = new Padding(15, 8, 15, 8);
             logsHeaderPanel.Size = new Size(840, 45);
             logsHeaderPanel.TabIndex = 1;
-            CreateChamferedRegion(logsHeaderPanel, 15);
+            // CreateChamferedRegion(logsHeaderPanel, 15); // Removed
+            logsHeaderPanel.Paint += PaintAlienInputPanel; // Glass Style
             EnableDoubleBuffering(logsHeaderPanel);
 
             // Search Panel
@@ -635,11 +667,12 @@ namespace SysBot.Pokemon.WinForms
             searchPanel.Name = "searchPanel";
             searchPanel.Size = new Size(380, 23);
             searchPanel.TabIndex = 0;
-            searchPanel.BackColor = Color.FromArgb(18, 18, 18);
+            searchPanel.BackColor = Color.Transparent;
+            searchPanel.Paint += PaintAlienInputPanelSmall; // Small Glass Style
 
             // Log Search Box - Cuztom style
-            logSearchBox.BackColor = Color.FromArgb(18, 18, 18);
-            logSearchBox.BorderStyle = BorderStyle.FixedSingle;
+            logSearchBox.BackColor = Color.FromArgb(20, 20, 20); // Dark Neutral
+            logSearchBox.BorderStyle = BorderStyle.None;
             logSearchBox.Dock = DockStyle.Fill;
             logSearchBox.Font = ScaleFont(new Font("Segoe UI", 8.5F));
             logSearchBox.ForeColor = Color.White;
@@ -753,6 +786,7 @@ namespace SysBot.Pokemon.WinForms
             RTB_Logs.Text = "";
             RTB_Logs.HideSelection = false;
             RTB_Logs.KeyDown += RTB_Logs_KeyDown;
+            // RTB_Logs.Region = new Region(logsContainer.ClientRectangle); // Ensure no clipping
             logsContainer.Controls.Add(RTB_Logs);
 
             // Add controls to logsHeaderPanel
@@ -792,385 +826,435 @@ namespace SysBot.Pokemon.WinForms
             devFlowPanel.Padding = new Padding(20, 0, 0, 20); // Left padding alignment
             devPanel.Controls.Add(devFlowPanel);
 
-            // Connection Group
-            grpConnection = new GroupBox();
-            grpConnection.Text = "Manual Connection";
-            grpConnection.ForeColor = Color.White;
-            grpConnection.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
-            grpConnection.Size = new Size(800, 120); // Increased height to accommodate Game Selection
-            grpConnection.Margin = new Padding(0, 0, 0, 20); // Spacing
-            // grpConnection.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right; // FlowLayout handles position, but size needs management
-            CreateChamferedRegion(grpConnection, 10);
-            devFlowPanel.Controls.Add(grpConnection);
+            // Connection Panel (Alien Tech Style)
+            pnlDevConnection = new Panel();
+            pnlDevConnection.Name = "pnlDevConnection";
+            pnlDevConnection.Size = new Size(800, 140);
+            pnlDevConnection.Margin = new Padding(0, 0, 0, 20);
+            pnlDevConnection.Paint += PaintAlienTechPanel;
+            pnlDevConnection.BackColor = Color.Transparent;
+            devFlowPanel.Controls.Add(pnlDevConnection);
 
-            // Game Selector
-            var lblGame = new Label();
-            lblGame.Text = "Game:";
-            lblGame.Location = new Point(20, 70); // Moved to second row
-            lblGame.AutoSize = true;
-            lblGame.ForeColor = Color.White;
-            grpConnection.Controls.Add(lblGame);
-
-            var cbGame = new ComboBox();
-            cbGame.Items.AddRange(new object[] { "PLZA", "SV", "LA", "SWSH", "BDSP" });
-            cbGame.SelectedIndex = 0;
-            cbGame.Location = new Point(80, 67); // Moved to second row
-            cbGame.Size = new Size(80, 25);
-            cbGame.BackColor = Color.FromArgb(12, 12, 12);
-            cbGame.ForeColor = Color.Cyan;
-            cbGame.Name = "cbGameVersion";
-            CreateChamferedRegion(cbGame, 5);
-            grpConnection.Controls.Add(cbGame);
+            // Title
+            var lblConnTitle = new Label();
+            lblConnTitle.Text = "MANUAL CONNECTION";
+            lblConnTitle.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
+            lblConnTitle.ForeColor = Color.Cyan;
+            lblConnTitle.Location = new Point(20, 15);
+            lblConnTitle.AutoSize = true;
+            pnlDevConnection.Controls.Add(lblConnTitle);
 
             // IP Address
             lblIP = new Label();
-            lblIP.Text = "IP Address:";
-            lblIP.Location = new Point(20, 30); // Adjusted X
+            lblIP.Text = "IP ADDRESS";
+            lblIP.Location = new Point(20, 50);
             lblIP.AutoSize = true;
-            grpConnection.Controls.Add(lblIP);
+            lblIP.ForeColor = Color.Gray;
+            lblIP.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevConnection.Controls.Add(lblIP);
 
             txtIP = new TextBox();
-            txtIP.Location = new Point(100, 27); // Adjusted X
-            txtIP.Size = new Size(140, 25);
-            txtIP.BackColor = Color.FromArgb(12, 12, 12);
+            txtIP.Location = new Point(20, 65);
+            txtIP.Size = new Size(180, 25);
+            txtIP.BackColor = Color.FromArgb(20, 20, 20);
             txtIP.ForeColor = Color.White;
-            txtIP.Text = "192.168.0.1"; // Default placeholder
-            CreateChamferedRegion(txtIP, 5);
-            grpConnection.Controls.Add(txtIP);
+            txtIP.Text = "192.168.0.1";
+            txtIP.BorderStyle = BorderStyle.FixedSingle;
+            pnlDevConnection.Controls.Add(txtIP);
 
             // Port
             lblPort = new Label();
-            lblPort.Text = "Port:";
-            lblPort.Location = new Point(260, 30); // Adjusted X
+            lblPort.Text = "PORT";
+            lblPort.Location = new Point(220, 50);
             lblPort.AutoSize = true;
-            grpConnection.Controls.Add(lblPort);
+            lblPort.ForeColor = Color.Gray;
+            lblPort.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevConnection.Controls.Add(lblPort);
 
             txtPort = new TextBox();
-            txtPort.Location = new Point(300, 27); // Adjusted X
-            txtPort.Size = new Size(60, 25);
-            txtPort.BackColor = Color.FromArgb(12, 12, 12);
+            txtPort.Location = new Point(220, 65);
+            txtPort.Size = new Size(80, 25);
+            txtPort.BackColor = Color.FromArgb(20, 20, 20);
             txtPort.ForeColor = Color.White;
-            txtPort.Text = "6000"; // Default sys-botbase port
-            CreateChamferedRegion(txtPort, 5);
-            grpConnection.Controls.Add(txtPort);
+            txtPort.Text = "6000";
+            txtPort.BorderStyle = BorderStyle.FixedSingle;
+            pnlDevConnection.Controls.Add(txtPort);
 
             // Connect Button
             btnDevConnect = new Button();
-            btnDevConnect.Text = "Connect";
-            btnDevConnect.Location = new Point(380, 25); // Adjusted X
-            btnDevConnect.Size = new Size(120, 30);
-            btnDevConnect.BackColor = Color.FromArgb(0, 100, 100);
-            btnDevConnect.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 150, 150);
-            btnDevConnect.FlatAppearance.MouseDownBackColor = Color.FromArgb(0, 80, 80);
+            btnDevConnect.Text = "CONNECT";
+            btnDevConnect.Location = new Point(320, 62);
+            btnDevConnect.Size = new Size(140, 30);
+            btnDevConnect.BackColor = Color.Transparent;
             btnDevConnect.ForeColor = Color.Cyan;
             btnDevConnect.FlatStyle = FlatStyle.Flat;
-            CreateChamferedRegion(btnDevConnect, 8);
-            grpConnection.Controls.Add(btnDevConnect);
+            btnDevConnect.FlatAppearance.BorderSize = 0;
+            btnDevConnect.Paint += PaintAlienTechButton;
+            pnlDevConnection.Controls.Add(btnDevConnect);
             
             // Connection Status
             lblConnStatus = new Label();
-            lblConnStatus.Text = "Not Connected";
-            lblConnStatus.Location = new Point(520, 30); // Adjusted X
+            lblConnStatus.Text = "DISCONNECTED";
+            lblConnStatus.Location = new Point(480, 68);
             lblConnStatus.AutoSize = true;
             lblConnStatus.ForeColor = Color.Red;
-            grpConnection.Controls.Add(lblConnStatus);
+            lblConnStatus.Font = ScaleFont(new Font("Segoe UI", 9F, FontStyle.Bold));
+            pnlDevConnection.Controls.Add(lblConnStatus);
 
-            // Scanner Group
-            grpScanner.Text = "Memory Scanner";
-            grpScanner.ForeColor = Color.White;
-            grpScanner.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
-            grpScanner.Size = new Size(800, 340); // Increased height for grid layout
-            grpScanner.Margin = new Padding(0, 0, 0, 20);
-            CreateChamferedRegion(grpScanner, 10);
-            devFlowPanel.Controls.Add(grpScanner);
+            // Game Selector
+            var lblGame = new Label();
+            lblGame.Text = "GAME VERSION";
+            lblGame.Location = new Point(20, 100);
+            lblGame.AutoSize = true;
+            lblGame.ForeColor = Color.Gray;
+            lblGame.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevConnection.Controls.Add(lblGame);
 
-            // Row 1: Pattern Input (Y=30)
-            lblPattern.Text = "Pattern (Hex):";
-            lblPattern.Location = new Point(20, 33);
+            cbGameVersion = new ComboBox();
+            cbGameVersion.Items.AddRange(new object[] { "PLZA", "SV", "LA", "SWSH", "BDSP" });
+            cbGameVersion.SelectedIndex = 0;
+            cbGameVersion.Location = new Point(120, 97);
+            cbGameVersion.Size = new Size(100, 25);
+            cbGameVersion.BackColor = Color.FromArgb(20, 20, 20);
+            cbGameVersion.ForeColor = Color.Cyan;
+            cbGameVersion.Name = "cbGameVersion";
+            cbGameVersion.FlatStyle = FlatStyle.Flat;
+            pnlDevConnection.Controls.Add(cbGameVersion);
+
+            // Scanner Panel (Alien Tech Style)
+            pnlDevScanner = new Panel();
+            pnlDevScanner.Name = "pnlDevScanner";
+            pnlDevScanner.Size = new Size(800, 420);
+            pnlDevScanner.Margin = new Padding(0, 0, 0, 20);
+            pnlDevScanner.Paint += PaintAlienTechPanel;
+            pnlDevScanner.BackColor = Color.Transparent;
+            devFlowPanel.Controls.Add(pnlDevScanner);
+
+            // Title
+            var lblScannerTitle = new Label();
+            lblScannerTitle.Text = "MEMORY SCANNER";
+            lblScannerTitle.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
+            lblScannerTitle.ForeColor = Color.Cyan;
+            lblScannerTitle.Location = new Point(20, 15);
+            lblScannerTitle.AutoSize = true;
+            pnlDevScanner.Controls.Add(lblScannerTitle);
+
+            // Row 1: Pattern
+            lblPattern.Text = "PATTERN (HEX)";
+            lblPattern.Location = new Point(20, 50);
             lblPattern.AutoSize = true;
-            grpScanner.Controls.Add(lblPattern);
+            lblPattern.ForeColor = Color.Gray;
+            lblPattern.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevScanner.Controls.Add(lblPattern);
 
-            txtPattern.Location = new Point(120, 30);
+            txtPattern.Location = new Point(20, 65);
             txtPattern.Size = new Size(300, 25);
-            txtPattern.BackColor = Color.FromArgb(12, 12, 12);
+            txtPattern.BackColor = Color.FromArgb(20, 20, 20);
             txtPattern.ForeColor = Color.White;
-            CreateChamferedRegion(txtPattern, 5);
-            grpScanner.Controls.Add(txtPattern);
+            txtPattern.BorderStyle = BorderStyle.FixedSingle;
+            pnlDevScanner.Controls.Add(txtPattern);
 
-            lblRegion.Text = "Region:";
-            lblRegion.Location = new Point(440, 33);
+            lblRegion.Text = "REGION";
+            lblRegion.Location = new Point(340, 50);
             lblRegion.AutoSize = true;
-            grpScanner.Controls.Add(lblRegion);
+            lblRegion.ForeColor = Color.Gray;
+            lblRegion.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevScanner.Controls.Add(lblRegion);
 
             cbRegion.Items.Clear();
             cbRegion.Items.AddRange(new object[] { "Heap", "Main" });
             cbRegion.SelectedIndex = 0;
-            cbRegion.Location = new Point(500, 30);
+            cbRegion.Location = new Point(340, 65);
             cbRegion.Size = new Size(100, 25);
-            cbRegion.BackColor = Color.FromArgb(12, 12, 12);
+            cbRegion.BackColor = Color.FromArgb(20, 20, 20);
             cbRegion.ForeColor = Color.Cyan;
-            CreateChamferedRegion(cbRegion, 5);
-            grpScanner.Controls.Add(cbRegion);
+            cbRegion.FlatStyle = FlatStyle.Flat;
+            pnlDevScanner.Controls.Add(cbRegion);
 
-            btnScan.Text = "Scan";
-            btnScan.Location = new Point(620, 28);
+            btnScan.Text = "SCAN";
+            btnScan.Location = new Point(460, 62);
             btnScan.Size = new Size(100, 30);
-            btnScan.BackColor = Color.FromArgb(0, 100, 100);
-            btnScan.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 150, 150);
-            btnScan.FlatAppearance.MouseDownBackColor = Color.FromArgb(0, 80, 80);
+            btnScan.BackColor = Color.Transparent;
             btnScan.ForeColor = Color.Cyan;
             btnScan.FlatStyle = FlatStyle.Flat;
-            CreateChamferedRegion(btnScan, 8);
-            grpScanner.Controls.Add(btnScan);
+            btnScan.FlatAppearance.BorderSize = 0;
+            btnScan.Paint += PaintAlienTechButton;
+            pnlDevScanner.Controls.Add(btnScan);
 
-            // Row 2: Scan Options (Y=70) - Start Offset & Length
-            lblStart.Text = "Start Offset:";
-            lblStart.Location = new Point(20, 73);
+            // Row 2: Start & Length
+            lblStart.Text = "START OFFSET";
+            lblStart.Location = new Point(20, 100);
             lblStart.AutoSize = true;
-            lblStart.ForeColor = Color.White;
-            grpScanner.Controls.Add(lblStart);
+            lblStart.ForeColor = Color.Gray;
+            lblStart.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevScanner.Controls.Add(lblStart);
 
-            txtStart.Location = new Point(120, 70);
-            txtStart.Size = new Size(120, 25);
-            txtStart.BackColor = Color.FromArgb(12, 12, 12);
+            txtStart.Location = new Point(20, 115);
+            txtStart.Size = new Size(140, 25);
+            txtStart.BackColor = Color.FromArgb(20, 20, 20);
             txtStart.ForeColor = Color.White;
             txtStart.Text = "0x0";
-            CreateChamferedRegion(txtStart, 5);
-            grpScanner.Controls.Add(txtStart);
+            txtStart.BorderStyle = BorderStyle.FixedSingle;
+            pnlDevScanner.Controls.Add(txtStart);
 
-            lblLength.Text = "Length:";
-            lblLength.Location = new Point(260, 73);
+            lblLength.Text = "LENGTH";
+            lblLength.Location = new Point(180, 100);
             lblLength.AutoSize = true;
-            lblLength.ForeColor = Color.White;
-            grpScanner.Controls.Add(lblLength);
+            lblLength.ForeColor = Color.Gray;
+            lblLength.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevScanner.Controls.Add(lblLength);
 
-            txtLength.Location = new Point(320, 70);
-            txtLength.Size = new Size(120, 25);
-            txtLength.BackColor = Color.FromArgb(12, 12, 12);
+            txtLength.Location = new Point(180, 115);
+            txtLength.Size = new Size(140, 25);
+            txtLength.BackColor = Color.FromArgb(20, 20, 20);
             txtLength.ForeColor = Color.White;
             txtLength.Text = "0x4000000";
-            CreateChamferedRegion(txtLength, 5);
-            grpScanner.Controls.Add(txtLength);
+            txtLength.BorderStyle = BorderStyle.FixedSingle;
+            pnlDevScanner.Controls.Add(txtLength);
 
-            // Row 3: Signature Tools (Y=110)
+            // Row 3: Signature
             var lblSigOffset = new Label();
-            lblSigOffset.Text = "Offset (Hex):";
-            lblSigOffset.Location = new Point(20, 113);
+            lblSigOffset.Text = "OFFSET (HEX)";
+            lblSigOffset.Location = new Point(20, 150);
             lblSigOffset.AutoSize = true;
-            lblSigOffset.ForeColor = Color.White;
-            grpScanner.Controls.Add(lblSigOffset);
+            lblSigOffset.ForeColor = Color.Gray;
+            lblSigOffset.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevScanner.Controls.Add(lblSigOffset);
 
-            var txtSigOffset = new TextBox();
-            txtSigOffset.Location = new Point(120, 110);
-            txtSigOffset.Size = new Size(120, 25);
-            txtSigOffset.BackColor = Color.FromArgb(12, 12, 12);
+            txtSigOffset = new TextBox();
+            txtSigOffset.Location = new Point(20, 165);
+            txtSigOffset.Size = new Size(140, 25);
+            txtSigOffset.BackColor = Color.FromArgb(20, 20, 20);
             txtSigOffset.ForeColor = Color.White;
             txtSigOffset.Name = "txtSigOffset";
-            CreateChamferedRegion(txtSigOffset, 5);
-            grpScanner.Controls.Add(txtSigOffset);
+            txtSigOffset.BorderStyle = BorderStyle.FixedSingle;
+            pnlDevScanner.Controls.Add(txtSigOffset);
 
-            var btnFindSig = new Button();
-            btnFindSig.Text = "Find Sig";
-            btnFindSig.Location = new Point(260, 108);
+            btnFindSig = new Button();
+            btnFindSig.Text = "FIND SIG";
+            btnFindSig.Location = new Point(180, 162);
             btnFindSig.Size = new Size(100, 30);
-            btnFindSig.BackColor = Color.FromArgb(0, 80, 80);
-            btnFindSig.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 120, 120);
+            btnFindSig.BackColor = Color.Transparent;
             btnFindSig.ForeColor = Color.Cyan;
             btnFindSig.FlatStyle = FlatStyle.Flat;
+            btnFindSig.FlatAppearance.BorderSize = 0;
             btnFindSig.Name = "btnFindSig";
-            CreateChamferedRegion(btnFindSig, 8);
-            grpScanner.Controls.Add(btnFindSig);
+            btnFindSig.Paint += PaintAlienTechButton;
+            pnlDevScanner.Controls.Add(btnFindSig);
 
-            var btnDumpMain = new Button();
-            btnDumpMain.Text = "Dump NSO";
-            btnDumpMain.Location = new Point(380, 108);
+            btnDumpMain = new Button();
+            btnDumpMain.Text = "DUMP NSO";
+            btnDumpMain.Location = new Point(300, 162);
             btnDumpMain.Size = new Size(100, 30);
-            btnDumpMain.BackColor = Color.FromArgb(80, 0, 0); 
-            btnDumpMain.FlatAppearance.MouseOverBackColor = Color.FromArgb(120, 0, 0);
-            btnDumpMain.ForeColor = Color.White;
+            btnDumpMain.BackColor = Color.Transparent;
+            btnDumpMain.ForeColor = Color.OrangeRed; // Warning
             btnDumpMain.FlatStyle = FlatStyle.Flat;
+            btnDumpMain.FlatAppearance.BorderSize = 0;
             btnDumpMain.Name = "btnDumpMain";
-            CreateChamferedRegion(btnDumpMain, 8);
-            grpScanner.Controls.Add(btnDumpMain);
+            btnDumpMain.Paint += PaintAlienTechButton;
+            pnlDevScanner.Controls.Add(btnDumpMain);
 
-            // Row 4: Advanced Actions (Y=150)
-            var btnAutoUpdate = new Button();
-            btnAutoUpdate.Text = "Auto-Update Pointers";
-            btnAutoUpdate.Location = new Point(20, 148);
-            btnAutoUpdate.Size = new Size(160, 30);
-            btnAutoUpdate.BackColor = Color.FromArgb(100, 0, 100); 
-            btnAutoUpdate.FlatAppearance.MouseOverBackColor = Color.FromArgb(150, 0, 150);
-            btnAutoUpdate.ForeColor = Color.White;
+            // Row 4: Advanced
+            btnAutoUpdate = new Button();
+            btnAutoUpdate.Text = "AUTO-UPDATE";
+            btnAutoUpdate.Location = new Point(20, 210);
+            btnAutoUpdate.Size = new Size(140, 30);
+            btnAutoUpdate.BackColor = Color.Transparent;
+            btnAutoUpdate.ForeColor = Color.Magenta;
             btnAutoUpdate.FlatStyle = FlatStyle.Flat;
+            btnAutoUpdate.FlatAppearance.BorderSize = 0;
             btnAutoUpdate.Name = "btnAutoUpdate";
-            CreateChamferedRegion(btnAutoUpdate, 8);
-            grpScanner.Controls.Add(btnAutoUpdate);
+            btnAutoUpdate.Paint += PaintAlienTechButton;
+            pnlDevScanner.Controls.Add(btnAutoUpdate);
 
-            var btnFindChain = new Button();
-            btnFindChain.Text = "Find Pointer Chain";
-            btnFindChain.Location = new Point(200, 148);
+            btnFindChain = new Button();
+            btnFindChain.Text = "FIND POINTER CHAIN";
+            btnFindChain.Location = new Point(180, 210);
             btnFindChain.Size = new Size(160, 30);
-            btnFindChain.BackColor = Color.FromArgb(0, 0, 100); 
-            btnFindChain.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 0, 150);
-            btnFindChain.ForeColor = Color.White;
+            btnFindChain.BackColor = Color.Transparent;
+            btnFindChain.ForeColor = Color.Lime;
             btnFindChain.FlatStyle = FlatStyle.Flat;
+            btnFindChain.FlatAppearance.BorderSize = 0;
             btnFindChain.Name = "btnFindChain";
-            CreateChamferedRegion(btnFindChain, 8);
-            grpScanner.Controls.Add(btnFindChain);
+            btnFindChain.Paint += PaintAlienTechButton;
+            pnlDevScanner.Controls.Add(btnFindChain);
 
-            var btnAutoScan = new Button();
-            btnAutoScan.Text = "Auto-Find";
-            btnAutoScan.Location = new Point(380, 148);
+            btnAutoScan = new Button();
+            btnAutoScan.Text = "AUTO-FIND";
+            btnAutoScan.Location = new Point(360, 210);
             btnAutoScan.Size = new Size(100, 30);
-            btnAutoScan.BackColor = Color.FromArgb(0, 80, 80);
-            btnAutoScan.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 120, 120);
+            btnAutoScan.BackColor = Color.Transparent;
             btnAutoScan.ForeColor = Color.Cyan;
             btnAutoScan.FlatStyle = FlatStyle.Flat;
+            btnAutoScan.FlatAppearance.BorderSize = 0;
             btnAutoScan.Name = "btnAutoScan";
-            CreateChamferedRegion(btnAutoScan, 8);
-            grpScanner.Controls.Add(btnAutoScan);
+            btnAutoScan.Paint += PaintAlienTechButton;
+            pnlDevScanner.Controls.Add(btnAutoScan);
 
-            var btnVerify = new Button();
-            btnVerify.Text = "Verify Live";
-            btnVerify.Location = new Point(500, 148);
+            btnVerify = new Button();
+            btnVerify.Text = "VERIFY LIVE";
+            btnVerify.Location = new Point(480, 210);
             btnVerify.Size = new Size(100, 30);
-            btnVerify.BackColor = Color.FromArgb(0, 100, 0);
-            btnVerify.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 150, 0);
+            btnVerify.BackColor = Color.Transparent;
             btnVerify.ForeColor = Color.White;
             btnVerify.FlatStyle = FlatStyle.Flat;
+            btnVerify.FlatAppearance.BorderSize = 0;
             btnVerify.Name = "btnVerify";
-            CreateChamferedRegion(btnVerify, 8);
-            grpScanner.Controls.Add(btnVerify);
-            
-            // Row 5: Status (Y=190)
-            lblScanStatus.Text = "Ready";
-            lblScanStatus.Location = new Point(20, 190);
+            btnVerify.Paint += PaintAlienTechButton;
+            pnlDevScanner.Controls.Add(btnVerify);
+
+            // Row 5: Status
+            lblScanStatus.Text = "READY";
+            lblScanStatus.Location = new Point(20, 250);
             lblScanStatus.AutoSize = true;
             lblScanStatus.ForeColor = Color.Gray;
-            grpScanner.Controls.Add(lblScanStatus);
+            lblScanStatus.Font = ScaleFont(new Font("Segoe UI", 8F, FontStyle.Bold));
+            pnlDevScanner.Controls.Add(lblScanStatus);
 
-            // Row 6: Results (Y=210)
-            rtbResults.Location = new Point(20, 210);
-            rtbResults.Size = new Size(760, 100);
+            // Row 6: Results
+            rtbResults.Location = new Point(20, 270);
+            rtbResults.Size = new Size(760, 130);
             rtbResults.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             rtbResults.BackColor = Color.FromArgb(12, 12, 12);
             rtbResults.ForeColor = Color.White;
             rtbResults.ReadOnly = true;
-            grpScanner.Controls.Add(rtbResults);
+            rtbResults.BorderStyle = BorderStyle.None;
+            pnlDevScanner.Controls.Add(rtbResults);
 
-            // Monitor Group
-            grpMonitor = new GroupBox();
-            grpMonitor.Text = "Memory Monitor & Pointer Tools";
-            grpMonitor.ForeColor = Color.White;
-            grpMonitor.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
-            grpMonitor.Size = new Size(800, 300);
-            grpMonitor.Margin = new Padding(0, 0, 0, 20);
-            devFlowPanel.Controls.Add(grpMonitor);
+            // Monitor Panel (Alien Tech Style)
+            pnlDevMonitor = new Panel();
+            pnlDevMonitor.Name = "pnlDevMonitor";
+            pnlDevMonitor.Size = new Size(800, 300);
+            pnlDevMonitor.Margin = new Padding(0, 0, 0, 20);
+            pnlDevMonitor.Paint += PaintAlienTechPanel;
+            pnlDevMonitor.BackColor = Color.Transparent;
+            devFlowPanel.Controls.Add(pnlDevMonitor);
 
-            // Monitor Address Input
+            // Title
+            var lblMonitorTitle = new Label();
+            lblMonitorTitle.Text = "MEMORY MONITOR & POINTER TOOLS";
+            lblMonitorTitle.Font = ScaleFont(new Font("Segoe UI", 10F, FontStyle.Bold));
+            lblMonitorTitle.ForeColor = Color.Cyan;
+            lblMonitorTitle.Location = new Point(20, 15);
+            lblMonitorTitle.AutoSize = true;
+            pnlDevMonitor.Controls.Add(lblMonitorTitle);
+
+            // Address Input (Row 1)
             lblMonitorAddr = new Label();
-            lblMonitorAddr.Text = "Address (Hex):";
-            lblMonitorAddr.Location = new Point(20, 30);
+            lblMonitorAddr.Text = "ADDRESS (HEX)";
+            lblMonitorAddr.Location = new Point(20, 50);
             lblMonitorAddr.AutoSize = true;
-            grpMonitor.Controls.Add(lblMonitorAddr);
+            lblMonitorAddr.ForeColor = Color.Gray;
+            lblMonitorAddr.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevMonitor.Controls.Add(lblMonitorAddr);
 
             txtMonitorAddr = new TextBox();
-            txtMonitorAddr.Location = new Point(140, 27);
-            txtMonitorAddr.Size = new Size(150, 25);
-            txtMonitorAddr.BackColor = Color.FromArgb(12, 12, 12);
+            txtMonitorAddr.Location = new Point(20, 65);
+            txtMonitorAddr.Size = new Size(180, 25);
+            txtMonitorAddr.BackColor = Color.FromArgb(20, 20, 20);
             txtMonitorAddr.ForeColor = Color.White;
-            grpMonitor.Controls.Add(txtMonitorAddr);
-
-            // Monitor Toggle
-            btnMonitorToggle = new Button();
-            btnMonitorToggle.Text = "Start Monitor";
-            btnMonitorToggle.Location = new Point(310, 25);
-            btnMonitorToggle.Size = new Size(120, 30);
-            btnMonitorToggle.BackColor = Color.FromArgb(0, 100, 100);
-            btnMonitorToggle.FlatAppearance.MouseOverBackColor = Color.FromArgb(0, 150, 150);
-            btnMonitorToggle.FlatAppearance.MouseDownBackColor = Color.FromArgb(0, 80, 80);
-            btnMonitorToggle.ForeColor = Color.Cyan;
-            btnMonitorToggle.FlatStyle = FlatStyle.Flat;
-            CreateChamferedRegion(btnMonitorToggle, 8);
-            grpMonitor.Controls.Add(btnMonitorToggle);
+            txtMonitorAddr.BorderStyle = BorderStyle.FixedSingle;
+            pnlDevMonitor.Controls.Add(txtMonitorAddr);
 
             // Length
             lblLengthVal = new Label();
-            lblLengthVal.Text = "Len:";
-            lblLengthVal.Location = new Point(450, 30);
+            lblLengthVal.Text = "LENGTH";
+            lblLengthVal.Location = new Point(220, 50);
             lblLengthVal.AutoSize = true;
-            grpMonitor.Controls.Add(lblLengthVal);
+            lblLengthVal.ForeColor = Color.Gray;
+            lblLengthVal.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevMonitor.Controls.Add(lblLengthVal);
 
             numLength = new NumericUpDown();
-            numLength.Location = new Point(490, 27);
-            numLength.Size = new Size(60, 25);
-            numLength.BackColor = Color.FromArgb(12, 12, 12);
+            numLength.Location = new Point(220, 65);
+            numLength.Size = new Size(80, 25);
+            numLength.BackColor = Color.FromArgb(20, 20, 20);
             numLength.ForeColor = Color.White;
             numLength.Minimum = 1;
             numLength.Maximum = 1024;
             numLength.Value = 4;
-            grpMonitor.Controls.Add(numLength);
+            numLength.BorderStyle = BorderStyle.FixedSingle;
+            pnlDevMonitor.Controls.Add(numLength);
 
-            // Cache Checkbox
-            chkCachePointer = new CheckBox();
-            chkCachePointer.Text = "Cache Ptr";
-            chkCachePointer.Location = new Point(570, 27);
-            chkCachePointer.AutoSize = true;
-            chkCachePointer.ForeColor = Color.White;
-            CreateChamferedRegion(chkCachePointer, 5);
-            grpMonitor.Controls.Add(chkCachePointer);
+            // Buttons
+            btnMonitorToggle = new Button();
+            btnMonitorToggle.Text = "START MONITOR";
+            btnMonitorToggle.Location = new Point(320, 62);
+            btnMonitorToggle.Size = new Size(140, 30);
+            btnMonitorToggle.BackColor = Color.Transparent;
+            btnMonitorToggle.ForeColor = Color.Cyan;
+            btnMonitorToggle.FlatStyle = FlatStyle.Flat;
+            btnMonitorToggle.FlatAppearance.BorderSize = 0;
+            btnMonitorToggle.Paint += PaintAlienTechButton;
+            pnlDevMonitor.Controls.Add(btnMonitorToggle);
 
-            // Copy Address Button
             btnCopyAddress = new Button();
-            btnCopyAddress.Text = "Copy Addr";
-            btnCopyAddress.Location = new Point(680, 25);
+            btnCopyAddress.Text = "COPY ADDR";
+            btnCopyAddress.Location = new Point(480, 62);
             btnCopyAddress.Size = new Size(100, 30);
-            btnCopyAddress.BackColor = Color.FromArgb(64, 64, 64);
+            btnCopyAddress.BackColor = Color.Transparent;
             btnCopyAddress.ForeColor = Color.White;
             btnCopyAddress.FlatStyle = FlatStyle.Flat;
-            CreateChamferedRegion(btnCopyAddress, 8);
-            grpMonitor.Controls.Add(btnCopyAddress);
+            btnCopyAddress.FlatAppearance.BorderSize = 0;
+            btnCopyAddress.Paint += PaintAlienTechButton;
+            pnlDevMonitor.Controls.Add(btnCopyAddress);
 
-            // Monitor Value
+            // Checkbox
+            chkCachePointer = new CheckBox();
+            chkCachePointer.Text = "CACHE PTR";
+            chkCachePointer.Location = new Point(600, 65);
+            chkCachePointer.AutoSize = true;
+            chkCachePointer.ForeColor = Color.White;
+            pnlDevMonitor.Controls.Add(chkCachePointer);
+
+            // Value Output (Row 2)
             lblMonitorValue = new Label();
-            lblMonitorValue.Text = "Value (Hex):";
-            lblMonitorValue.Location = new Point(20, 70);
+            lblMonitorValue.Text = "VALUE (HEX)";
+            lblMonitorValue.Location = new Point(20, 100);
             lblMonitorValue.AutoSize = true;
-            grpMonitor.Controls.Add(lblMonitorValue);
+            lblMonitorValue.ForeColor = Color.Gray;
+            lblMonitorValue.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevMonitor.Controls.Add(lblMonitorValue);
             
-            // Add Resize Event to handle GroupBox width in FlowLayoutPanel
+            // Resize handler update
             devFlowPanel.Resize += (s, e) => {
-                int newWidth = devFlowPanel.ClientSize.Width - devFlowPanel.Padding.Left - devFlowPanel.Padding.Right - 20; // -20 for scrollbar
-                grpConnection.Width = newWidth;
-                grpScanner.Width = newWidth;
-                grpMonitor.Width = newWidth;
+                int newWidth = devFlowPanel.ClientSize.Width - devFlowPanel.Padding.Left - devFlowPanel.Padding.Right - 20;
+                if (pnlDevConnection != null) pnlDevConnection.Width = newWidth;
+                if (pnlDevScanner != null) pnlDevScanner.Width = newWidth;
+                if (pnlDevMonitor != null) pnlDevMonitor.Width = newWidth;
             };
 
             txtMonitorValue = new TextBox();
-            txtMonitorValue.Location = new Point(140, 67);
-            txtMonitorValue.Size = new Size(640, 100);
+            txtMonitorValue.Location = new Point(20, 115);
+            txtMonitorValue.Size = new Size(760, 100);
             txtMonitorValue.Multiline = true;
             txtMonitorValue.ScrollBars = ScrollBars.Vertical;
             txtMonitorValue.BackColor = Color.FromArgb(12, 12, 12);
             txtMonitorValue.ForeColor = Color.White;
             txtMonitorValue.Font = new Font("Consolas", 10F);
             txtMonitorValue.ReadOnly = false;
-            grpMonitor.Controls.Add(txtMonitorValue);
+            txtMonitorValue.BorderStyle = BorderStyle.None;
+            txtMonitorValue.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            pnlDevMonitor.Controls.Add(txtMonitorValue);
 
-            // Pointer Info
+            // Pointer Info (Row 3)
             lblPointerInfo = new Label();
-            lblPointerInfo.Text = "Pointer Info:";
-            lblPointerInfo.Location = new Point(20, 180);
+            lblPointerInfo.Text = "POINTER INFO";
+            lblPointerInfo.Location = new Point(20, 230);
             lblPointerInfo.AutoSize = true;
-            grpMonitor.Controls.Add(lblPointerInfo);
+            lblPointerInfo.ForeColor = Color.Gray;
+            lblPointerInfo.Font = ScaleFont(new Font("Segoe UI", 7F, FontStyle.Bold));
+            pnlDevMonitor.Controls.Add(lblPointerInfo);
 
             txtPointerInfo = new TextBox();
-            txtPointerInfo.Location = new Point(140, 177);
-            txtPointerInfo.Size = new Size(640, 25);
+            txtPointerInfo.Location = new Point(20, 245);
+            txtPointerInfo.Size = new Size(760, 25);
             txtPointerInfo.BackColor = Color.FromArgb(12, 12, 12);
             txtPointerInfo.ForeColor = Color.White;
             txtPointerInfo.ReadOnly = false;
-            grpMonitor.Controls.Add(txtPointerInfo);
+            txtPointerInfo.BorderStyle = BorderStyle.FixedSingle;
+            txtPointerInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            pnlDevMonitor.Controls.Add(txtPointerInfo);
 
             // Spacer for scrolling
             var spacer = new Panel();
@@ -1888,91 +1972,45 @@ namespace SysBot.Pokemon.WinForms
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
             var rect = btn.ClientRectangle;
+            var drawRect = new Rectangle(rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
             
-            // Create chamfered rectangle path (Alienware Style)
+            // Create chamfered rectangle path
             using var path = new GraphicsPath();
             int chamfer = 12;
-            path.AddLine(rect.Left + chamfer, rect.Top, rect.Right - chamfer, rect.Top);
-            path.AddLine(rect.Right, rect.Top + chamfer, rect.Right, rect.Bottom - chamfer);
-            path.AddLine(rect.Right - chamfer, rect.Bottom, rect.Left + chamfer, rect.Bottom);
-            path.AddLine(rect.Left, rect.Bottom - chamfer, rect.Left, rect.Top + chamfer);
+            path.AddLine(drawRect.Left + chamfer, drawRect.Top, drawRect.Right - chamfer, drawRect.Top);
+            path.AddLine(drawRect.Right, drawRect.Top + chamfer, drawRect.Right, drawRect.Bottom - chamfer);
+            path.AddLine(drawRect.Right - chamfer, drawRect.Bottom, drawRect.Left + chamfer, drawRect.Bottom);
+            path.AddLine(drawRect.Left, drawRect.Bottom - chamfer, drawRect.Left, drawRect.Top + chamfer);
             path.CloseFigure();
-
-            // Draw gradient background with glass effect
-            var baseAlpha = animState.IsPressed ? 60 : (animState.IsHovering ? 45 : 30);
-            var glowAlpha = (int)(baseAlpha + (animState.HoverProgress * 25));
             
-            using (var bgBrush = new LinearGradientBrush(rect, 
-                Color.FromArgb(glowAlpha, SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.AccentCyan),
-                Color.FromArgb(glowAlpha / 2, Color.FromArgb(0, 100, 100)),
-                LinearGradientMode.Vertical))
+            // Clip region for click detection
+            // btn.Region = new Region(path); // Fix: Remove Region clipping for smoother edges
+
+            // 1. Background (Dark)
+            using (var bgBrush = new SolidBrush(Color.FromArgb(15, 15, 15)))
             {
                 g.FillPath(bgBrush, path);
             }
 
-            // Draw glow effect on hover
-            if (animState.HoverProgress > 0)
+            // 2. Hover/Press Effect
+            if (animState.IsHovering || animState.IsPressed)
             {
-                var glowSize = (int)(3 + animState.HoverProgress * 5);
-                using var glowPath = new GraphicsPath();
-                var glowRect = Rectangle.Inflate(rect, -1, -1);
-                int glowChamfer = chamfer - 1;
-                glowPath.AddLine(glowRect.Left + glowChamfer, glowRect.Top, glowRect.Right - glowChamfer, glowRect.Top);
-                glowPath.AddLine(glowRect.Right, glowRect.Top + glowChamfer, glowRect.Right, glowRect.Bottom - glowChamfer);
-                glowPath.AddLine(glowRect.Right - glowChamfer, glowRect.Bottom, glowRect.Left + glowChamfer, glowRect.Bottom);
-                glowPath.AddLine(glowRect.Left, glowRect.Bottom - glowChamfer, glowRect.Left, glowRect.Top + glowChamfer);
-                glowPath.CloseFigure();
-
-                using var glowBrush = new SolidBrush(Color.FromArgb((int)(20 * animState.HoverProgress), SysBot.Pokemon.WinForms.Helpers.WinFormsTheme.AccentCyan));
-                for (int i = 0; i < glowSize; i++)
+                int alpha = animState.IsPressed ? 50 : 30;
+                using (var glowBrush = new SolidBrush(Color.FromArgb(alpha, animState.BaseColor)))
                 {
-                    g.FillPath(glowBrush, glowPath);
+                    g.FillPath(glowBrush, path);
                 }
             }
 
-            // Draw border with gradient
-            var borderAlpha = animState.IsHovering ? 200 : 120;
-            using (var borderPen = new Pen(Color.FromArgb(borderAlpha, animState.BaseColor), animState.IsPressed ? 2f : 1.5f))
+            // 3. Border (Full Neon Color)
+            using (var pen = new Pen(animState.BaseColor, 2))
             {
-                g.DrawPath(borderPen, path);
+                g.DrawPath(pen, path);
             }
 
-            // Draw inner highlight for glass effect
-            if (!animState.IsPressed)
-            {
-                var highlightRect = new Rectangle(rect.X + 2, rect.Y + 2, rect.Width - 4, rect.Height / 2);
-                using var highlightPath = new GraphicsPath();
-                int hlChamfer = chamfer - 2;
-                highlightPath.AddLine(highlightRect.Left + hlChamfer, highlightRect.Top, highlightRect.Right - hlChamfer, highlightRect.Top);
-                highlightPath.AddLine(highlightRect.Right, highlightRect.Top + hlChamfer, highlightRect.Right, highlightRect.Bottom);
-                highlightPath.AddLine(highlightRect.Right, highlightRect.Bottom, highlightRect.Left, highlightRect.Bottom);
-                highlightPath.AddLine(highlightRect.Left, highlightRect.Bottom, highlightRect.Left, highlightRect.Top + hlChamfer);
-                highlightPath.CloseFigure();
-
-                using var highlightBrush = new LinearGradientBrush(highlightRect,
-                    Color.FromArgb(30, 255, 255, 255),
-                    Color.FromArgb(5, 255, 255, 255),
-                    LinearGradientMode.Vertical);
-                g.FillPath(highlightBrush, highlightPath);
-            }
-
-            // Draw text with shadow for depth
-            var textColor = animState.IsHovering ? Color.White : animState.BaseColor;
-            var textRect = rect;
-            textRect.Offset(0, animState.IsPressed ? 1 : 0);
-
-            // Draw text shadow
-            using (var shadowBrush = new SolidBrush(Color.FromArgb(50, 0, 0, 0)))
-            {
-                textRect.Offset(1, 1);
-                TextRenderer.DrawText(g, btn.Text, btn.Font, textRect, Color.FromArgb(50, 0, 0, 0),
-                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-                textRect.Offset(-1, -1);
-            }
-
-            // Draw main text
-            TextRenderer.DrawText(g, btn.Text, btn.Font, textRect, textColor,
-                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            // 4. Text
+            var flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter;
+            TextRenderer.DrawText(g, btn.Text, btn.Font, drawRect, animState.BaseColor, flags);
         }
 
         private void FLP_Bots_Paint(object sender, PaintEventArgs e)
@@ -1987,10 +2025,10 @@ namespace SysBot.Pokemon.WinForms
             rect.Height -= 1;
 
             // 1. Grid Background (Tech Mesh)
-            using (var brush = new SolidBrush(Color.FromArgb(10, 0, 255, 255)))
+            using (var brush = new SolidBrush(Color.FromArgb(10, 200, 200, 200)))
             {
                 // Draw faint horizontal lines for rack slots
-                using (var pen = new Pen(Color.FromArgb(5, 0, 255, 255)))
+                using (var pen = new Pen(Color.FromArgb(5, 200, 200, 200)))
                 {
                     for (int i = 0; i < rect.Height; i += 40)
                     {
@@ -2003,7 +2041,7 @@ namespace SysBot.Pokemon.WinForms
             using (var path = new GraphicsPath())
             {
                 int cornerSize = 20;
-                using (var pen = new Pen(Color.FromArgb(0, 100, 100), 2))
+                using (var pen = new Pen(Color.FromArgb(60, 60, 60), 2))
                 {
                     // Top Left Bracket
                     g.DrawLine(pen, rect.Left, rect.Top + cornerSize, rect.Left, rect.Top);
@@ -2295,12 +2333,12 @@ namespace SysBot.Pokemon.WinForms
         private System.Windows.Forms.Button btnNavDev;
         private System.Windows.Forms.Panel devPanel;
         private System.Windows.Forms.Label lblDevTitle;
-        private System.Windows.Forms.GroupBox grpConnection;
+        private System.Windows.Forms.Panel pnlDevConnection;
         private System.Windows.Forms.TextBox txtIP;
         private System.Windows.Forms.TextBox txtPort;
         private System.Windows.Forms.Button btnDevConnect;
         private System.Windows.Forms.Label lblConnStatus;
-        private System.Windows.Forms.GroupBox grpScanner;
+        private System.Windows.Forms.Panel pnlDevScanner;
         private System.Windows.Forms.TextBox txtPattern;
         private System.Windows.Forms.Label lblPattern;
         private System.Windows.Forms.ComboBox cbRegion;
@@ -2313,7 +2351,16 @@ namespace SysBot.Pokemon.WinForms
         private System.Windows.Forms.RichTextBox rtbResults;
         private System.Windows.Forms.Label lblScanStatus;
 
-        private System.Windows.Forms.GroupBox grpMonitor;
+        private System.Windows.Forms.ComboBox cbGameVersion;
+        private System.Windows.Forms.TextBox txtSigOffset;
+        private System.Windows.Forms.Button btnFindSig;
+        private System.Windows.Forms.Button btnDumpMain;
+        private System.Windows.Forms.Button btnAutoUpdate;
+        private System.Windows.Forms.Button btnFindChain;
+        private System.Windows.Forms.Button btnAutoScan;
+        private System.Windows.Forms.Button btnVerify;
+
+        private System.Windows.Forms.Panel pnlDevMonitor;
         private System.Windows.Forms.Label lblMonitorAddr;
         private System.Windows.Forms.TextBox txtMonitorAddr;
         private System.Windows.Forms.Button btnMonitorToggle;

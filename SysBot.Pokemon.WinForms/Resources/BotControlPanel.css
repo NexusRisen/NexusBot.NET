@@ -1218,7 +1218,7 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.625rem;
     margin: 0.25rem 0;
     border-radius: 8px;
-    background: var(--bg-primary);
+    background: rgba(0, 0, 0, 0.2);
     border: 1px solid var(--border-color);
     transition: all var(--transition-fast);
 }

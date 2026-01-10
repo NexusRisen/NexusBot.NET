@@ -902,6 +902,8 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             }
 
             // Check if the offered Pokemon will evolve upon trade BEFORE confirming
+            // PLZA does not have trade evolutions (similar to LA), so we skip this check.
+            /*
             if (Hub.Config.TradeSystem.Settings.TradeConfiguration.DisallowTradeEvolve && TradeEvolutions.WillTradeEvolve(offeredBatch.Species, offeredBatch.Form, offeredBatch.HeldItem, toSend.Species))
             {
                 Log($"Trade {currentTradeIndex + 1} cancelled because trainer offered a Pokémon that would evolve upon trade.");
@@ -911,6 +913,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 await ExitTradeToOverworld(false, token).ConfigureAwait(false);
                 return PokeTradeResult.TradeEvolveNotAllowed;
             }
+            */
 
             Log($"Confirming trade {currentTradeIndex + 1}/{totalBatchTrades}.");
             var tradeResult = await ConfirmAndStartTrading(poke, token).ConfigureAwait(false);

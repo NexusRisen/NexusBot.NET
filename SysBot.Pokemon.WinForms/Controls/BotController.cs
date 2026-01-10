@@ -154,6 +154,11 @@ namespace SysBot.Pokemon.WinForms
 
             // Apply Alienware Theme
             WinFormsTheme.Apply(this);
+            
+            // Force Transparency AFTER Theme Apply (Critical for removing black corners)
+            this.BackColor = Color.Transparent;
+            this.mainPanel.BackColor = Color.Transparent;
+            if (this.Parent != null) this.Parent.Invalidate();
 
             ConfigureContextMenu();
             ConfigureChildControls();
@@ -162,7 +167,7 @@ namespace SysBot.Pokemon.WinForms
             
             // Apply chamfered regions to controls
             CreateChamferedRegion(btnActions, 8);
-            CreateChamferedRegion(mainPanel, 25);
+            // CreateChamferedRegion(mainPanel, 25); // Fix: Remove Region clipping to prevent black artifacts
             CreateCircularRegion(statusIndicator);
             
             InitializeAnimationTimer();
@@ -853,132 +858,122 @@ namespace SysBot.Pokemon.WinForms
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
 
             var rect = mainPanel.ClientRectangle;
+            // Adjust rect to avoid clipping border
+            var drawRect = new RectangleF(rect.X + 1, rect.Y + 1, rect.Width - 2, rect.Height - 2);
             
-            // Alien Tech Background
+            // Clean Tech Background
             using (var path = new GraphicsPath())
             {
-                // Aggressive chamfered corners
-                int chamfer = 25;
-                path.AddLine(rect.Left + chamfer, rect.Top, rect.Right - chamfer, rect.Top);
-                path.AddLine(rect.Right, rect.Top + chamfer, rect.Right, rect.Bottom - chamfer);
-                path.AddLine(rect.Right - chamfer, rect.Bottom, rect.Left + chamfer, rect.Bottom);
-                path.AddLine(rect.Left, rect.Bottom - chamfer, rect.Left, rect.Top + chamfer);
+                // Chamfered corners
+                int chamfer = 20;
+                path.AddLine(drawRect.Left + chamfer, drawRect.Top, drawRect.Right - chamfer, drawRect.Top);
+                path.AddLine(drawRect.Right, drawRect.Top + chamfer, drawRect.Right, drawRect.Bottom - chamfer);
+                path.AddLine(drawRect.Right - chamfer, drawRect.Bottom, drawRect.Left + chamfer, drawRect.Bottom);
+                path.AddLine(drawRect.Left, drawRect.Bottom - chamfer, drawRect.Left, drawRect.Top + chamfer);
                 path.CloseFigure();
                 
-                // 1. Deep Dark Base (Adjusted for better readability)
-                using (var brush = new SolidBrush(Color.FromArgb(220, 5, 5, 5)))
+                // 1. Background - Transparent Glass Effect
+                // Fill with extremely low opacity to show background grid
+                using (var brush = new LinearGradientBrush(drawRect, 
+                    Color.FromArgb(10, 0, 0, 0),    // Crystal clear top
+                    Color.FromArgb(40, 5, 5, 10),   // Very subtle tint bottom
+                    90f))
                 {
                     g.FillPath(brush, path);
-                }
-
-                // 2. True Hexagon Mesh Pattern (Dynamic Color)
-                using (var clip = new Region(path))
-                {
-                    g.SetClip(clip, CombineMode.Replace);
-                    // Use HatchBrush for performance instead of drawing thousands of polygons
-                    var meshColor = currentStatusColor == Color.Empty ? CuztomAccent : currentStatusColor;
-                    
-                    using (var meshBrush = new HatchBrush(HatchStyle.DiagonalCross, 
-                        Color.FromArgb(40, meshColor), // Dynamic Mesh Color (Increased Opacity)
-                        Color.Transparent)) // Background
-                    {
-                         g.FillRectangle(meshBrush, rect);
-                    }
-                    g.ResetClip();
                 }
                 
-                // 3. Vertical Gradient Overlay (Vignette)
-                using (var brush = new LinearGradientBrush(rect, Color.Transparent, Color.FromArgb(150, 0, 0, 0), 90f))
+                // 2. Subtle Tech Grid Overlay (Alienware Style)
+                // Draw faint diagonal lines clipped to the path
+                g.SetClip(path);
+                using (var pen = new Pen(Color.FromArgb(20, 200, 255, 255), 1))
                 {
-                    brush.SetBlendTriangularShape(0.5f);
-                    g.FillPath(brush, path);
+                    // Draw diagonal mesh
+                    for (int i = -100; i < drawRect.Width + drawRect.Height; i += 15)
+                    {
+                         g.DrawLine(pen, drawRect.Left + i, drawRect.Top, drawRect.Left + i - drawRect.Height, drawRect.Bottom);
+                    }
                 }
+                g.ResetClip();
 
-                // 4. Draw Text Manually (Ensure readability over mesh)
+                // 3. Determine Status Color
+                var statusColor = currentStatusColor;
+                if (statusColor == Color.Empty) statusColor = CuztomAccent;
+
+                // 4. Draw Text
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
+                // Add a text backing plate for readability if needed (optional, keeping it clean for now)
+                
                 // Bot Name
-                using (var b = new SolidBrush(Color.FromArgb(239, 239, 239)))
+                using (var b = new SolidBrush(Color.FromArgb(255, 255, 255)))
+                {
+                    // Slight shadow for text readability on transparent bg
+                    using (var s = new SolidBrush(Color.FromArgb(150, 0, 0, 0)))
+                         g.DrawString(_botNameText, _fontBotName, s, 71, 16);
+                         
                     g.DrawString(_botNameText, _fontBotName, b, 70, 15);
+                }
 
                 // Status Value
-                using (var b = new SolidBrush(currentStatusColor))
+                using (var b = new SolidBrush(statusColor))
+                {
+                    // Text glow effect
+                    for(int i=1; i<=2; i++)
+                    {
+                         using(var p = new Pen(Color.FromArgb(30/i, statusColor), i))
+                             g.DrawString(_statusValueText, _fontStatus, b, 70, 42); 
+                    }
                     g.DrawString(_statusValueText, _fontStatus, b, 70, 42);
+                }
 
                 // Routine Type
-                using (var b = new SolidBrush(WinFormsTheme.AccentCyan))
+                using (var b = new SolidBrush(Color.FromArgb(200, 200, 200)))
                     g.DrawString(_routineTypeText, _fontRoutine, b, 70, 60);
 
                 // Connection Info
-                using (var b = new SolidBrush(Color.FromArgb(176, 176, 176)))
+                using (var b = new SolidBrush(Color.FromArgb(160, 160, 160)))
                 {
-                    // Draw with ellipsis if too long
                     TextRenderer.DrawText(g, _connectionInfoText, _fontConnection, 
-                        new Rectangle(70, 78, rect.Width - 80, 20), 
-                        Color.FromArgb(176, 176, 176), 
+                        new Rectangle(70, 78, (int)drawRect.Width - 80, 20), 
+                        Color.FromArgb(160, 160, 160), 
                         TextFormatFlags.Left | TextFormatFlags.Top | TextFormatFlags.EndEllipsis);
                 }
 
-                // 4. Glowing Border
-                var borderColor = currentStatusColor;
-                if (borderColor == Color.Empty) borderColor = CuztomAccent;
-
-                int glowIntensity = 40;
-                int borderThickness = 6;
-                
+                // 5. Border & Tech Accents
                 if (_isHovered)
                 {
-                    // Intensify the glow on hover (Brighter and thicker)
-                    glowIntensity = 120;
-                    borderThickness = 8;
-                    // Boost brightness significantly
-                    borderColor = ControlPaint.Light(borderColor, 0.5f); 
-                }
-
-                // Outer soft glow
-                using (var pen = new Pen(Color.FromArgb(glowIntensity, borderColor), borderThickness))
-                {
-                    pen.LineJoin = LineJoin.Bevel;
-                    g.DrawPath(pen, path);
-                }
-                
-                // Inner sharp border
-                using (var pen = new Pen(borderColor, _isHovered ? 2.5f : 1.5f))
-                {
-                    pen.LineJoin = LineJoin.Bevel;
-                    g.DrawPath(pen, path);
-                }
-
-                // 5. Tech Accents (Corner Brackets)
-                using (var pen = new Pen(borderColor, 3))
-                {
-                    int arm = 25;
-                    // Top Left
-                    g.DrawLine(pen, rect.Left + chamfer - 5, rect.Top, rect.Left + chamfer + arm, rect.Top);
-                    g.DrawLine(pen, rect.Left, rect.Top + chamfer - 5, rect.Left, rect.Top + chamfer + arm);
-                    
-                    // Bottom Right
-                    g.DrawLine(pen, rect.Right - chamfer + 5, rect.Bottom, rect.Right - chamfer - arm, rect.Bottom);
-                    g.DrawLine(pen, rect.Right, rect.Bottom - chamfer + 5, rect.Right, rect.Bottom - chamfer - arm);
-                }
-
-                // 6. Shimmer Effect (Alien Pulse)
-                if (shimmerPosition > -0.5f && shimmerPosition < 1.5f)
-                {
-                    float shimmerX = rect.Left + (rect.Width * shimmerPosition);
-                    // Draw a angled highlight moving across
-                    using (var shimmerBrush = new LinearGradientBrush(
-                        new PointF(shimmerX - 100, rect.Top),
-                        new PointF(shimmerX + 100, rect.Bottom),
-                        Color.Transparent,
-                        Color.Transparent))
+                    // Bright neon border on hover
+                    using (var pen = new Pen(statusColor, 2))
                     {
-                        ColorBlend blend = new ColorBlend();
-                        blend.Positions = new[] { 0.0f, 0.5f, 1.0f };
-                        blend.Colors = new[] { Color.Transparent, Color.FromArgb(100, borderColor), Color.Transparent };
-                        shimmerBrush.InterpolationColors = blend;
+                        g.DrawPath(pen, path);
+                    }
+                    
+                    // Outer Glow
+                    using (var pen = new Pen(Color.FromArgb(80, statusColor), 6))
+                    {
+                        pen.LineJoin = LineJoin.Round;
+                        g.DrawPath(pen, path);
+                    }
+                }
+                else
+                {
+                    // Semi-transparent border normally
+                    using (var pen = new Pen(Color.FromArgb(80, 80, 80, 90), 1))
+                    {
+                        g.DrawPath(pen, path);
+                    }
+                    
+                    // Corner accents (Alienware brackets)
+                    using (var pen = new Pen(statusColor, 2))
+                    {
+                        float cornerLen = 15;
+                        // Top Left Bracket
+                        g.DrawLine(pen, drawRect.Left + chamfer, drawRect.Top, drawRect.Left + chamfer + cornerLen, drawRect.Top);
+                        g.DrawLine(pen, drawRect.Left, drawRect.Top + chamfer, drawRect.Left, drawRect.Top + chamfer + cornerLen);
                         
-                        g.FillPath(shimmerBrush, path);
+                        // Bottom Right Bracket
+                        g.DrawLine(pen, drawRect.Right - chamfer, drawRect.Bottom, drawRect.Right - chamfer - cornerLen, drawRect.Bottom);
+                        g.DrawLine(pen, drawRect.Right, drawRect.Bottom - chamfer, drawRect.Right, drawRect.Bottom - chamfer - cornerLen);
                     }
                 }
             }
@@ -1096,7 +1091,7 @@ namespace SysBot.Pokemon.WinForms
             path.CloseFigure();
             
             // Alien Tech Button Style
-            var glowColor = buttonHovering ? Color.Cyan : Color.FromArgb(0, 150, 200);
+            var glowColor = buttonHovering ? Color.White : Color.Gray;
 
             // 1. Base (Deep Key Cap)
             using (var brush = new LinearGradientBrush(rect, 
