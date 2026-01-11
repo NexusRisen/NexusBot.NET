@@ -16,7 +16,7 @@ public class TradeQueueManager<T> where T : PKM, new()
     public readonly TradeQueueInfo<T> Info;
 
     public BatchTradeTracker<T> BatchTracker => BatchTradeTracker<T>.Instance;
-    private readonly PokeTradeHub<T> Hub;
+    public readonly PokeTradeHub<T> Hub;
 
     // Individual queues for different trade types
     private readonly PokeTradeQueue<T> Batch = new(PokeTradeType.Batch);
@@ -101,7 +101,7 @@ public class TradeQueueManager<T> where T : PKM, new()
         return true;
     }
 
-    public void CompleteTrade(PokeRoutineExecutorBase b, PokeTradeDetail<T> detail)
+    public void CompleteTrade(PokeTradeDetail<T> detail)
     {
         BatchTracker.CompleteBatchTrade(detail);
     }

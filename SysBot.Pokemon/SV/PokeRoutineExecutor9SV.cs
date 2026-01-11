@@ -10,15 +10,11 @@ using static SysBot.Pokemon.PokeDataOffsetsSV;
 
 namespace SysBot.Pokemon;
 
-public abstract class PokeRoutineExecutor9SV : PokeRoutineExecutor<PK9>
+public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineExecutor<PK9>(Config)
 {
     protected const int HidWaitTime = 46;
 
     protected const int KeyboardPressTime = 35;
-
-    protected PokeRoutineExecutor9SV(PokeBotState Config) : base(Config)
-    {
-    }
 
     protected PokeDataOffsetsSV Offsets { get; } = new();
 
@@ -37,7 +33,7 @@ public abstract class PokeRoutineExecutor9SV : PokeRoutineExecutor<PK9>
 
     public async Task CloseGame(PokeTradeHubConfig config, CancellationToken token)
     {
-        var timing = config.Global.Timings;
+        var timing = config.Timings;
 
         // Close out of the game
         await Click(B, 0_500, token).ConfigureAwait(false);
@@ -213,8 +209,9 @@ public abstract class PokeRoutineExecutor9SV : PokeRoutineExecutor<PK9>
 
     public async Task StartGame(PokeTradeHubConfig config, CancellationToken token)
     {
-        TimingSettings timing = config.Global.Timings;
-        int loadPro = timing.ProfileSelectionRequired ? timing.ExtraTimeLoadProfile : 0;
+        // Open game.
+        var timing = config.Timings;
+        var loadPro = timing.ProfileSelectionRequired ? timing.ExtraTimeLoadProfile : 0;
 
         // Menus here can go in the order: System Update Prompt -> Profile -> Checking if Game can be played (Digital Only) -> DLC check -> Unable to use DLC
         await Click(A, 1_000 + loadPro, token).ConfigureAwait(false); // Initial "A" Press to start the Game + a delay if needed for profiles to load
@@ -278,7 +275,7 @@ public abstract class PokeRoutineExecutor9SV : PokeRoutineExecutor<PK9>
         // Enter link code using directional arrows
         foreach (var key in TradeUtil.GetPresses(code))
         {
-            int delay = config.Global.Timings.KeypressTime;
+            int delay = config.Timings.KeypressTime;
             await Click(key, delay, token).ConfigureAwait(false);
         }
     }

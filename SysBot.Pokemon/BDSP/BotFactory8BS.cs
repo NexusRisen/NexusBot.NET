@@ -3,9 +3,9 @@ using System;
 
 namespace SysBot.Pokemon;
 
-public sealed class BotFactory8BS : BotFactory<PB8>
+public sealed class BotFactory8BS : BotFactory<PKHeX.Core.PB8>
 {
-    public override PokeRoutineExecutorBase CreateBot(PokeTradeHub<PB8> Hub, PokeBotState cfg) => cfg.NextRoutineType switch
+    public override PokeRoutineExecutorBase CreateBot(PokeTradeHub<PKHeX.Core.PB8> Hub, PokeBotState cfg) => cfg.NextRoutineType switch
     {
         PokeRoutineType.FlexTrade or PokeRoutineType.Idle
             or PokeRoutineType.LinkTrade
@@ -13,7 +13,7 @@ public sealed class BotFactory8BS : BotFactory<PB8>
             or PokeRoutineType.FixOT
             => new PokeTradeBotBS(Hub, cfg),
 
-        PokeRoutineType.RemoteControl => new RemoteControlBotBS(cfg),
+        PokeRoutineType.RemoteControl => new RemoteControlBotBS(cfg, Hub),
 
         _ => throw new ArgumentException(nameof(cfg.NextRoutineType)),
     };

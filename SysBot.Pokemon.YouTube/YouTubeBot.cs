@@ -12,7 +12,7 @@ namespace SysBot.Pokemon.YouTube;
 
 public class YouTubeBot<T> where T : PKM, new()
 {
-    private readonly PokeTradeHub<T> Hub;
+    public PokeTradeHub<T> Hub { get; }
 
     private readonly YouTubeSettings Settings;
 

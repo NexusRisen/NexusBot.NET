@@ -527,7 +527,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
                     poke.TradeFinished(this, received);
                 }
 
-                hub.Queues.CompleteTrade(this, startingDetail);
+                hub.Queues.CompleteTrade(startingDetail);
                 BatchTracker.ClearReceivedPokemon(originalTrainerID);
                 break;
             }
@@ -630,11 +630,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
         }
     }
 
-    private async Task DoSurpriseTrades(SAV8SWSH sav, CancellationToken token)
-    {
-        Log("Surprise Trade is disabled.");
-        await Task.Delay(1000, token).ConfigureAwait(false);
-    }
+
 
     private async Task<PokeTradeResult> PerformLinkCodeTrade(SAV8SWSH sav, PokeTradeDetail<PK8> poke, CancellationToken token)
     {
@@ -1142,11 +1138,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
         return PokeTradeResult.Success;
     }
 
-    private Task<PokeTradeResult> PerformSurpriseTrade(SAV8SWSH sav, PK8 pkm, CancellationToken token)
-    {
-        Log("Surprise Trade is disabled.");
-        return Task.FromResult(PokeTradeResult.RoutineCancel);
-    }
+
 
 
 
@@ -1297,11 +1289,7 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
         return data[0] == 1; // changes to 0 when found
     }
 
-    private async Task<bool> CheckIfSearchingForSurprisePartner(CancellationToken token)
-    {
-        var data = await Connection.ReadBytesAsync(SurpriseTradeSearchOffset, 8, token).ConfigureAwait(false);
-        return BitConverter.ToUInt32(data, 0) == SurpriseTradeSearch_Searching;
-    }
+
 
     private async Task<string> GetTradePartnerName(TradeMethod tradeMethod, CancellationToken token)
     {

@@ -33,7 +33,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
 
     public async Task CloseGame(PokeTradeHubConfig config, CancellationToken token)
     {
-        var timing = config.Global.Timings;
+        var timing = config.Timings;
 
         // Close out of the game
         await Click(B, 0_500, token).ConfigureAwait(false);
@@ -210,7 +210,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
 
         // Press it twice for safety -- sometimes misses it the first time.
         await Click(PLUS, 2_000, token).ConfigureAwait(false);
-        await Click(PLUS, 5_000 + config.Global.Timings.ExtraTimeConnectOnline, token).ConfigureAwait(false);
+        await Click(PLUS, 5_000 + config.Timings.ExtraTimeConnectOnline, token).ConfigureAwait(false);
 
         for (int i = 0; i < 5; i++)
         {
@@ -274,7 +274,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
     {
 
         // Open game.
-        var timing = config.Global.Timings;
+        var timing = config.Timings;
         var loadPro = timing.ProfileSelectionRequired ? timing.ExtraTimeLoadProfile : 0;
 
         await Click(A, 1_000 + loadPro, token).ConfigureAwait(false); // Initial "A" Press to start the Game + a delay if needed for profiles to load
@@ -345,7 +345,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
         // Default implementation to just press directional arrows. Can do via Hid keys, but users are slower than bots at even the default code entry.
         foreach (var key in TradeUtil.GetPresses(code))
         {
-            int delay = config.Global.Timings.KeypressTime;
+            int delay = config.Timings.KeypressTime;
             await Click(key, delay, token).ConfigureAwait(false);
         }
 

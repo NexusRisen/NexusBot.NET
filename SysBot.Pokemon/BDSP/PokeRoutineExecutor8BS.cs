@@ -10,12 +10,8 @@ using static SysBot.Pokemon.BasePokeDataOffsetsBS;
 
 namespace SysBot.Pokemon;
 
-public abstract class PokeRoutineExecutor8BS : PokeRoutineExecutor<PB8>
+public abstract class PokeRoutineExecutor8BS(PokeBotState Config) : PokeRoutineExecutor<PB8>(Config)
 {
-    protected PokeRoutineExecutor8BS(PokeBotState Config) : base(Config)
-    {
-    }
-
     protected IPokeDataOffsetsBS Offsets { get; private set; } = new PokeDataOffsetsBS_BD();
 
     public async Task<bool> CheckIfSoftBanned(ulong offset, CancellationToken token)
@@ -33,7 +29,7 @@ public abstract class PokeRoutineExecutor8BS : PokeRoutineExecutor<PB8>
 
     public async Task CloseGame(PokeTradeHubConfig config, CancellationToken token)
     {
-        var timing = config.Global.Timings;
+        var timing = config.Timings;
 
         // Close out of the game
         await Click(B, 0_500, token).ConfigureAwait(false);
@@ -188,7 +184,7 @@ public abstract class PokeRoutineExecutor8BS : PokeRoutineExecutor<PB8>
     {
 
         // Open game.
-        var timing = config.Global.Timings;
+        var timing = config.Timings;
         var loadPro = timing.ProfileSelectionRequired ? timing.ExtraTimeLoadProfile : 0;
 
         await Click(A, 1_000 + loadPro, token).ConfigureAwait(false); // Initial "A" Press to start the Game + a delay if needed for profiles to load
@@ -277,7 +273,7 @@ public abstract class PokeRoutineExecutor8BS : PokeRoutineExecutor<PB8>
         // Default implementation to just press directional arrows. Can do via Hid keys, but users are slower than bots at even the default code entry.
         foreach (var key in TradeUtil.GetPresses(code))
         {
-            int delay = config.Global.Timings.KeypressTime;
+            int delay = config.Timings.KeypressTime;
             await Click(key, delay, token).ConfigureAwait(false);
         }
 

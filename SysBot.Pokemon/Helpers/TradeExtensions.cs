@@ -250,7 +250,9 @@ public abstract class TradeExtensions<T> where T : PKM, new()
     {
         string sizeFolder;
         if (fullSize)
+        {
             sizeFolder = "512x512";
+        }
         else if (preferredImageSize.HasValue)
         {
             sizeFolder = preferredImageSize.Value switch
@@ -261,7 +263,9 @@ public abstract class TradeExtensions<T> where T : PKM, new()
             };
         }
         else
+        {
             sizeFolder = "256x256";
+        }
 
         bool md = false;
         bool fd = false;

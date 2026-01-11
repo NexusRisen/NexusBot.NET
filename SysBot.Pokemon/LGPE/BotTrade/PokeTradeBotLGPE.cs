@@ -18,6 +18,8 @@ namespace SysBot.Pokemon;
 
 public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : PokeRoutineExecutor7LGPE(Config), ICountBot, ITradeBot
 {
+    public PokeTradeHub<PB7> Hub { get; } = Hub;
+
     private readonly TradeSettings TradeSettings = Hub.Config.TradeSystem.Settings;
 
     public readonly TradeAbuseSettings AbuseSettings = Hub.Config.TradeSystem.Abuse;
@@ -407,7 +409,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
         Log("Waiting on Trade Screen...");
 
         await Task.Delay(5_000, token).ConfigureAwait(false);
-        var tradeResult = await ConfirmAndStartTrading(poke, 0, token);
+        var tradeResult = await ConfirmAndStartTrading(0, token);
         if (tradeResult != PokeTradeResult.Success)
         {
             if (tradeResult == PokeTradeResult.TrainerLeft)
@@ -483,7 +485,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
         }
     }
 
-    private async Task<PokeTradeResult> ConfirmAndStartTrading(PokeTradeDetail<PB7> detail, int slot, CancellationToken token)
+    private async Task<PokeTradeResult> ConfirmAndStartTrading(int slot, CancellationToken token)
     {
         // We'll keep watching B1S1 for a change to indicate a trade started -> should try quitting at that point.
         var oldEC = await Connection.ReadBytesAsync((uint)GetSlotOffset(0, slot), 8, token).ConfigureAwait(false);
@@ -653,7 +655,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
             await Task.Delay(10_000, token).ConfigureAwait(false);
             detail.SendNotification(this, "You have 5 seconds left to get to the trade screen to not break the trade");
             await Task.Delay(5_000, token);
-            var tradeResult = await ConfirmAndStartTrading(detail, clonelist.IndexOf(t), token);
+            var tradeResult = await ConfirmAndStartTrading(clonelist.IndexOf(t), token);
             if (tradeResult != PokeTradeResult.Success)
             {
                 if (tradeResult == PokeTradeResult.TrainerLeft)
@@ -700,7 +702,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
 
     private async Task EnterLinkCodeLG(PokeTradeDetail<PB7> poke, CancellationToken token)
     {
-        if (poke.LGPETradeCode == null || !poke.LGPETradeCode.Any())
+        if (poke.LGPETradeCode == null || poke.LGPETradeCode.Count == 0)
         {
             poke.LGPETradeCode = [Pictocodes.Pikachu, Pictocodes.Pikachu, Pictocodes.Pikachu];
             Log($"Using default trade code: {string.Join(", ", poke.LGPETradeCode)}");

@@ -19,7 +19,7 @@ namespace SysBot.Pokemon;
 // ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDisposable
 {
-    private readonly PokeTradeHub<PB8> Hub;
+    public readonly PokeTradeHub<PB8> Hub;
     private readonly TradeAbuseSettings AbuseSettings;
     private readonly FolderSettings DumpSetting;
     private readonly TradeSettings TradeSettings;
@@ -414,7 +414,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             return true;
 
         // Open y-comm and select global room
-        await Click(Y, 1_000 + Hub.Config.Global.Timings.ExtraTimeOpenYMenu, token).ConfigureAwait(false);
+        await Click(Y, 1_000 + Hub.Config.Timings.ExtraTimeOpenYMenu, token).ConfigureAwait(false);
         await Click(DRIGHT, 0_400, token).ConfigureAwait(false);
 
         // French has one less menu
@@ -495,7 +495,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 return false;
         }
 
-        await Task.Delay(1_300 + Hub.Config.Global.Timings.ExtraTimeJoinUnionRoom, token).ConfigureAwait(false);
+        await Task.Delay(1_300 + Hub.Config.Timings.ExtraTimeJoinUnionRoom, token).ConfigureAwait(false);
 
         return true; // We've made it into the room and are ready to request.
     }
@@ -556,7 +556,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 if (tries < 0)
                     return false;
             }
-            await Task.Delay(3_000 + Hub.Config.Global.Timings.ExtraTimeLeaveUnionRoom, token).ConfigureAwait(false);
+            await Task.Delay(3_000 + Hub.Config.Timings.ExtraTimeLeaveUnionRoom, token).ConfigureAwait(false);
         }
         return true;
     }
@@ -832,8 +832,8 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             {
                 if (e.StackTrace != null)
                     Connection.LogError(e.StackTrace);
-                var attempts = Hub.Config.Global.Timings.ReconnectAttempts;
-                var delay = Hub.Config.Global.Timings.ExtraReconnectDelay;
+                var attempts = Hub.Config.Timings.ReconnectAttempts;
+                var delay = Hub.Config.Timings.ExtraReconnectDelay;
                 var protocol = Config.Connection.Protocol;
                 if (!await TryReconnect(attempts, delay, protocol, token).ConfigureAwait(false))
                     return;
@@ -1465,7 +1465,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 }
 
                 // Mark the batch as fully completed and clean up
-                Hub.Queues.CompleteTrade(this, startingDetail);
+                Hub.Queues.CompleteTrade(startingDetail);
                 BatchTracker.ClearReceivedPokemon(originalTrainerID);
 
                 // Exit the trade state to prevent further searching

@@ -15,7 +15,7 @@ public abstract class EncounterBotSWSH : PokeRoutineExecutor8SWSH, IEncounterBot
 
     protected readonly byte[] BattleMenuReady = [0, 0, 0, 255];
 
-    protected readonly PokeTradeHub<PK8> Hub;
+    public PokeTradeHub<PK8> Hub { get; }
 
     protected int encounterCount;
 
@@ -26,7 +26,7 @@ public abstract class EncounterBotSWSH : PokeRoutineExecutor8SWSH, IEncounterBot
 
     private readonly int[] DesiredMinIVs;
 
-    private readonly IDumper DumpSetting;
+    private readonly FolderSettings DumpSetting;
 
     private readonly EncounterSettings Settings;
 

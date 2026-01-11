@@ -17,7 +17,8 @@ namespace SysBot.Pokemon.Twitch
     {
         internal static readonly List<TwitchQueue<T>> QueuePool = [];
 
-        private static PokeTradeHub<T> Hub = default!;
+        private static PokeTradeHub<T> _hub = default!;
+        public PokeTradeHub<T> Hub { get; }
 
         private readonly string Channel;
 
@@ -27,6 +28,7 @@ namespace SysBot.Pokemon.Twitch
 
         public TwitchBot(TwitchSettings settings, PokeTradeHub<T> hub)
         {
+            _hub = hub;
             Hub = hub;
             Settings = settings;
 
@@ -84,7 +86,7 @@ namespace SysBot.Pokemon.Twitch
             // Hub.Queues.Forwarders.Add((bot, detail) => client.SendMessage(Channel, $"{bot.Connection.Name} is now trading (ID {detail.ID}) {detail.Trainer.TrainerName}"));
         }
 
-        internal static TradeQueueInfo<T> Info => Hub.Queues.Info;
+        internal static TradeQueueInfo<T> Info => _hub.Queues.Info;
 
         public void StartingDistribution(string message)
         {

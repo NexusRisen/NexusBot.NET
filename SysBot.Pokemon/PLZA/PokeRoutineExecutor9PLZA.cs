@@ -33,7 +33,7 @@ public abstract class PokeRoutineExecutor9PLZA(PokeBotState Config) : PokeRoutin
 
     public async Task CloseGame(PokeTradeHubConfig config, CancellationToken token)
     {
-        var timing = config.Global.Timings;
+        var timing = config.Timings;
 
         await Click(B, 0_500, token).ConfigureAwait(false);
         await Click(HOME, 2_000 + timing.ExtraTimeReturnHome, token).ConfigureAwait(false);
@@ -274,7 +274,7 @@ public abstract class PokeRoutineExecutor9PLZA(PokeBotState Config) : PokeRoutin
 
     public async Task StartGame(PokeTradeHubConfig config, CancellationToken token)
     {
-        TimingSettings timing = config.Global.Timings;
+        TimingSettings timing = config.Timings;
         int loadPro = timing.ProfileSelectionRequired ? timing.ExtraTimeLoadProfile : 0;
 
         await Click(A, 1_000 + loadPro, token).ConfigureAwait(false);
@@ -335,7 +335,7 @@ public abstract class PokeRoutineExecutor9PLZA(PokeBotState Config) : PokeRoutin
 
         foreach (var key in TradeUtil.GetPresses(code))
         {
-            int delay = config.Global.Timings.KeypressTime;
+            int delay = config.Timings.KeypressTime;
             await Click(key, delay, token).ConfigureAwait(false);
         }
     }

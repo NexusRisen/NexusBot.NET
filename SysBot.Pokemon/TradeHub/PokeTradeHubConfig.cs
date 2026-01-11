@@ -23,4 +23,10 @@ public sealed class PokeTradeHubConfig
     [Category("Encounter System")]
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public EncounterSystemSettings EncounterSystem { get; set; } = new();
+
+    [Browsable(false)]
+    public TimingSettings Timings => Global.Timings;
+
+    [Browsable(false)]
+    public TradeSettings Trade => TradeSystem.Settings;
 }
