@@ -199,7 +199,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         Log($"Waiting for trainer... (Timeout: {maxWaitMs}ms)");
 
         // Initial delay to let the game populate NID pointer in memory
-        await Task.Delay(2_000, token).ConfigureAwait(false);
+        await Task.Delay(1_000, token).ConfigureAwait(false);
 
         // Verify connection status before waiting
         if (!await CheckIfConnectedOnline(token).ConfigureAwait(false))
@@ -208,7 +208,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             return TradePartnerWaitResult.KickedToMenu;
         }
 
-        int elapsed = 2_000;
+        int elapsed = 1_000;
 
         while (elapsed < maxWaitMs)
         {
@@ -231,8 +231,8 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 }
 
                 // We're in the box - wait a moment then validate the status pointer
-                await Task.Delay(1_000, token).ConfigureAwait(false);
-                elapsed += 1_000;
+                await Task.Delay(0_300, token).ConfigureAwait(false);
+                elapsed += 300;
 
                 // Set the offset for trade partner status monitoring
                 var (valid, statusOffset) = await ValidatePointerAll(Offsets.TradePartnerStatusPointer, token).ConfigureAwait(false);
@@ -257,16 +257,16 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 }
                 
                 Log("Wait task encountered a transient cancellation (likely USB/Connection timeout). Retrying...");
-                await Task.Delay(1_000, token).ConfigureAwait(false);
-                elapsed += 1_000;
+                await Task.Delay(0_250, token).ConfigureAwait(false);
+                elapsed += 250;
             }
             catch (Exception ex)
             {
                 Log($"Error in WaitForTradePartner loop: {ex.Message}");
                 // Don't throw, just retry loop unless critical?
                 // If it's a socket exception, it will likely persist, but let's let the loop handle timeout or next iteration fail
-                await Task.Delay(1_000, token).ConfigureAwait(false);
-                elapsed += 1_000;
+                await Task.Delay(0_250, token).ConfigureAwait(false);
+                elapsed += 250;
             }
         }
 
@@ -402,7 +402,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         var boxOffset = await GetBoxStartOffset(token).ConfigureAwait(false);
         var oldEC = await SwitchConnection.ReadBytesAbsoluteAsync(boxOffset, 8, token).ConfigureAwait(false);
 
-        await Click(A, 3_000, token).ConfigureAwait(false);
+        await Click(A, 1_500, token).ConfigureAwait(false);
 
         bool warningSent = false;
         int maxTime = Hub.Config.Trade.TradeConfiguration.MaxTradeConfirmTime;
@@ -417,7 +417,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 return PokeTradeResult.NoTrainerFound;
             }
 
-            await Click(A, 1_000, token).ConfigureAwait(false);
+            await Click(A, 0_300, token).ConfigureAwait(false);
 
             // Send warning 10 seconds before timeout
             if (!warningSent && i == maxTime - 10 && maxTime >= 10)
@@ -450,14 +450,14 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         if (!await CheckIfOnOverworld(token).ConfigureAwait(false))
             await RecoverToOverworld(token).ConfigureAwait(false);
 
-        await Click(X, 3_000, token).ConfigureAwait(false); // Load Menu
+        await Click(X, 1_500, token).ConfigureAwait(false); // Load Menu
 
-        await Click(DUP, 1_000, token).ConfigureAwait(false);
-        await Click(A, 2_000, token).ConfigureAwait(false);
-        await Click(DRIGHT, 1_000, token).ConfigureAwait(false);
-        await Click(DRIGHT, 1_000, token).ConfigureAwait(false);
+        await Click(DUP, 0_600, token).ConfigureAwait(false);
         await Click(A, 1_000, token).ConfigureAwait(false);
-        await Click(DRIGHT, 1_000, token).ConfigureAwait(false);
+        await Click(DRIGHT, 0_600, token).ConfigureAwait(false);
+        await Click(DRIGHT, 0_600, token).ConfigureAwait(false);
+        await Click(A, 0_600, token).ConfigureAwait(false);
+        await Click(DRIGHT, 0_600, token).ConfigureAwait(false);
 
         // Official SysBot.NET logic: Check connection and spam A until connected
         if (!await CheckIfConnectedOnline(token).ConfigureAwait(false))
@@ -495,12 +495,12 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         else
         {
              // If already connected, an extra click is needed to open the keypad (per official logic)
-             await Click(A, 0_500, token).ConfigureAwait(false);
+             await Click(A, 0_400, token).ConfigureAwait(false);
         }
 
         // Only need one more click to open the keypad.
-        await Click(A, 0_800, token).ConfigureAwait(false);
-        await Task.Delay(2_000, token).ConfigureAwait(false);
+        await Click(A, 0_400, token).ConfigureAwait(false);
+        await Task.Delay(1_000, token).ConfigureAwait(false);
 
         return true;
     }
@@ -554,13 +554,13 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         if (menuState == MenuState.InBox)
         {
             // Still in trade box - press B+A to disconnect
-            await Click(B, 0_500, token).ConfigureAwait(false);
-            await Click(A, 1_000, token).ConfigureAwait(false);
+            await Click(B, 0_300, token).ConfigureAwait(false);
+            await Click(A, 0_500, token).ConfigureAwait(false);
         }
         else
         {
             // Already kicked to menu - only press B to navigate back
-            await Click(B, 0_500, token).ConfigureAwait(false);
+            await Click(B, 0_300, token).ConfigureAwait(false);
         }
     }
 
@@ -591,16 +591,16 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 return;
             }
 
-            await Click(B, 1_000, token).ConfigureAwait(false);
+            await Click(B, 0_500, token).ConfigureAwait(false);
             if (await GetMenuState(token).ConfigureAwait(false) < MenuState.LinkTrade)
                 break;
 
             var box = await IsOnMenu(MenuState.InBox, token).ConfigureAwait(false);
-            await Click(box ? A : B, 1_000, token).ConfigureAwait(false);
+            await Click(box ? A : B, 0_500, token).ConfigureAwait(false);
             if (await GetMenuState(token).ConfigureAwait(false) < MenuState.LinkTrade)
                 break;
 
-            await Click(B, 1_000, token).ConfigureAwait(false);
+            await Click(B, 0_500, token).ConfigureAwait(false);
             if (await GetMenuState(token).ConfigureAwait(false) < MenuState.LinkTrade)
                 break;
             remainMs -= 3_000;
@@ -821,17 +821,17 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             if (currentTradeIndex > 0)
             {
                 poke.SendNotification(this, $"**Ready!** You can now offer your Pokémon for trade {currentTradeIndex + 1}/{totalBatchTrades}.");
-                await Task.Delay(2_000, token).ConfigureAwait(false);
+                await Task.Delay(1_500, token).ConfigureAwait(false);
             }
 
             // For first trade only - search for partner
             if (currentTradeIndex == 0)
             {
-                await Click(A, 0_500, token).ConfigureAwait(false);
-                await Click(A, 0_500, token).ConfigureAwait(false);
+                await Click(A, 0_300, token).ConfigureAwait(false);
+                await Click(A, 0_300, token).ConfigureAwait(false);
 
                 WaitAtBarrierIfApplicable(token);
-                await Click(A, 1_000, token).ConfigureAwait(false);
+                await Click(A, 0_500, token).ConfigureAwait(false);
 
                 poke.TradeSearching(this);
                 var partnerWaitResult = await WaitForTradePartner(token).ConfigureAwait(false);
@@ -882,7 +882,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 }
 
                 // Wait for trade UI and partner data to load
-                await Task.Delay(2_000, token).ConfigureAwait(false);
+                await Task.Delay(1_500, token).ConfigureAwait(false);
 
                 // Now that data has loaded, read partner info
                 var tradePartnerFullInfo = await GetTradePartnerFullInfo(token).ConfigureAwait(false);
@@ -934,7 +934,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                     toSend = await ApplyAutoOT(toSend, tradePartnerFullInfo, sav, token).ConfigureAwait(false);
                     poke.TradeData = toSend;
                     // Give game time to refresh trade offer display with AutoOT Pokemon
-                    await Task.Delay(3_000, token).ConfigureAwait(false);
+                    await Task.Delay(2_000, token).ConfigureAwait(false);
                 }
             }
 
@@ -1093,7 +1093,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             if (currentTradeIndex + 1 < totalBatchTrades)
             {
                 Log($"Ready for next trade ({currentTradeIndex + 2}/{totalBatchTrades})...");
-                await Task.Delay(2_000, token).ConfigureAwait(false);
+                await Task.Delay(1_500, token).ConfigureAwait(false);
             }
         }
 
@@ -1343,7 +1343,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         }
 
         // Wait for trade UI and partner data to load
-        await Task.Delay(5_000, token).ConfigureAwait(false);
+        await Task.Delay(3_000, token).ConfigureAwait(false);
             
             // Re-validate connection state to ensure we weren't disconnected during the wait
             if (!await CheckIfConnectedOnline(token).ConfigureAwait(false))
@@ -1385,7 +1385,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         var partnerCheck = CheckPartnerReputation(poke, trainerNID, tradePartner.TrainerName, AbuseSettings);
         if (partnerCheck != PokeTradeResult.Success)
         {
-            await Click(A, 1_000, token).ConfigureAwait(false);
+            await Click(A, 0_500, token).ConfigureAwait(false);
             await ExitTradeToOverworld(false, token).ConfigureAwait(false);
             return partnerCheck;
         }
@@ -1427,7 +1427,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         {
             toSend = await ApplyAutoOT(toSend, tradePartnerFullInfo, sav, token);
             // Give game time to refresh trade offer display with AutoOT Pokemon
-            await Task.Delay(3_000, token).ConfigureAwait(false);
+            await Task.Delay(2_000, token).ConfigureAwait(false);
         }
 
         SpecialTradeType itemReq = SpecialTradeType.None;
@@ -1552,11 +1552,11 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
         Log("Recovering...");
 
-        await Click(B, 1_500, token).ConfigureAwait(false);
+        await Click(B, 1_000, token).ConfigureAwait(false);
         if (await CheckIfOnOverworld(token).ConfigureAwait(false))
             return true;
 
-        await Click(A, 1_500, token).ConfigureAwait(false);
+        await Click(A, 1_000, token).ConfigureAwait(false);
         if (await CheckIfOnOverworld(token).ConfigureAwait(false))
             return true;
 
@@ -1567,11 +1567,11 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             if (attempts >= 30)
                 break;
 
-            await Click(B, 1_000, token).ConfigureAwait(false);
+            await Click(B, 0_500, token).ConfigureAwait(false);
             if (await CheckIfOnOverworld(token).ConfigureAwait(false))
                 break;
 
-            await Click(B, 1_000, token).ConfigureAwait(false);
+            await Click(B, 0_500, token).ConfigureAwait(false);
             if (await CheckIfOnOverworld(token).ConfigureAwait(false))
                 break;
         }

@@ -104,3 +104,5 @@ publish/
 temp_build/PKHeX-Plugins
 temp_build/PKHeX-Plugins
 temp_build/PKHeX-Plugins
+ReleaseNotes.md
+cribe --tags --abbrev=0
