@@ -1115,6 +1115,12 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             // All trades go through PerformLinkCodeTrade which will handle both regular and batch trades
             result = await PerformLinkCodeTrade(sav, detail, token).ConfigureAwait(false);
 
+            if (result == PokeTradeResult.RecoverStart || result == PokeTradeResult.ExceptionInternal)
+            {
+                Log($"Critical error encountered: {result}. Restarting game to recover...");
+                await RestartGamePLZA(token).ConfigureAwait(false);
+            }
+
             if (result != PokeTradeResult.Success)
             {
                 if (detail.Type == PokeTradeType.Batch)
@@ -1137,6 +1143,10 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         {
             Log(e.Message);
             result = PokeTradeResult.ExceptionInternal;
+            
+            Log($"Critical error encountered: {result}. Restarting game to recover...");
+            await RestartGamePLZA(token).ConfigureAwait(false);
+
             if (detail.Type == PokeTradeType.Batch)
                 await HandleAbortedBatchTrade(detail, type, priority, result, token).ConfigureAwait(false);
             else
