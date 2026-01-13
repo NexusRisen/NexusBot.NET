@@ -106,6 +106,7 @@ namespace SysBot.Pokemon.Helpers
             {
                 _activeBatches.TryRemove(key, out _);
                 _lastTradeTime.TryRemove(key, out _);
+                _receivedPokemon.TryRemove(key.TrainerId, out _);
             }
         }
 

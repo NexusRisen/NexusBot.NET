@@ -25,6 +25,8 @@ public class PokeDataOffsetsSV
 
     public IReadOnlyList<long> IsConnectedPointer { get; } = [0x4739648, 0x30];
 
+    public IReadOnlyList<long> KeyboardBufferPointer { get; } = [0x473B3A8, 0x30, 0x0];
+
     public IReadOnlyList<long> LinkTradePartnerNIDPointer { get; } = [0x475EA28, 0xF8, 0x8];
 
     public IReadOnlyList<long> LinkTradePartnerPokemonPointer { get; } = [0x473A110, 0x48, 0x58, 0x40, 0x148];

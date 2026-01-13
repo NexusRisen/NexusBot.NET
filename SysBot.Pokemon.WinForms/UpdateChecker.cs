@@ -21,7 +21,7 @@ namespace SysBot.Pokemon.WinForms
 
         private static HttpClient CreateGitHubClient()
         {
-            HttpClient client = new();
+            var client = new HttpClient();
             client.Timeout = TimeSpan.FromMinutes(5); // 5 minute timeout for slow connections
             client.DefaultRequestHeaders.Add("User-Agent", "PokeBot");
             // No auth token needed for public repo

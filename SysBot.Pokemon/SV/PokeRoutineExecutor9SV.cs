@@ -10,11 +10,15 @@ using static SysBot.Pokemon.PokeDataOffsetsSV;
 
 namespace SysBot.Pokemon;
 
-public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineExecutor<PK9>(Config)
+public abstract class PokeRoutineExecutor9SV : PokeRoutineExecutor<PK9>
 {
     protected const int HidWaitTime = 46;
 
-    protected const int KeyboardPressTime = 35;
+    protected const int KeyboardPressTime = 20;
+
+    protected PokeRoutineExecutor9SV(PokeBotState Config) : base(Config)
+    {
+    }
 
     protected PokeDataOffsetsSV Offsets { get; } = new();
 
@@ -209,9 +213,8 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
 
     public async Task StartGame(PokeTradeHubConfig config, CancellationToken token)
     {
-        // Open game.
-        var timing = config.Timings;
-        var loadPro = timing.ProfileSelectionRequired ? timing.ExtraTimeLoadProfile : 0;
+        TimingSettings timing = config.Timings;
+        int loadPro = timing.ProfileSelectionRequired ? timing.ExtraTimeLoadProfile : 0;
 
         // Menus here can go in the order: System Update Prompt -> Profile -> Checking if Game can be played (Digital Only) -> DLC check -> Unable to use DLC
         await Click(A, 1_000 + loadPro, token).ConfigureAwait(false); // Initial "A" Press to start the Game + a delay if needed for profiles to load
@@ -272,12 +275,13 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
 
     protected virtual async Task EnterLinkCode(int code, PokeTradeHubConfig config, CancellationToken token)
     {
-        // Enter link code using directional arrows
-        foreach (var key in TradeUtil.GetPresses(code))
-        {
-            int delay = config.Timings.KeypressTime;
-            await Click(key, delay, token).ConfigureAwait(false);
-        }
+        char[] codeChars = $"{code:00000000}".ToCharArray();
+        HidKeyboardKey[] keysToPress = new HidKeyboardKey[codeChars.Length];
+        for (int i = 0; i < codeChars.Length; ++i)
+            keysToPress[i] = (HidKeyboardKey)Enum.Parse(typeof(HidKeyboardKey), (int)codeChars[i] >= (int)'A' && (int)codeChars[i] <= (int)'Z' ? $"{codeChars[i]}" : $"D{codeChars[i]}");
+
+        await Connection.SendAsync(SwitchCommand.TypeMultipleKeys(keysToPress), token).ConfigureAwait(false);
+        await Task.Delay((HidWaitTime * 8) + 0_200, token).ConfigureAwait(false);
     }
 
     // Only used to check if we made it off the title screen; the pointer isn't viable until a few seconds after clicking A.
@@ -289,4 +293,3 @@ public abstract class PokeRoutineExecutor9SV(PokeBotState Config) : PokeRoutineE
         return await IsOnOverworld(offset, token).ConfigureAwait(false);
     }
 }
-
