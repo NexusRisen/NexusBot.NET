@@ -90,20 +90,35 @@ public static class AutoLegalityWrapper
         if (Directory.Exists(externalSource))
             TrainerSettings.LoadTrainerDatabaseFromPath(externalSource);
 
-        // Seed the Trainer Database with enough fake save files so that we return a generation sensitive format when needed.  
-        var fallback = GetDefaultTrainer(cfg);
+        // Seed the Trainer Database with enough fake save files so that we return a generation sensitive format when needed.
+        // Register fallback trainers for each language to prevent reverting to default language
         for (byte generation = 1; generation <= GameUtil.get_Generation(GameVersion.Gen9); generation++)
         {
             // Convert the byte generation into an EntityContext via a representative GameVersion for that generation
             var representativeVersion = GameUtil.GetVersion(generation);
             var context = GameUtil.GetContextFromSaved(representativeVersion);
             var versions = GameUtil.GetVersionsInGeneration(context, GameVersion.Any);
-            foreach (var version in versions)
-                RegisterIfNoneExist(fallback, generation, version);
+
+            // Register trainers for all supported languages
+            foreach (LanguageID language in Enum.GetValues(typeof(LanguageID)))
+            {
+                if (language == LanguageID.UNUSED_6) continue; // Skip unused language ID
+
+                var fallback = GetDefaultTrainerForLanguage(cfg, language);
+                foreach (var version in versions)
+                    RegisterIfNoneExist(fallback, generation, version);
+            }
         }
-        // Manually register for LGP/E since Gen7 above will only register the 3DS versions.  
-        RegisterIfNoneExist(fallback, 7, GameVersion.GP);
-        RegisterIfNoneExist(fallback, 7, GameVersion.GE);
+
+        // Manually register for LGP/E since Gen7 above will only register the 3DS versions.
+        foreach (LanguageID language in Enum.GetValues(typeof(LanguageID)))
+        {
+            if (language == LanguageID.UNUSED_6) continue;
+
+            var fallback = GetDefaultTrainerForLanguage(cfg, language);
+            RegisterIfNoneExist(fallback, 7, GameVersion.GP);
+            RegisterIfNoneExist(fallback, 7, GameVersion.GE);
+        }
     }
 
     private static SimpleTrainerInfo GetDefaultTrainer(LegalitySettings cfg)
@@ -114,6 +129,22 @@ public static class AutoLegalityWrapper
         var fallback = new SimpleTrainerInfo(GameVersion.Any)
         {
             Language = (byte)cfg.GenerateLanguage,
+            TID16 = cfg.GenerateTID16,
+            SID16 = cfg.GenerateSID16,
+            OT = OT,
+            Generation = 0,
+        };
+        return fallback;
+    }
+
+    private static SimpleTrainerInfo GetDefaultTrainerForLanguage(LegalitySettings cfg, LanguageID language)
+    {
+        var OT = cfg.GenerateOT;
+        if (OT.Length == 0)
+            OT = "Blank"; // Will fail if actually left blank.
+        var fallback = new SimpleTrainerInfo(GameVersion.Any)
+        {
+            Language = (byte)language,
             TID16 = cfg.GenerateTID16,
             SID16 = cfg.GenerateSID16,
             OT = OT,
