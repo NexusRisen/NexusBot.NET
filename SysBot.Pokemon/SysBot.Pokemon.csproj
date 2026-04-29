@@ -13,6 +13,9 @@
     <Reference Include="PKHeX.Core.AutoMod">
       <HintPath>deps\PKHeX.Core.AutoMod.dll</HintPath>
     </Reference>
+    <Reference Include="AutoModPlugins">
+      <HintPath>deps\AutoModPlugins.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>none</DebugType>
