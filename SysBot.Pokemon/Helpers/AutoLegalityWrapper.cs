@@ -134,6 +134,9 @@ public static class AutoLegalityWrapper
 
     private static void RegisterIfNoneExist(SimpleTrainerInfo fallback, byte generation, GameVersion version, EntityContext context)
     {
+        if (context == EntityContext.None)
+            return;
+
         var info = new SimpleTrainerInfo(version)
         {
             Language = fallback.Language,
