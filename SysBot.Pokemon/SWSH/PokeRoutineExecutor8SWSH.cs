@@ -236,11 +236,11 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
             pkm.UpdateHandler(sav);
             pkm.RefreshChecksum();
         }
-        var ofs = GetBoxSlotOffset(box, slot);
+        ulong ofs = GetBoxSlotOffset(box, slot);
         pkm.ResetPartyStats();
-        var data = new byte[pkm.SIZE_PARTY];
+        byte[] data = new byte[pkm.SIZE_PARTY];
         pkm.WriteEncryptedDataParty(data);
-        return Connection.WriteBytesAsync(data, ofs, token);
+        return SwitchConnection.WriteBytesAbsoluteAsync(data, ofs, token);
     }
 
     public Task SetCurrentBox(byte box, CancellationToken token)
@@ -251,8 +251,8 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
     public async Task SetTextSpeed(TextSpeedOption speed, CancellationToken token)
     {
         var textSpeedByte = await Connection.ReadBytesAsync(TextSpeedOffset, 1, token).ConfigureAwait(false);
-        var data = new[] { (byte)((textSpeedByte[0] & 0xFC) | (int)speed) };
-        await Connection.WriteBytesAsync(data, TextSpeedOffset, token).ConfigureAwait(false);
+        textSpeedByte[0] = (byte)((textSpeedByte[0] & 0xFC) | (int)speed);
+        await Connection.WriteBytesAsync(textSpeedByte, TextSpeedOffset, token).ConfigureAwait(false);
     }
 
     // Switches to box 1, then clears slot1 to prep fossil and egg bots.
@@ -338,7 +338,7 @@ public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutin
         // how long we are soft banned and once the soft ban is lifted
         // the game sets the value back to 0 (1970/01/01 12:00 AM (UTC))
         Log("Soft ban detected, unbanning.");
-        var data = BitConverter.GetBytes(0);
+        byte[] data = BitConverter.GetBytes(0);
         return Connection.WriteBytesAsync(data, SoftBanUnixTimespanOffset, token);
     }
 

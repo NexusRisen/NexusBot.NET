@@ -12,5 +12,6 @@
 - **Version Bump**: Updated all components and metadata to version 6.0.9.
 
 ### Fixed
+- **SWSH Memory Safety**: Fixed a critical bug in Sword & Shield routines where stack-allocated data could be corrupted during asynchronous box writing operations.
 - **Naming Ambiguity**: Resolved naming collisions between Discord and Kook configuration types to ensure stable source generation.
 - **Event Handling**: Standardized WebSocket message received signatures across platform integrations.
