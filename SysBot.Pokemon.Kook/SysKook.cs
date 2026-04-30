@@ -161,22 +161,39 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
     {
         if (message.Author.IsBot ?? false) return;
         
+        // 1. Channel Whitelist Check
+        if (!Manager.CanUseCommandChannel(message.Channel.Id)) return;
+
         var content = message.Content;
         var prefix = Hub.Config.Kook.CommandPrefix;
         
         if (!content.StartsWith(prefix)) return;
         
-        var cmd = content.Substring(prefix.Length).Split(' ')[0].ToLower();
+        var parts = content.Substring(prefix.Length).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return;
+        
+        var cmd = parts[0].ToLower();
         if (!_validCommands.Contains(cmd)) return;
 
-        // Basic command dispatching logic
-        // In a real implementation, we'd use a command framework or more structured approach
-        LogUtil.LogText($"Kook Command received: {cmd} from {message.Author.Username}");
+        // 2. Global Sudo Check (Example)
+        bool isSudo = Hub.Config.Kook.GlobalSudoList.Contains(message.Author.Id);
         
-        // Example response
+        LogUtil.LogText($"Kook Command received: {cmd} from {message.Author.Username} (Sudo: {isSudo})");
+        
+        // Example response with optional deletion
         if (cmd == "ts")
         {
-            await message.Channel.SendTextAsync($"Hello {message.Author.Username}, I am online!");
+            var response = await message.Channel.SendTextAsync($"Hello {message.Author.Username}, I am online!");
+            
+            // 3. Message Deletion Logic
+            if (Hub.Config.Kook.MessageDeletionEnabled && response != null)
+            {
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(Hub.Config.Kook.ErrorMessageDeleteDelaySeconds * 1000);
+                    try { await response.DeleteAsync(); } catch { }
+                });
+            }
         }
     }
 }
@@ -184,5 +201,10 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
 public class KookManager(KookSettings Config)
 {
     public readonly KookSettings Config = Config;
-    public bool CanUseCommandChannel(ulong channel) => (Config.ChannelWhitelist.List.Count == 0 && Config.ChannelWhitelist.AllowIfEmpty) || Config.ChannelWhitelist.Contains(channel);
+    public bool CanUseCommandChannel(ulong channelId) 
+    {
+        if (Config.ChannelWhitelist.List.Count == 0)
+            return Config.ChannelWhitelist.AllowIfEmpty;
+        return Config.ChannelWhitelist.Contains(channelId);
+    }
 }
