@@ -186,12 +186,17 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
             var response = await message.Channel.SendTextAsync($"Hello {message.Author.Username}, I am online!");
             
             // 3. Message Deletion Logic
-            if (Hub.Config.Kook.MessageDeletionEnabled && response != null)
+            if (Hub.Config.Kook.MessageDeletionEnabled)
             {
                 _ = Task.Run(async () =>
                 {
                     await Task.Delay(Hub.Config.Kook.ErrorMessageDeleteDelaySeconds * 1000);
-                    try { await response.DeleteAsync(); } catch { }
+                    try 
+                    { 
+                        var msg = await response.DownloadAsync();
+                        if (msg != null) await msg.DeleteAsync(); 
+                    } 
+                    catch { }
                 });
             }
         }
