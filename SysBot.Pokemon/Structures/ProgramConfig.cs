@@ -12,6 +12,7 @@ public class ProgramConfig : BotList<PokeBotState>
     public bool DarkMode { get; set; }
     public int Width { get; set; }
     public int Height { get; set; }
+    public string Language { get; set; } = "en";
 }
 
 public enum ProgramMode

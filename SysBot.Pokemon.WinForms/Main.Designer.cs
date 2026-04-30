@@ -33,11 +33,14 @@ namespace SysBot.Pokemon.WinForms
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
             P_Sidebar = new Panel();
-            B_Credits = new Button();
             B_HideTray = new Button();
+            B_Credits = new Button();
             B_NavLogs = new Button();
             B_NavHub = new Button();
             B_NavBots = new Button();
+            P_LangArea = new Panel();
+            CB_Language = new ComboBox();
+            L_Language = new Label();
             P_LogoArea = new Panel();
             PB_LogoSidebar = new PictureBox();
             P_Header = new Panel();
@@ -47,8 +50,8 @@ namespace SysBot.Pokemon.WinForms
             B_Stop = new Button();
             B_Start = new Button();
             P_Bottom = new Panel();
-            PB_Logo = new PictureBox();
             L_Version = new Label();
+            PB_Logo = new PictureBox();
             TC_Main = new TabControl();
             Tab_Bots = new TabPage();
             FLP_Bots = new FlowLayoutPanel();
@@ -75,6 +78,7 @@ namespace SysBot.Pokemon.WinForms
             L_CreditsMainTitle = new Label();
             PB_CreditsLogo = new PictureBox();
             P_Sidebar.SuspendLayout();
+            P_LangArea.SuspendLayout();
             P_LogoArea.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)PB_LogoSidebar).BeginInit();
             P_Header.SuspendLayout();
@@ -86,6 +90,8 @@ namespace SysBot.Pokemon.WinForms
             ((System.ComponentModel.ISupportInitialize)NUD_Port).BeginInit();
             Tab_Hub.SuspendLayout();
             Tab_Logs.SuspendLayout();
+            Tab_Credits.SuspendLayout();
+            P_CreditsContainer.SuspendLayout();
             SuspendLayout();
             // 
             // trayIcon
@@ -130,31 +136,13 @@ namespace SysBot.Pokemon.WinForms
             P_Sidebar.Controls.Add(B_NavLogs);
             P_Sidebar.Controls.Add(B_NavHub);
             P_Sidebar.Controls.Add(B_NavBots);
+            P_Sidebar.Controls.Add(P_LangArea);
             P_Sidebar.Controls.Add(P_LogoArea);
             P_Sidebar.Dock = DockStyle.Left;
             P_Sidebar.Location = new Point(0, 0);
             P_Sidebar.Name = "P_Sidebar";
-            P_Sidebar.Size = new Size(180, 561);
+            P_Sidebar.Size = new Size(180, 533);
             P_Sidebar.TabIndex = 0;
-            // 
-            // B_Credits
-            // 
-            B_Credits.Dock = DockStyle.Top;
-            B_Credits.FlatAppearance.BorderSize = 0;
-            B_Credits.FlatStyle = FlatStyle.Flat;
-            B_Credits.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold);
-            B_Credits.ForeColor = Color.Gainsboro;
-            B_Credits.ImageAlign = ContentAlignment.MiddleLeft;
-            B_Credits.Location = new Point(0, 220);
-            B_Credits.Name = "B_Credits";
-            B_Credits.Padding = new Padding(15, 0, 0, 0);
-            B_Credits.Size = new Size(180, 50);
-            B_Credits.TabIndex = 5;
-            B_Credits.Text = "  Credits";
-            B_Credits.TextAlign = ContentAlignment.MiddleLeft;
-            B_Credits.TextImageRelation = TextImageRelation.ImageBeforeText;
-            B_Credits.UseVisualStyleBackColor = true;
-            B_Credits.Click += B_Credits_Click;
             // 
             // B_HideTray
             // 
@@ -164,7 +152,7 @@ namespace SysBot.Pokemon.WinForms
             B_HideTray.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold);
             B_HideTray.ForeColor = Color.Gainsboro;
             B_HideTray.ImageAlign = ContentAlignment.MiddleLeft;
-            B_HideTray.Location = new Point(0, 270);
+            B_HideTray.Location = new Point(0, 335);
             B_HideTray.Name = "B_HideTray";
             B_HideTray.Padding = new Padding(15, 0, 0, 0);
             B_HideTray.Size = new Size(180, 50);
@@ -175,6 +163,25 @@ namespace SysBot.Pokemon.WinForms
             B_HideTray.UseVisualStyleBackColor = true;
             B_HideTray.Click += B_HideTray_Click;
             // 
+            // B_Credits
+            // 
+            B_Credits.Dock = DockStyle.Top;
+            B_Credits.FlatAppearance.BorderSize = 0;
+            B_Credits.FlatStyle = FlatStyle.Flat;
+            B_Credits.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold);
+            B_Credits.ForeColor = Color.Gainsboro;
+            B_Credits.ImageAlign = ContentAlignment.MiddleLeft;
+            B_Credits.Location = new Point(0, 285);
+            B_Credits.Name = "B_Credits";
+            B_Credits.Padding = new Padding(15, 0, 0, 0);
+            B_Credits.Size = new Size(180, 50);
+            B_Credits.TabIndex = 5;
+            B_Credits.Text = "  Credits";
+            B_Credits.TextAlign = ContentAlignment.MiddleLeft;
+            B_Credits.TextImageRelation = TextImageRelation.ImageBeforeText;
+            B_Credits.UseVisualStyleBackColor = true;
+            B_Credits.Click += B_Credits_Click;
+            // 
             // B_NavLogs
             // 
             B_NavLogs.Dock = DockStyle.Top;
@@ -184,7 +191,7 @@ namespace SysBot.Pokemon.WinForms
             B_NavLogs.ForeColor = Color.Gainsboro;
             B_NavLogs.Image = Resources.stop;
             B_NavLogs.ImageAlign = ContentAlignment.MiddleLeft;
-            B_NavLogs.Location = new Point(0, 170);
+            B_NavLogs.Location = new Point(0, 235);
             B_NavLogs.Name = "B_NavLogs";
             B_NavLogs.Padding = new Padding(15, 0, 0, 0);
             B_NavLogs.Size = new Size(180, 50);
@@ -204,7 +211,7 @@ namespace SysBot.Pokemon.WinForms
             B_NavHub.ForeColor = Color.Gainsboro;
             B_NavHub.Image = Resources.refresh;
             B_NavHub.ImageAlign = ContentAlignment.MiddleLeft;
-            B_NavHub.Location = new Point(0, 120);
+            B_NavHub.Location = new Point(0, 185);
             B_NavHub.Name = "B_NavHub";
             B_NavHub.Padding = new Padding(15, 0, 0, 0);
             B_NavHub.Size = new Size(180, 50);
@@ -224,7 +231,7 @@ namespace SysBot.Pokemon.WinForms
             B_NavBots.ForeColor = Color.Gainsboro;
             B_NavBots.Image = Resources.start;
             B_NavBots.ImageAlign = ContentAlignment.MiddleLeft;
-            B_NavBots.Location = new Point(0, 70);
+            B_NavBots.Location = new Point(0, 135);
             B_NavBots.Name = "B_NavBots";
             B_NavBots.Padding = new Padding(15, 0, 0, 0);
             B_NavBots.Size = new Size(180, 50);
@@ -234,6 +241,37 @@ namespace SysBot.Pokemon.WinForms
             B_NavBots.TextImageRelation = TextImageRelation.ImageBeforeText;
             B_NavBots.UseVisualStyleBackColor = true;
             B_NavBots.Click += B_NavBots_Click;
+            // 
+            // P_LangArea
+            // 
+            P_LangArea.Controls.Add(CB_Language);
+            P_LangArea.Controls.Add(L_Language);
+            P_LangArea.Dock = DockStyle.Top;
+            P_LangArea.Location = new Point(0, 70);
+            P_LangArea.Name = "P_LangArea";
+            P_LangArea.Size = new Size(180, 65);
+            P_LangArea.TabIndex = 6;
+            // 
+            // CB_Language
+            // 
+            CB_Language.DropDownStyle = ComboBoxStyle.DropDownList;
+            CB_Language.FlatStyle = FlatStyle.Flat;
+            CB_Language.FormattingEnabled = true;
+            CB_Language.Location = new Point(15, 30);
+            CB_Language.Name = "CB_Language";
+            CB_Language.Size = new Size(150, 23);
+            CB_Language.TabIndex = 1;
+            CB_Language.SelectedIndexChanged += CB_Language_SelectedIndexChanged;
+            // 
+            // L_Language
+            // 
+            L_Language.AutoSize = true;
+            L_Language.ForeColor = Color.Gainsboro;
+            L_Language.Location = new Point(15, 10);
+            L_Language.Name = "L_Language";
+            L_Language.Size = new Size(62, 15);
+            L_Language.TabIndex = 0;
+            L_Language.Text = "Language:";
             // 
             // P_LogoArea
             // 
@@ -344,34 +382,33 @@ namespace SysBot.Pokemon.WinForms
             // 
             // P_Bottom
             // 
-            P_Bottom.Controls.Add(PB_Logo);
             P_Bottom.Controls.Add(L_Version);
+            P_Bottom.Controls.Add(PB_Logo);
             P_Bottom.Dock = DockStyle.Bottom;
-            P_Bottom.Location = new Point(0, 511);
+            P_Bottom.Location = new Point(0, 533);
             P_Bottom.Name = "P_Bottom";
-            P_Bottom.Size = new Size(850, 50);
+            P_Bottom.Size = new Size(850, 28);
             P_Bottom.TabIndex = 2;
+            // 
+            // L_Version
+            // 
+            L_Version.AutoSize = true;
+            L_Version.Location = new Point(2, 6);
+            L_Version.Name = "L_Version";
+            L_Version.Size = new Size(82, 15);
+            L_Version.TabIndex = 0;
+            L_Version.Text = "DudeBot.NET";
             // 
             // PB_Logo
             // 
             PB_Logo.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             PB_Logo.Image = Resources.icon.ToBitmap();
-            PB_Logo.Location = new Point(803, 9);
+            PB_Logo.Location = new Point(820, 2);
             PB_Logo.Name = "PB_Logo";
-            PB_Logo.Size = new Size(32, 32);
+            PB_Logo.Size = new Size(24, 24);
             PB_Logo.SizeMode = PictureBoxSizeMode.Zoom;
             PB_Logo.TabIndex = 1;
             PB_Logo.TabStop = false;
-            // 
-            // L_Version
-            // 
-            L_Version.Anchor = AnchorStyles.Left;
-            L_Version.AutoSize = true;
-            L_Version.Location = new Point(15, 17);
-            L_Version.Name = "L_Version";
-            L_Version.Size = new Size(82, 15);
-            L_Version.TabIndex = 0;
-            L_Version.Text = "DudeBot.NET";
             // 
             // TC_Main
             // 
@@ -385,7 +422,7 @@ namespace SysBot.Pokemon.WinForms
             TC_Main.Location = new Point(180, 65);
             TC_Main.Name = "TC_Main";
             TC_Main.SelectedIndex = 0;
-            TC_Main.Size = new Size(670, 446);
+            TC_Main.Size = new Size(670, 468);
             TC_Main.SizeMode = TabSizeMode.Fixed;
             TC_Main.TabIndex = 3;
             // 
@@ -395,7 +432,7 @@ namespace SysBot.Pokemon.WinForms
             Tab_Bots.Controls.Add(P_AddBot);
             Tab_Bots.Location = new Point(4, 5);
             Tab_Bots.Name = "Tab_Bots";
-            Tab_Bots.Size = new Size(662, 442);
+            Tab_Bots.Size = new Size(662, 459);
             Tab_Bots.TabIndex = 0;
             Tab_Bots.Text = "Bots";
             Tab_Bots.UseVisualStyleBackColor = true;
@@ -407,7 +444,7 @@ namespace SysBot.Pokemon.WinForms
             FLP_Bots.Dock = DockStyle.Fill;
             FLP_Bots.Location = new Point(0, 50);
             FLP_Bots.Name = "FLP_Bots";
-            FLP_Bots.Size = new Size(662, 392);
+            FLP_Bots.Size = new Size(662, 409);
             FLP_Bots.TabIndex = 1;
             FLP_Bots.Resize += FLP_Bots_Resize;
             // 
@@ -511,7 +548,7 @@ namespace SysBot.Pokemon.WinForms
             Tab_Hub.Controls.Add(PG_Hub);
             Tab_Hub.Location = new Point(4, 5);
             Tab_Hub.Name = "Tab_Hub";
-            Tab_Hub.Size = new Size(662, 442);
+            Tab_Hub.Size = new Size(662, 457);
             Tab_Hub.TabIndex = 2;
             Tab_Hub.Text = "Hub";
             Tab_Hub.UseVisualStyleBackColor = true;
@@ -522,7 +559,7 @@ namespace SysBot.Pokemon.WinForms
             PG_Hub.Location = new Point(0, 0);
             PG_Hub.Name = "PG_Hub";
             PG_Hub.PropertySort = PropertySort.Categorized;
-            PG_Hub.Size = new Size(662, 442);
+            PG_Hub.Size = new Size(662, 457);
             PG_Hub.TabIndex = 0;
             // 
             // Tab_Logs
@@ -530,7 +567,7 @@ namespace SysBot.Pokemon.WinForms
             Tab_Logs.Controls.Add(RTB_Logs);
             Tab_Logs.Location = new Point(4, 5);
             Tab_Logs.Name = "Tab_Logs";
-            Tab_Logs.Size = new Size(662, 442);
+            Tab_Logs.Size = new Size(662, 457);
             Tab_Logs.TabIndex = 1;
             Tab_Logs.Text = "Logs";
             Tab_Logs.UseVisualStyleBackColor = true;
@@ -542,7 +579,7 @@ namespace SysBot.Pokemon.WinForms
             RTB_Logs.Location = new Point(0, 0);
             RTB_Logs.Name = "RTB_Logs";
             RTB_Logs.ReadOnly = true;
-            RTB_Logs.Size = new Size(662, 442);
+            RTB_Logs.Size = new Size(662, 457);
             RTB_Logs.TabIndex = 0;
             RTB_Logs.Text = "";
             // 
@@ -551,7 +588,7 @@ namespace SysBot.Pokemon.WinForms
             Tab_Credits.Controls.Add(P_CreditsContainer);
             Tab_Credits.Location = new Point(4, 5);
             Tab_Credits.Name = "Tab_Credits";
-            Tab_Credits.Size = new Size(662, 442);
+            Tab_Credits.Size = new Size(662, 457);
             Tab_Credits.TabIndex = 3;
             Tab_Credits.Text = "Credits";
             Tab_Credits.UseVisualStyleBackColor = true;
@@ -570,7 +607,7 @@ namespace SysBot.Pokemon.WinForms
             P_CreditsContainer.Dock = DockStyle.Fill;
             P_CreditsContainer.Location = new Point(0, 0);
             P_CreditsContainer.Name = "P_CreditsContainer";
-            P_CreditsContainer.Size = new Size(662, 442);
+            P_CreditsContainer.Size = new Size(662, 457);
             P_CreditsContainer.TabIndex = 0;
             // 
             // L_CreditsSpecialNames
@@ -678,6 +715,8 @@ namespace SysBot.Pokemon.WinForms
             Text = "SysBot: Pokémon";
             FormClosing += Main_FormClosing;
             P_Sidebar.ResumeLayout(false);
+            P_LangArea.ResumeLayout(false);
+            P_LangArea.PerformLayout();
             P_LogoArea.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)PB_LogoSidebar).EndInit();
             P_Header.ResumeLayout(false);
@@ -692,6 +731,8 @@ namespace SysBot.Pokemon.WinForms
             ((System.ComponentModel.ISupportInitialize)NUD_Port).EndInit();
             Tab_Hub.ResumeLayout(false);
             Tab_Logs.ResumeLayout(false);
+            Tab_Credits.ResumeLayout(false);
+            P_CreditsContainer.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -742,5 +783,8 @@ namespace SysBot.Pokemon.WinForms
         private System.Windows.Forms.ToolStripMenuItem trayExit;
         private System.Windows.Forms.Button B_HideTray;
         private System.Windows.Forms.Button B_Credits;
+        private System.Windows.Forms.Panel P_LangArea;
+        private System.Windows.Forms.Label L_Language;
+        private System.Windows.Forms.ComboBox CB_Language;
     }
 }

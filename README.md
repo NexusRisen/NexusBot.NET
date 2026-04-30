@@ -90,6 +90,9 @@ Full remote control and interaction support across multiple platforms:
 ### Bots Dashboard
 ![Bots](pictures/Bot.png)
 
+### Localization & Language
+![Language](pictures/Language.png)
+
 ### Settings Configuration
 ![Settings](pictures/Settings.png)
 

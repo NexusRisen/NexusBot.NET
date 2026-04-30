@@ -40,13 +40,13 @@ public partial class BotController : UserControl
         for (int i = 1; i < opt.Length; i++)
         {
             var cmd = opt[i];
-            var item = new ToolStripMenuItem(cmd.ToString());
+            var item = new ToolStripMenuItem(cmd.ToString()) { Tag = cmd };
             item.Click += (_, __) => SendCommand(cmd);
 
             RCMenu.Items.Add(item);
         }
 
-        var remove = new ToolStripMenuItem("Remove");
+        var remove = new ToolStripMenuItem("Remove") { Name = "Remove" };
         remove.Click += (_, __) => TryRemove();
         RCMenu.Items.Add(remove);
         RCMenu.Opening += RcMenuOnOpening;
@@ -56,6 +56,22 @@ public partial class BotController : UserControl
         {
             c.MouseEnter += BotController_MouseEnter;
             c.MouseLeave += BotController_MouseLeave;
+        }
+    }
+
+    public void TranslateMenu()
+    {
+        string lang = LogLocalizer.CurrentLanguage;
+        foreach (var item in RCMenu.Items.OfType<ToolStripMenuItem>())
+        {
+            if (item.Tag is BotControlCommand cmd)
+            {
+                item.Text = UILocalizer.Translate(cmd.ToString(), lang);
+            }
+            else if (item.Name == "Remove")
+            {
+                item.Text = UILocalizer.Translate("Remove", lang);
+            }
         }
     }
 
@@ -86,16 +102,38 @@ public partial class BotController : UserControl
 
     public void ReloadStatus()
     {
-        var bot = GetBot().Bot;
-        L_Left.Text = $"{bot.Connection.Name}{Environment.NewLine}{State.InitialRoutine}";
+        var botSource = GetBot();
+        string lang = LogLocalizer.CurrentLanguage;
+        string routineTranslated = UILocalizer.Translate(State.InitialRoutine.ToString(), lang);
+        
+        if (botSource == null)
+        {
+            string prefix = State.Connection.Protocol == SwitchProtocol.WiFi ? UILocalizer.Translate("IP Address", lang) : UILocalizer.Translate("Port", lang);
+            L_Left.Text = $"{prefix}: ---{Environment.NewLine}{routineTranslated}";
+            return;
+        }
+
+        var bot = botSource.Bot;
+        string namePrefix = State.Connection.Protocol == SwitchProtocol.WiFi ? UILocalizer.Translate("IP Address", lang) : UILocalizer.Translate("Port", lang);
+        L_Left.Text = $"{namePrefix}: {bot.Connection.Name}{Environment.NewLine}{routineTranslated}";
     }
 
-    public void ReloadStatus(BotSource<PokeBotState> b)
+    public void ReloadStatus(BotSource<PokeBotState>? b)
     {
-        ReloadStatus();
+        if (b == null)
+        {
+            ReloadStatus();
+            return;
+        }
+
         var bot = b.Bot;
-        L_Description.Text = $"[{bot.LastTime:hh:mm:ss}] {bot.Connection.Label}: {bot.LastLogged}";
-        L_Left.Text = $"{bot.Connection.Name}{Environment.NewLine}{State.InitialRoutine}";
+        string lang = LogLocalizer.CurrentLanguage;
+        string routineTranslated = UILocalizer.Translate(State.InitialRoutine.ToString(), lang);
+        string labelTranslated = UILocalizer.Translate(bot.Connection.Label, lang);
+        string namePrefix = State.Connection.Protocol == SwitchProtocol.WiFi ? UILocalizer.Translate("IP Address", lang) : UILocalizer.Translate("Port", lang);
+
+        L_Description.Text = $"[{bot.LastTime:hh:mm:ss}] {labelTranslated}: {LogLocalizer.Translate(bot.LastLogged)}";
+        L_Left.Text = $"{namePrefix}: {bot.Connection.Name}{Environment.NewLine}{routineTranslated}";
 
         var lastTime = bot.LastTime;
         if (!b.IsRunning)
@@ -152,11 +190,12 @@ public partial class BotController : UserControl
             return;
         }
         var bot = GetBot();
+        if (bot == null) return;
         switch (cmd)
         {
             case BotControlCommand.Idle: bot.Pause(); break;
             case BotControlCommand.Start:
-                Runner.InitializeStart();
+                Runner!.InitializeStart();
                 bot.Start(); break;
             case BotControlCommand.Stop: bot.Stop(); break;
             case BotControlCommand.RebootAndStop: bot.RebootAndStop(); break;
@@ -167,7 +206,7 @@ public partial class BotController : UserControl
                     if (prompt != DialogResult.Yes)
                         return;
 
-                    Runner.InitializeStart();
+                    Runner!.InitializeStart();
                     bot.Restart();
                     break;
                 }
@@ -180,7 +219,7 @@ public partial class BotController : UserControl
     public void TryRemove()
     {
         var bot = GetBot();
-        if (!Runner!.Config.SkipConsoleBotCreation)
+        if (bot != null && !Runner!.Config.SkipConsoleBotCreation)
             bot.Stop();
         Remove?.Invoke(this, EventArgs.Empty);
     }
@@ -197,15 +236,12 @@ public partial class BotController : UserControl
 
     private void BotController_MouseLeave(object? sender, EventArgs e) => BackColor = Color.Transparent;
 
-    private BotSource<PokeBotState> GetBot()
+    private BotSource<PokeBotState>? GetBot()
     {
         if (Runner == null)
-            throw new ArgumentNullException(nameof(Runner));
+            return null;
 
-        var bot = Runner.GetBot(State);
-        if (bot == null)
-            throw new ArgumentNullException(nameof(bot));
-        return bot;
+        return Runner.GetBot(State);
     }
 
     private void RcMenuOnOpening(object? sender, CancelEventArgs? e)

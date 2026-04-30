@@ -14,39 +14,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.ComponentModel;
 
+using SysBot.Pokemon;
+
 namespace SysBot.Pokemon.WinForms;
-
-/* 
-*** Thank You and Credits ***
-We would like to express our sincere gratitude to the following individuals and organizations for their invaluable contributions to this program:
-Main Developer:
-- Nexus Risen, Developer of DudeBot.NET
-
-Project Contributors:
-- Lusamine, Research & Data Analysis
-- Hexbyt3, Core Engine Enhancements
-- SantaCrab2, Auto-Legality Mod (ALM)
-
-Special Thanks To:
-- kwsch, Creator of SysBot.NET
-
-First and foremost, I appreciate the opportunity to have been part of this program.
-Understanding new concepts was challenging, but I’m grateful for the knowledge I gained.
-Contributors that truly made a difference with their dedication.
-Kindness and support from certain staff members did not go unnoticed.
-
-Your program’s structure helped me grow, even if the journey had its difficulties.
-Overall, I value the connections I made and the lessons learned along the way.
-Unwavering support.
-
-Despite the challenges, I recognize the effort put into this program’s curriculum.
-Every participant’s experience is unique, and I’m thankful for the good moments.
-Valuable skills were acquired, thanks to those who genuinely cared about student success.
-Reflecting on my time here, I appreciate the resilience it helped me build.
-You’ve contributed to my growth, and for that, I sincerely thank you.
-
-From the heart! 
-*/
 
 public sealed partial class Main : Form
 {
@@ -60,6 +30,7 @@ public sealed partial class Main : Form
     public static bool IsUpdating { get; set; } = false;
 
     private bool _isFormLoading = true;
+    private bool _isUpdatingUI;
 
 #pragma warning disable CS8618
 
@@ -76,21 +47,41 @@ public sealed partial class Main : Form
     {
         if (IsUpdating)
             return;
+        
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        LogUtil.LogInfo("Starting UI Initialization...", "Form");
+
         PokeTradeBotSWSH.SeedChecker = new Z3SeedSearchHandler<PK8>();
 
-        // Update checker
-        UpdateChecker updateChecker = new UpdateChecker();
-        var (updateAvailable, updateRequired, newVersion) = await UpdateChecker.CheckForUpdatesAsync();
-        if (updateAvailable)
+        // Run update check in background to not block UI loading
+        _ = Task.Run(async () =>
         {
-            UpdateForm updateForm = new UpdateForm(updateRequired, newVersion, updateAvailable: true);
-            updateForm.ShowDialog();
-        }
+            try
+            {
+                var (updateAvailable, updateRequired, newVersion) = await UpdateChecker.CheckForUpdatesAsync();
+                if (updateAvailable)
+                {
+                    BeginInvoke(() =>
+                    {
+                        UpdateForm updateForm = new UpdateForm(updateRequired, newVersion, updateAvailable: true);
+                        updateForm.ShowDialog();
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogError($"Update check failed: {ex.Message}", "Update");
+            }
+        });
 
         if (File.Exists(Program.ConfigPath))
         {
             var lines = File.ReadAllText(Program.ConfigPath);
             Config = JsonSerializer.Deserialize(lines, ProgramConfigContext.Default.ProgramConfig) ?? new ProgramConfig();
+            
+            LogLocalizer.CurrentLanguage = Config.Language;
+            LogUtil.MessageTranslator = LogLocalizer.Translate;
+
             LogConfig.MaxArchiveFiles = Config.Hub.MaxArchiveFiles;
             LogConfig.LoggingEnabled = Config.Hub.LoggingEnabled;
             CB_Mode.SelectedValue = (int)Config.Mode;
@@ -105,10 +96,15 @@ public sealed partial class Main : Form
         else
         {
             Config = new ProgramConfig();
+
+            LogLocalizer.CurrentLanguage = Config.Language;
+            LogUtil.MessageTranslator = LogLocalizer.Translate;
+
             RunningEnvironment = GetRunner(Config);
             Config.Hub.Folder.CreateDefaults(Program.WorkingDirectory);
             Config.Hub.Legality.CreateDefaults(Program.WorkingDirectory);
         }
+        LogUtil.LogInfo($"Config loaded and bots added: {sw.ElapsedMilliseconds}ms", "Form");
 
         // Create default folders if they do not exist even if a config file is present
         var dump = Config.Hub.Folder.DumpFolder;
@@ -126,12 +122,19 @@ public sealed partial class Main : Form
 
         RTB_Logs.MaxLength = 32_767; // character length
         LoadControls();
+        LogUtil.LogInfo($"Controls loaded: {sw.ElapsedMilliseconds}ms", "Form");
+
         Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "DudeBot.NET" : Config.Hub.BotName)} {DudeBot.Version} ({Config.Mode})";
         L_Version.Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "DudeBot.NET" : Config.Hub.BotName)} {DudeBot.Version}";
         _ = Task.Run(BotMonitor);
         InitUtil.InitializeStubs(Config.Mode);
-        _isFormLoading = false;
+        
+        UILocalizer.ApplyLocalization(this, Config.Language);
+        UpdateDropdownTranslations(Config.Language);
         UpdateBackgroundImage(Config.Mode);
+        
+        _isFormLoading = false;
+        LogUtil.LogInfo($"UI Initialization complete: {sw.ElapsedMilliseconds}ms", "Form");
     }
 
     private static IPokeBotRunner GetRunner(ProgramConfig cfg) => cfg.Mode switch
@@ -215,12 +218,75 @@ public sealed partial class Main : Form
             CB_Theme.SelectedItem = theme;  // Set the selected item in the combo box based on ThemeOption
         }
 
+        // Populate languages
+        var languages = new[]
+        {
+            new { Text = "English", Value = "en" },
+            new { Text = "中文 (简体)", Value = "zh-Hans" },
+            new { Text = "中文 (繁體)", Value = "zh-Hant" },
+            new { Text = "Français", Value = "fr" },
+            new { Text = "Deutsch", Value = "de" },
+            new { Text = "Русский", Value = "ru" },
+            new { Text = "Español", Value = "es" },
+            new { Text = "Italiano", Value = "it" },
+            new { Text = "日本語", Value = "ja" },
+            new { Text = "한국어", Value = "ko" }
+        };
+        CB_Language.DisplayMember = "Text";
+        CB_Language.ValueMember = "Value";
+        CB_Language.DataSource = languages;
+        CB_Language.SelectedValue = Config.Language;
+
         ThemeManager.ApplyTheme(this, CB_Theme.SelectedItem?.ToString() ?? "Dark Theme");
 
         LogUtil.Forwarders.RemoveAll(x => x is TextBoxForwarder);
         LogUtil.Forwarders.Add(new TextBoxForwarder(RTB_Logs));
 
         PB_CreditsLogo.Image = Resources.icon.ToBitmap();
+    }
+
+    private void UpdateDropdownTranslations(string lang)
+    {
+        _isUpdatingUI = true;
+        try
+        {
+            // Translate Routines
+            var routines = ((PokeRoutineType[])Enum.GetValues(typeof(PokeRoutineType))).Where(z => RunningEnvironment.SupportsRoutine(z));
+            var list = routines.Select(z => new ComboItem(UILocalizer.Translate(z.ToString(), lang), (int)z)).ToArray();
+            var selectedRoutine = CB_Routine.SelectedValue;
+            CB_Routine.DisplayMember = nameof(ComboItem.Text);
+            CB_Routine.ValueMember = nameof(ComboItem.Value);
+            CB_Routine.DataSource = list;
+            if (selectedRoutine != null) CB_Routine.SelectedValue = selectedRoutine;
+
+            // Translate Modes
+            var gameModes = Enum.GetValues(typeof(ProgramMode))
+                .Cast<ProgramMode>()
+                .Where(m => m != ProgramMode.None)
+                .Select(mode => new { Text = UILocalizer.Translate(mode.ToString(), lang), Value = (int)mode })
+                .ToList();
+            var selectedMode = CB_Mode.SelectedValue;
+            CB_Mode.DisplayMember = "Text";
+            CB_Mode.ValueMember = "Value";
+            CB_Mode.DataSource = gameModes;
+            if (selectedMode != null) CB_Mode.SelectedValue = selectedMode;
+
+            // Translate Themes
+            var selectedTheme = CB_Theme.SelectedItem?.ToString();
+            CB_Theme.Items.Clear();
+            foreach (var t in ThemeManager.AllThemes)
+            {
+                CB_Theme.Items.Add(UILocalizer.Translate(t.Name, lang));
+            }
+
+            string currentThemeRaw = Config.Hub.ThemeOption;
+            string currentThemeTranslated = UILocalizer.Translate(currentThemeRaw, lang);
+            CB_Theme.SelectedItem = currentThemeTranslated;
+        }
+        finally
+        {
+            _isUpdatingUI = false;
+        }
     }
 
     private ProgramConfig GetCurrentConfiguration()
@@ -233,19 +299,19 @@ public sealed partial class Main : Form
     private void B_NavBots_Click(object sender, EventArgs e)
     {
         TC_Main.SelectedIndex = 0;
-        L_Title.Text = "BOTS";
+        L_Title.Text = UILocalizer.Translate("Tab_Bots", Config.Language).ToUpper();
     }
 
     private void B_NavHub_Click(object sender, EventArgs e)
     {
         TC_Main.SelectedIndex = 1;
-        L_Title.Text = "SETTINGS";
+        L_Title.Text = UILocalizer.Translate("Tab_Hub", Config.Language).ToUpper();
     }
 
     private void B_NavLogs_Click(object sender, EventArgs e)
     {
         TC_Main.SelectedIndex = 2;
-        L_Title.Text = "LOGS";
+        L_Title.Text = UILocalizer.Translate("Tab_Logs", Config.Language).ToUpper();
     }
 
     private void Main_FormClosing(object sender, FormClosingEventArgs e)
@@ -309,17 +375,50 @@ public sealed partial class Main : Form
 
     private void CB_Mode_SelectedIndexChanged(object? sender, EventArgs e)
     {
-        if (_isFormLoading) return; // Check to avoid processing during form loading
+        if (_isFormLoading || _isUpdatingUI) return; // Check to avoid processing during form loading or UI updates
 
         if (CB_Mode.SelectedValue is int selectedValue)
         {
             ProgramMode newMode = (ProgramMode)selectedValue;
-            Config.Mode = newMode;
+            if (Config.Mode == newMode) return;
 
+            Config.Mode = newMode;
             SaveCurrentConfig();
             UpdateRunnerAndUI();
 
             UpdateBackgroundImage(newMode);
+            UpdateDropdownTranslations(Config.Language);
+        }
+    }
+
+    private void CB_Language_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        if (_isFormLoading || _isUpdatingUI) return;
+
+        if (CB_Language.SelectedValue is string lang)
+        {
+            Config.Language = lang;
+            LogLocalizer.CurrentLanguage = lang;
+            SaveCurrentConfig();
+            UILocalizer.ApplyLocalization(this, lang);
+            UpdateDropdownTranslations(lang);
+
+            // Refresh bot controls
+            foreach (var c in FLP_Bots.Controls.OfType<BotController>())
+            {
+                c.ReloadStatus();
+                c.TranslateMenu();
+            }
+
+            // Update title to match current tab language
+            L_Title.Text = TC_Main.SelectedIndex switch
+            {
+                0 => UILocalizer.Translate("Tab_Bots", lang).ToUpper(),
+                1 => UILocalizer.Translate("Tab_Hub", lang).ToUpper(),
+                2 => UILocalizer.Translate("Tab_Logs", lang).ToUpper(),
+                3 => UILocalizer.Translate("Tab_Credits", lang).ToUpper(),
+                _ => L_Title.Text
+            };
         }
     }
 
@@ -547,13 +646,24 @@ public sealed partial class Main : Form
     {
         if (sender is ComboBox comboBox)
         {
-            string? selectedTheme = comboBox.SelectedItem?.ToString();
-            if (selectedTheme == null) return;
+            string? selectedThemeTranslated = comboBox.SelectedItem?.ToString();
+            if (selectedThemeTranslated == null) return;
 
-            Config.Hub.ThemeOption = selectedTheme;
+            // Find the raw theme name back from the translated one
+            string rawTheme = "Dark Theme";
+            foreach (var t in ThemeManager.AllThemes)
+            {
+                if (UILocalizer.Translate(t.Name, Config.Language) == selectedThemeTranslated)
+                {
+                    rawTheme = t.Name;
+                    break;
+                }
+            }
+
+            Config.Hub.ThemeOption = rawTheme;
             SaveCurrentConfig();
 
-            ThemeManager.ApplyTheme(this, selectedTheme);
+            ThemeManager.ApplyTheme(this, rawTheme);
         }
     }
 
@@ -593,6 +703,6 @@ public sealed partial class Main : Form
     private void B_Credits_Click(object sender, EventArgs e)
     {
         TC_Main.SelectedIndex = 3;
-        L_Title.Text = "CREDITS";
+        L_Title.Text = UILocalizer.Translate("Tab_Credits", Config.Language).ToUpper();
     }
 }

@@ -1,19 +1,12 @@
 # Release Notes
 
-## [v6.0.9] - 2026-04-29
+## [v6.1.0] - 2026-04-30
 
 ### Added
-- **Kook Platform Integration**: Introduced native support for the Kook communication platform, tailored for the Chinese Pokémon community.
-- **SysBot.Pokemon.Kook**: A dedicated project for Kook bot implementation utilizing the `Kook.Net` library.
-- **Kook LGPE Picto Codes**: Full support for *Let's Go Pikachu & Eevee* Picto Codes on Kook, featuring visual card notifications with generated sprite images.
-- **Cross-Platform Commands**: Standard trade and management commands are now accessible via Kook channels.
-
-### Changed
-- **Shared Utilities**: Refactored `PictocodeConverter` into a shared utility to provide unified Picto Code logic for both Discord and Kook.
-- **Multi-Platform Architecture**: Refactored bot initialization to support concurrent integrations (Discord, Kook, Twitch, YouTube).
-- **Version Bump**: Updated all components and metadata to version 6.0.9.
+- **Localization Improvements**: Added comprehensive English translation dictionary and updated translation logic to ensure stable language switching.
+- **Log Localization**: Expanded the log translation engine to support common bot activity messages and status updates across all supported languages.
+- **Status Localization**: Bot runner status and IP/Port labels are now correctly translated based on the selected language.
 
 ### Fixed
-- **SWSH Memory Safety**: Fixed a critical bug in Sword & Shield routines where stack-allocated data could be corrupted during asynchronous box writing operations.
-- **Naming Ambiguity**: Resolved naming collisions between Discord and Kook configuration types to ensure stable source generation.
-- **Event Handling**: Standardized WebSocket message received signatures across platform integrations.
+- **UI Stability**: Fixed a critical freeze issue when switching between Program Game Modes caused by event re-entrancy.
+- **English Language Persistence**: Resolved an issue where the UI would not fully revert to English when switching back from other languages.

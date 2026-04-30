@@ -19,6 +19,11 @@ public static class LogUtil
     // hook in here if you want to forward the message elsewhere
     public static readonly List<ILogForwarder> Forwarders = [];
 
+    /// <summary>
+    /// Optional hook to translate or modify log messages before they are processed.
+    /// </summary>
+    public static Func<string, string>? MessageTranslator { get; set; }
+
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     // Cache of per-bot loggers to avoid recreating them
@@ -181,6 +186,7 @@ public static class LogUtil
 
     public static void LogError(string identity, string message)
     {
+        if (MessageTranslator != null) message = MessageTranslator(message);
         // Log to master log
         if (LogConfig.EnableMasterLog)
             Logger.Log(LogLevel.Error, $"{identity} {message}");
@@ -215,6 +221,7 @@ public static class LogUtil
 
     public static void LogInfo(string identity, string message)
     {
+        if (MessageTranslator != null) message = MessageTranslator(message);
         // Log to master log
         if (LogConfig.EnableMasterLog)
             Logger.Log(LogLevel.Info, $"{identity} {message}");
@@ -249,12 +256,14 @@ public static class LogUtil
 
     public static void LogGeneric(string message, string identity)
     {
+        if (MessageTranslator != null) message = MessageTranslator(message);
         Logger.Log(NLog.LogLevel.Info, $"{identity} {message}");
         Log(message, identity);
     }
 
     public static void LogSuspicious(string identity, string message)
     {
+        if (MessageTranslator != null) message = MessageTranslator(message);
         // Log to master log
         if (LogConfig.EnableMasterLog)
             Logger.Log(LogLevel.Warn, $"[SECURITY] {identity} {message}");
@@ -279,6 +288,9 @@ public static class LogUtil
 
     public static void LogSafe(Exception exception, string identity)
     {
+        // Exception messages are harder to translate accurately as they are system-generated
+        // We log them as-is for debugging precision.
+        
         // Log to master log
         if (LogConfig.EnableMasterLog)
         {
@@ -310,7 +322,11 @@ public static class LogUtil
         }
     }
 
-    public static void LogText(string message) => Logger.Log(LogLevel.Info, message);
+    public static void LogText(string message)
+    {
+        if (MessageTranslator != null) message = MessageTranslator(message);
+        Logger.Log(LogLevel.Info, message);
+    }
 
     /// <summary>
     /// Clears the per-bot logger cache for a specific bot (useful when a bot disconnects)
