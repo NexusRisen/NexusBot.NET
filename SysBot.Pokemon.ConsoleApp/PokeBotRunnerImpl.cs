@@ -1,5 +1,6 @@
 using PKHeX.Core;
 using SysBot.Pokemon.Discord;
+using SysBot.Pokemon.Kook;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,6 +21,7 @@ public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
     protected override void AddIntegrations()
     {
         AddDiscordBot(Hub.Config.Discord);
+        AddKookBot(Hub.Config.Kook);
     }
 
     private void AddDiscordBot(DiscordSettings config)
@@ -29,6 +31,17 @@ public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
             return;
 
         var bot = new SysCord<T>(this, _config);
+        Integrations.Add(bot);
+        Task.Run(() => bot.MainAsync(token, IntegrationTokenSource.Token), IntegrationTokenSource.Token);
+    }
+
+    private void AddKookBot(KookSettings config)
+    {
+        var token = config.Token;
+        if (string.IsNullOrWhiteSpace(token))
+            return;
+
+        var bot = new SysKook<T>(this, _config);
         Integrations.Add(bot);
         Task.Run(() => bot.MainAsync(token, IntegrationTokenSource.Token), IntegrationTokenSource.Token);
     }

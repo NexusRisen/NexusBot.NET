@@ -53,6 +53,13 @@ Automated trading and encounter bots for all modern Nintendo Switch Pokémon tit
 - **Pokémon Sword & Shield (SWSH)**: Comprehensive support for all distribution types.
 - **Pokémon Let's Go, Pikachu! & Eevee! (LGPE)**: Legacy support for Kanto-based distributions.
 
+### 🌐 Multi-Platform Integrations
+Full remote control and interaction support across multiple platforms:
+- **Discord Integration**: Comprehensive interface for remote interaction, queue management, and visual trade reports using [Discord.Net](https://github.com/discord-net/Discord.Net).
+- **Kook Integration**: Native support for the Kook platform (KaiHeiLa), providing a familiar interface for the Chinese community using [Kook.Net](https://github.com/gehongyan/Kook.Net).
+- **Twitch Integration**: Automated queue management and interaction for live streamers via [TwitchLib](https://github.com/TwitchLib/TwitchLib).
+- **YouTube Integration**: Direct interaction with YouTube Live chat for automated distribution using [Google.Apis.YouTube.v3](https://github.com/googleapis/google-api-dotnet-client).
+
 ### 🌐 Universal Translation Engine
 - **Global Support**: Full auto-detection and translation for Japanese, French, Italian, German, Spanish, Korean, and Chinese (Simplified/Traditional).
 - **High-Performance Caching**: Implemented a thread-safe `ConcurrentDictionary` cache for species and moves across all languages, making translations near-instant.
