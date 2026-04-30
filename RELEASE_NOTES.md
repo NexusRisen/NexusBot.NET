@@ -5,9 +5,11 @@
 ### Added
 - **Kook Platform Integration**: Introduced native support for the Kook communication platform, tailored for the Chinese Pokémon community.
 - **SysBot.Pokemon.Kook**: A dedicated project for Kook bot implementation utilizing the `Kook.Net` library.
+- **Kook LGPE Picto Codes**: Full support for *Let's Go Pikachu & Eevee* Picto Codes on Kook, featuring visual card notifications with generated sprite images.
 - **Cross-Platform Commands**: Standard trade and management commands are now accessible via Kook channels.
 
 ### Changed
+- **Shared Utilities**: Refactored `PictocodeConverter` into a shared utility to provide unified Picto Code logic for both Discord and Kook.
 - **Multi-Platform Architecture**: Refactored bot initialization to support concurrent integrations (Discord, Kook, Twitch, YouTube).
 - **Version Bump**: Updated all components and metadata to version 6.0.9.
 
