@@ -45,6 +45,7 @@ Thanks to these wonderful people:
 ## 🌟 Key Features
 
 ### 🎮 Multi-Game Support
+![Bots](pictures/Bot.png)
 Automated trading and encounter bots for all modern Nintendo Switch Pokémon titles:
 - **Pokémon Legends: Z-A (PLZA)**: Full support for the latest generation.
 - **Pokémon Scarlet & Violet (SV)**: Including Tera Type handling and Scale information.
@@ -61,11 +62,13 @@ Full remote control and interaction support across multiple platforms:
 - **YouTube Integration**: Direct interaction with YouTube Live chat for automated distribution using [Google.Apis.YouTube.v3](https://github.com/googleapis/google-api-dotnet-client).
 
 ### 🌐 Universal Translation Engine
+![Language](pictures/Language.png)
 - **Global Support**: Full auto-detection and translation for Japanese, French, Italian, German, Spanish, Korean, and Chinese (Simplified/Traditional).
 - **High-Performance Caching**: Implemented a thread-safe `ConcurrentDictionary` cache for species and moves across all languages, making translations near-instant.
 - **Comprehensive Dictionaries**: Updated language-specific keywords for items, genders, shiny status, stats, and regional forms.
 
 ### 🤖 Automation & Intelligence
+![Settings](pictures/Settings.png)
 - **Auto-Legality Mod (ALM)**: Integrated on-the-fly legalization ensures all distributed Pokémon meet strict legality standards.
 - **High-Performance Logic**: BDSP trade routines refactored with `Span<byte>` and `MemoryMarshal` for maximum speed and zero-allocation memory management.
 - **Async Modernization**: Fully non-blocking batch trade sequences using `Task`-based operations.
