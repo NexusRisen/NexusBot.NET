@@ -180,12 +180,9 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         
         LogUtil.LogText($"Kook Command received: {cmd} from {message.Author.Username} (Sudo: {isSudo})");
         
-        // Example response with optional deletion
         if (cmd == "ts")
         {
             var response = await message.Channel.SendTextAsync($"Hello {message.Author.Username}, I am online!");
-            
-            // 3. Message Deletion Logic
             if (Hub.Config.Kook.MessageDeletionEnabled)
             {
                 _ = Task.Run(async () =>
@@ -199,7 +196,65 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
                     catch { }
                 });
             }
+            return;
         }
+
+        if (cmd == "trade" || cmd == "t")
+        {
+            await HandleTradeCommandAsync(message, parts.Skip(1).ToList());
+        }
+    }
+
+    private async Task HandleTradeCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (args.Count == 0)
+        {
+            await message.Channel.SendTextAsync("Please provide a Showdown set or a trade code.");
+            return;
+        }
+
+        // Detect LGPE Picto Codes
+        List<Pictocodes>? lgCode = null;
+        int code = 0;
+        string showdownSet = string.Empty;
+
+        if (args.Count >= 3)
+        {
+            var potentialLgCode = PictocodeConverter.ConvertFromStrings(args.Take(3).ToList());
+            if (potentialLgCode.Count == 3)
+            {
+                lgCode = potentialLgCode;
+                showdownSet = string.Join("\n", args.Skip(3));
+            }
+        }
+
+        if (lgCode == null)
+        {
+            if (int.TryParse(args[0], out code))
+            {
+                showdownSet = string.Join("\n", args.Skip(1));
+            }
+            else
+            {
+                code = Hub.Queues.Info.GetRandomTradeCode(message.Author.Id);
+                showdownSet = string.Join("\n", args);
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(showdownSet))
+        {
+            await message.Channel.SendTextAsync("Please provide a Showdown set.");
+            return;
+        }
+
+        var pk = await KookHelper<T>.ProcessShowdownSetAsync(showdownSet);
+        if (pk == null)
+        {
+            await message.Channel.SendTextAsync("Oops! I couldn't parse that Showdown set.");
+            return;
+        }
+
+        await KookHelper<T>.AddToQueueAsync(message, code, message.Author.Username, pk, message.Author, _client, lgCode);
     }
 }
 

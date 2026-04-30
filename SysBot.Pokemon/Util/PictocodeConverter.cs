@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SysBot.Pokemon.Discord
+namespace SysBot.Pokemon
 {
     public static class PictocodeConverter
     {
