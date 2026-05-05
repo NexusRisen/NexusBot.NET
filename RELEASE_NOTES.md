@@ -1,8 +1,8 @@
 # Release Notes
 
-## [v6.1.1] - 2026-05-03
+## [v6.1.2] - 2026-05-05
 
 ### Changed
+- **Security**: Updated `SECURITY.md` for better clarity and compliance.
 - **Dependency Updates**: Updated core libraries to their latest versions for improved stability and performance.
-  - `Kook.Net` updated to **0.11.0**.
-  - `Google.Apis` family (Core, Auth, and YouTube v3) updated to **1.74.0** / **1.73.0.4134**.
+  - `NLog` updated to **6.1.3**.
