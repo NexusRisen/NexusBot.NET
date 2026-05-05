@@ -35,6 +35,8 @@ Thanks to these wonderful people:
   <tr>
     <td align="center"><a href="https://github.com/Secludedly"><img src="https://github.com/Secludedly.png" width="100px;" alt=""/><br /><sub><b>Secludedly</b></sub></a><br /><a href="#code" title="Code">💻</a> <a href="#maintenance" title="Maintenance">🚧</a></td>
     <td align="center"><a href="https://github.com/santacrab2"><img src="https://github.com/santacrab2.png" width="100px;" alt=""/><br /><sub><b>SantaCrab2</b></sub></a><br /><a href="#code" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/link2026"><img src="https://github.com/link2026.png" width="100px;" alt=""/><br /><sub><b>Link</b></sub></a><br /><a href="#design" title="Design">🎨</a></td>
+    <td align="center"><a href="https://github.com/Havokx89"><img src="https://github.com/Havokx89.png" width="100px;" alt=""/><br /><sub><b>Havok</b></sub></a><br /><a href="#design" title="Design">🎨</a></td>
   </tr>
 </table>
 
@@ -143,6 +145,8 @@ See the full list of [Contributors](CONTRIBUTORS).
 - **Hexbyt3** - Core Engine Enhancements
 - **Secludedly** - Medals, Refactoring & Feature Enhancements
 - **SantaCrab2** - Auto-Legality Mod (ALM)
+- **[Link](https://github.com/link2026)** - Graphics & Design (Images and Logo)
+- **[Havok](https://github.com/Havokx89)** - Graphics & Design (Images and Logo)
 
 ---
 
