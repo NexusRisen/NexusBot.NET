@@ -57,6 +57,10 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
                 tradeBot.ConnectionSuccess += OnBotConnectionSuccess;
             }
         }
+
+        runner.BotAdded += OnBotAdded;
+        runner.BotRemoved += OnBotRemoved;
+
         SysKookSettings.Manager = Manager;
         SysKookSettings.HubConfig = Hub.Config;
 
@@ -74,7 +78,27 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
             return Task.CompletedTask;
         };
 
-        _client.MessageReceived += (msg, author, channel) => HandleMessageAsync(msg);
+        _client.MessageReceived += OnMessageReceived;
+    }
+
+    private Task OnMessageReceived(SocketMessage msg, SocketUser author, ISocketMessageChannel channel) => HandleMessageAsync(msg);
+
+    private void OnBotAdded(object? sender, PokeRoutineExecutorBase b)
+    {
+        if (b is ITradeBot tradeBot)
+        {
+            tradeBot.ConnectionError += OnBotConnectionError;
+            tradeBot.ConnectionSuccess += OnBotConnectionSuccess;
+        }
+    }
+
+    private void OnBotRemoved(object? sender, PokeRoutineExecutorBase b)
+    {
+        if (b is ITradeBot tradeBot)
+        {
+            tradeBot.ConnectionError -= OnBotConnectionError;
+            tradeBot.ConnectionSuccess -= OnBotConnectionSuccess;
+        }
     }
 
     private void OnBotConnectionError(object? sender, Exception ex) => Task.Run(HandleBotStop);
@@ -89,14 +113,19 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         _cts.Dispose();
 
         _client.Log -= Log;
-        _client.MessageReceived -= (msg, author, channel) => HandleMessageAsync(msg);
+        _client.MessageReceived -= OnMessageReceived;
 
-        foreach (var bot in Runner.Hub.Bots.ToArray())
+        if (Runner != null)
         {
-            if (bot is ITradeBot tradeBot)
+            Runner.BotAdded -= OnBotAdded;
+            Runner.BotRemoved -= OnBotRemoved;
+            foreach (var bot in Runner.Hub.Bots.ToArray())
             {
-                tradeBot.ConnectionError -= OnBotConnectionError;
-                tradeBot.ConnectionSuccess -= OnBotConnectionSuccess;
+                if (bot is ITradeBot tradeBot)
+                {
+                    tradeBot.ConnectionError -= OnBotConnectionError;
+                    tradeBot.ConnectionSuccess -= OnBotConnectionSuccess;
+                }
             }
         }
 

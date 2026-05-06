@@ -64,6 +64,10 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                 tradeBot.ConnectionSuccess += OnBotConnectionSuccess;
             }
         }
+        
+        runner.BotAdded += OnBotAdded;
+        runner.BotRemoved += OnBotRemoved;
+
         SysCordSettings.Manager = Manager;
         SysCordSettings.HubConfig = Hub.Config;
 
@@ -123,6 +127,24 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
     private void OnBotConnectionError(object? sender, Exception ex) => Task.Run(HandleBotStop);
     private void OnBotConnectionSuccess(object? sender, EventArgs e) => Task.Run(HandleBotStart);
 
+    private void OnBotAdded(object? sender, PokeRoutineExecutorBase b)
+    {
+        if (b is ITradeBot tradeBot)
+        {
+            tradeBot.ConnectionError += OnBotConnectionError;
+            tradeBot.ConnectionSuccess += OnBotConnectionSuccess;
+        }
+    }
+
+    private void OnBotRemoved(object? sender, PokeRoutineExecutorBase b)
+    {
+        if (b is ITradeBot tradeBot)
+        {
+            tradeBot.ConnectionError -= OnBotConnectionError;
+            tradeBot.ConnectionSuccess -= OnBotConnectionSuccess;
+        }
+    }
+
     public void Dispose()
     {
         _cts.Cancel();
@@ -139,12 +161,17 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         EchoModule.ClearAll();
         TradeStartModule<T>.ClearAll();
 
-        foreach (var bot in Runner.Hub.Bots.ToArray())
+        if (Runner != null)
         {
-            if (bot is ITradeBot tradeBot)
+            Runner.BotAdded -= OnBotAdded;
+            Runner.BotRemoved -= OnBotRemoved;
+            foreach (var bot in Runner.Hub.Bots.ToArray())
             {
-                tradeBot.ConnectionError -= OnBotConnectionError;
-                tradeBot.ConnectionSuccess -= OnBotConnectionSuccess;
+                if (bot is ITradeBot tradeBot)
+                {
+                    tradeBot.ConnectionError -= OnBotConnectionError;
+                    tradeBot.ConnectionSuccess -= OnBotConnectionSuccess;
+                }
             }
         }
 

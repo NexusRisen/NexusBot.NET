@@ -35,6 +35,8 @@ public interface IPokeBotRunner
     bool SupportsRoutine(PokeRoutineType pokeRoutineType);
 
     event EventHandler BotStopped;
+    event EventHandler<PokeRoutineExecutorBase> BotAdded;
+    event EventHandler<PokeRoutineExecutorBase> BotRemoved;
 }
 
 public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPokeBotRunner where T : PKM, new()
@@ -47,6 +49,8 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
     protected readonly CancellationTokenSource IntegrationTokenSource = new();
 
     public event EventHandler BotStopped;
+    public event EventHandler<PokeRoutineExecutorBase>? BotAdded;
+    public event EventHandler<PokeRoutineExecutorBase>? BotRemoved;
 
     public PokeTradeHubConfig Config => Hub.Config;
 
@@ -76,16 +80,26 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
     public override void Add(RoutineExecutor<PokeBotState> bot)
     {
         base.Add(bot);
-        if (bot is PokeRoutineExecutorBase b && b.Config.InitialRoutine.IsTradeBot())
-            Hub.Bots.Add(b);
+        if (bot is PokeRoutineExecutorBase b)
+        {
+            if (b.Config.InitialRoutine.IsTradeBot())
+                Hub.Bots.Add(b);
+            BotAdded?.Invoke(this, b);
+        }
     }
 
     public override bool Remove(IConsoleBotConfig cfg, bool callStop)
     {
         var bot = GetBot(cfg)?.Bot;
-        if (bot is PokeRoutineExecutorBase b && b.Config.InitialRoutine.IsTradeBot())
-            Hub.Bots.Remove(b);
-        return base.Remove(cfg, callStop);
+        bool removed = base.Remove(cfg, callStop);
+        if (removed && bot is PokeRoutineExecutorBase b)
+        {
+            if (b.Config.InitialRoutine.IsTradeBot())
+                Hub.Bots.Remove(b);
+            BotRemoved?.Invoke(this, b);
+            LogUtil.ClearBotLogger(b.Connection.Name);
+        }
+        return removed;
     }
 
     public override void StartAll()

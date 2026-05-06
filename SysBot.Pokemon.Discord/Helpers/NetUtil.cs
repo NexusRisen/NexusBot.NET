@@ -8,10 +8,11 @@ namespace SysBot.Pokemon.Discord;
 
 public static class NetUtil
 {
+    public static readonly HttpClient HttpClient = new();
+
     public static async Task<byte[]> DownloadFromUrlAsync(string url)
     {
-        using var client = new HttpClient();
-        return await client.GetByteArrayAsync(url).ConfigureAwait(false);
+        return await HttpClient.GetByteArrayAsync(url).ConfigureAwait(false);
     }
 
     // Existing Discord attachment method

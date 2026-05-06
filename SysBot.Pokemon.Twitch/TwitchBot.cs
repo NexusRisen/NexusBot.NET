@@ -24,6 +24,7 @@ namespace SysBot.Pokemon.Twitch
 
         private readonly TwitchSettings Settings;
         private readonly Action<string> _echoForwarder;
+        private bool _isDisposed;
 
         public TwitchBot(TwitchSettings settings, PokeTradeHub<T> hub)
         {
@@ -97,6 +98,8 @@ namespace SysBot.Pokemon.Twitch
 
         public void Dispose()
         {
+            _isDisposed = true;
+            QueuePool.Clear();
             EchoUtil.Forwarders.Remove(_echoForwarder);
             client.OnLog -= Client_OnLog;
             client.OnJoinedChannel -= Client_OnJoinedChannel;
@@ -207,7 +210,7 @@ namespace SysBot.Pokemon.Twitch
         private async void Client_OnDisconnected(object? sender, OnDisconnectedEventArgs e)
         {
             LogUtil.LogText($"[{client.TwitchUsername}] - Disconnected.");
-            while (!client.IsConnected)
+            while (!client.IsConnected && !_isDisposed)
             {
                 client.Reconnect();
                 await Task.Delay(5000).ConfigureAwait(false);

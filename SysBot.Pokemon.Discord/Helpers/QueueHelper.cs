@@ -671,8 +671,7 @@ public static class QueueHelper<T> where T : PKM, new()
 
     private static async Task<System.Drawing.Image?> LoadImageFromUrl(string url)
     {
-        using HttpClient client = new();
-        HttpResponseMessage response = await client.GetAsync(url);
+        HttpResponseMessage response = await NetUtil.HttpClient.GetAsync(url);
         if (!response.IsSuccessStatusCode)
         {
             Console.WriteLine($"Failed to load image from {url}. Status code: {response.StatusCode}");
@@ -795,8 +794,7 @@ public static class QueueHelper<T> where T : PKM, new()
     {
         if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
         {
-            using var httpClient = new HttpClient();
-            using var response = await httpClient.GetAsync(imagePath);
+            using var response = await NetUtil.HttpClient.GetAsync(imagePath);
             await using var stream = await response.Content.ReadAsStreamAsync();
 #pragma warning disable CA1416 // Validate platform compatibility
             return new Bitmap(stream);
