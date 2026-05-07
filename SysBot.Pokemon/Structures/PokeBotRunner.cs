@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SysBot.Pokemon;
 
-public interface IPokeBotRunner
+public interface IPokeBotRunner : IDisposable
 {
     PokeTradeHubConfig Config { get; }
 
@@ -206,6 +206,19 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
         var pool = Hub.Ledy.Pool;
         if (!pool.Reload(Hub.Config.Folder.DistributeFolder))
             LogUtil.LogError("Hub", "Nothing to distribute for Empty Trade Queues!");
+    }
+
+    public override void Dispose()
+    {
+        IntegrationTokenSource.Cancel();
+        IntegrationTokenSource.Dispose();
+        foreach (var integration in Integrations)
+        {
+            try { integration.Dispose(); } catch { }
+        }
+        Integrations.Clear();
+        Hub.Dispose();
+        base.Dispose();
     }
 
     public PokeRoutineExecutorBase CreateBotFromConfig(PokeBotState cfg) => Factory.CreateBot(Hub, cfg);

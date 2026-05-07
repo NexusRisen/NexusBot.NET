@@ -336,6 +336,7 @@ public sealed partial class Main : Form
         ShowInTaskbar = false;
         bots.StopAll();
         Task.WhenAny(WaitUntilNotRunning(), Task.Delay(5_000)).ConfigureAwait(true).GetAwaiter().GetResult();
+        bots.Dispose();
     }
 
     private void SaveCurrentConfig()
@@ -424,7 +425,11 @@ public sealed partial class Main : Form
 
     private void UpdateRunnerAndUI()
     {
-        RunningEnvironment?.StopAll();
+        if (RunningEnvironment != null)
+        {
+            RunningEnvironment.StopAll();
+            RunningEnvironment.Dispose();
+        }
         RunningEnvironment = GetRunner(Config);
         foreach (var c in FLP_Bots.Controls.OfType<BotController>())
         {

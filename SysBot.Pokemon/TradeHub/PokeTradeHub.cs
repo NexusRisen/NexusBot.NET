@@ -1,5 +1,6 @@
 using PKHeX.Core;
 using SysBot.Base;
+using System;
 using System.Collections.Concurrent;
 
 namespace SysBot.Pokemon;
@@ -8,7 +9,7 @@ namespace SysBot.Pokemon;
 /// Centralizes logic for trade bot coordination.
 /// </summary>
 /// <typeparam name="T">Type of <see cref="PKM"/> to distribute.</typeparam>
-public class PokeTradeHub<T> where T : PKM, new()
+public class PokeTradeHub<T> : IDisposable where T : PKM, new()
 {
     public static readonly PokeTradeLogNotifier<T> LogNotifier = new();
 
@@ -30,6 +31,13 @@ public class PokeTradeHub<T> where T : PKM, new()
         BotSync.BarrierReleasingActions.Add(() => LogUtil.LogInfo("Barrier", $"{BotSync.Barrier.ParticipantCount} bots released."));
 
         Queues = new TradeQueueManager<T>(this);
+    }
+
+    public void Dispose()
+    {
+        BotSync.Dispose();
+        Ledy.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     public bool TradeBotsReady => !Bots.All(z => z.Config.CurrentRoutineType == PokeRoutineType.Idle);

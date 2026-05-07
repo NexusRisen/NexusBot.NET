@@ -7,7 +7,7 @@ namespace SysBot.Base;
 /// <summary>
 /// Enhanced BotRunner that supports automatic recovery of crashed bots.
 /// </summary>
-public class RecoverableBotRunner<T> : BotRunner<T> where T : class, IConsoleBotConfig
+public class RecoverableBotRunner<T> : BotRunner<T>, IDisposable where T : class, IConsoleBotConfig
 {
     private BotRecoveryService<T>? _recoveryService;
     private RecoveryConfiguration? _recoveryConfig;
@@ -29,16 +29,28 @@ public class RecoverableBotRunner<T> : BotRunner<T> where T : class, IConsoleBot
 
         _recoveryConfig = config;
         _recoveryService = new BotRecoveryService<T>(this, config);
-        
+
         // Subscribe to recovery events for logging
         _recoveryService.BotCrashed += OnBotCrashed;
         _recoveryService.RecoveryAttempted += OnRecoveryAttempted;
         _recoveryService.RecoverySucceeded += OnRecoverySucceeded;
         _recoveryService.RecoveryFailed += OnRecoveryFailed;
-        
+
         LogUtil.LogInfo("Bot recovery service initialized", "Recovery");
     }
 
+    public virtual void Dispose()
+    {
+        if (_recoveryService != null)
+        {
+            _recoveryService.BotCrashed -= OnBotCrashed;
+            _recoveryService.RecoveryAttempted -= OnRecoveryAttempted;
+            _recoveryService.RecoverySucceeded -= OnRecoverySucceeded;
+            _recoveryService.RecoveryFailed -= OnRecoveryFailed;
+            _recoveryService.Dispose();
+        }
+        GC.SuppressFinalize(this);
+    }
     /// <summary>
     /// Adds a bot with recovery support.
     /// </summary>

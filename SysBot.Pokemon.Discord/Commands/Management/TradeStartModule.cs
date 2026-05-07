@@ -204,18 +204,15 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
     {
         try
         {
-            Bitmap image = await LoadImageAsync(imagePath);
+            using Bitmap image = await LoadImageAsync(imagePath);
 
             var colorCount = new Dictionary<Color, int>();
 #pragma warning disable CA1416 // Validate platform compatibility
             for (int y = 0; y < image.Height; y++)
             {
-#pragma warning disable CA1416 // Validate platform compatibility
                 for (int x = 0; x < image.Width; x++)
                 {
-#pragma warning disable CA1416 // Validate platform compatibility
                     var pixelColor = image.GetPixel(x, y);
-#pragma warning restore CA1416 // Validate platform compatibility
 
                     if (pixelColor.A < 128 || pixelColor.GetBrightness() > 0.9) continue;
 
@@ -238,12 +235,7 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
                         colorCount[quantizedColor] = combinedFactor;
                     }
                 }
-#pragma warning restore CA1416 // Validate platform compatibility
             }
-#pragma warning restore CA1416 // Validate platform compatibility
-
-#pragma warning disable CA1416 // Validate platform compatibility
-            image.Dispose();
 #pragma warning restore CA1416 // Validate platform compatibility
 
             if (colorCount.Count == 0)
@@ -264,8 +256,7 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
     {
         if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
         {
-            using var httpClient = new HttpClient();
-            using var response = await httpClient.GetAsync(imagePath);
+            using var response = await NetUtil.HttpClient.GetAsync(imagePath);
             await using var stream = await response.Content.ReadAsStreamAsync();
 #pragma warning disable CA1416 // Validate platform compatibility
             return new Bitmap(stream);

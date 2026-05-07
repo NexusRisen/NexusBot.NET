@@ -329,11 +329,12 @@ public static class LogUtil
     }
 
     /// <summary>
-    /// Clears the per-bot logger cache for a specific bot (useful when a bot disconnects)
+    /// Clears the per-bot logger cache and buffer for a specific bot (useful when a bot disconnects)
     /// </summary>
     public static void ClearBotLogger(string identity)
     {
         BotLoggers.TryRemove(identity, out _);
+        LogBuffer.TryRemove(identity, out _);
     }
 
     /// <summary>

@@ -121,48 +121,56 @@ public class KookTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
     private MemoryStream CreateLGLinkCodeImage(List<Pictocodes> lgcode)
     {
         List<System.Drawing.Image> spritearray = [];
-        foreach (Pictocodes cd in lgcode)
+        try
         {
-            var showdown = new ShowdownSet(cd.ToString());
-            var sav = BlankSaveFile.Get(EntityContext.Gen7b, "pip");
-            PKM pk = sav.GetLegalFromSet(showdown).Created;
-            
-            System.Drawing.Image png = pk.Sprite();
-            var destRect = new Rectangle(-40, -65, 137, 130);
-            var destImage = new Bitmap(137, 130);
-            destImage.SetResolution(png.HorizontalResolution, png.VerticalResolution);
-            
-            using (var graphics = Graphics.FromImage(destImage))
+            foreach (Pictocodes cd in lgcode)
             {
-                graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
-                graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
-                graphics.DrawImage(png, destRect, 0, 0, png.Width, png.Height, GraphicsUnit.Pixel);
+                var showdown = new ShowdownSet(cd.ToString());
+                var sav = BlankSaveFile.Get(EntityContext.Gen7b, "pip");
+                PKM pk = sav.GetLegalFromSet(showdown).Created;
+
+                using System.Drawing.Image png = pk.Sprite();
+                var destRect = new Rectangle(-40, -65, 137, 130);
+                var destImage = new Bitmap(137, 130);
+                destImage.SetResolution(png.HorizontalResolution, png.VerticalResolution);
+
+                using (var graphics = Graphics.FromImage(destImage))
+                {
+                    graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+                    graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                    graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                    graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                    graphics.DrawImage(png, destRect, 0, 0, png.Width, png.Height, GraphicsUnit.Pixel);
+                }
+                spritearray.Add(destImage);
             }
-            spritearray.Add(destImage);
+
+            int outputImageWidth = spritearray[0].Width + 20;
+            int outputImageHeight = spritearray[0].Height - 65;
+
+            using Bitmap outputImage = new Bitmap(outputImageWidth, outputImageHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+            using (Graphics graphics = Graphics.FromImage(outputImage))
+            {
+                graphics.DrawImage(spritearray[0], new Rectangle(0, 0, spritearray[0].Width, spritearray[0].Height),
+                    new Rectangle(new Point(), spritearray[0].Size), GraphicsUnit.Pixel);
+                graphics.DrawImage(spritearray[1], new Rectangle(50, 0, spritearray[1].Width, spritearray[1].Height),
+                    new Rectangle(new Point(), spritearray[1].Size), GraphicsUnit.Pixel);
+                graphics.DrawImage(spritearray[2], new Rectangle(100, 0, spritearray[2].Width, spritearray[2].Height),
+                    new Rectangle(new Point(), spritearray[2].Size), GraphicsUnit.Pixel);
+            }
+
+            var ms = new MemoryStream();
+            outputImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            ms.Position = 0;
+            return ms;
         }
-
-        int outputImageWidth = spritearray[0].Width + 20;
-        int outputImageHeight = spritearray[0].Height - 65;
-
-        Bitmap outputImage = new Bitmap(outputImageWidth, outputImageHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-
-        using (Graphics graphics = Graphics.FromImage(outputImage))
+        finally
         {
-            graphics.DrawImage(spritearray[0], new Rectangle(0, 0, spritearray[0].Width, spritearray[0].Height),
-                new Rectangle(new Point(), spritearray[0].Size), GraphicsUnit.Pixel);
-            graphics.DrawImage(spritearray[1], new Rectangle(50, 0, spritearray[1].Width, spritearray[1].Height),
-                new Rectangle(new Point(), spritearray[1].Size), GraphicsUnit.Pixel);
-            graphics.DrawImage(spritearray[2], new Rectangle(100, 0, spritearray[2].Width, spritearray[2].Height),
-                new Rectangle(new Point(), spritearray[2].Size), GraphicsUnit.Pixel);
+            foreach (var img in spritearray)
+                img.Dispose();
         }
-
-        var ms = new MemoryStream();
-        outputImage.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-        ms.Position = 0;
-        return ms;
     }
 
     public void Dispose()

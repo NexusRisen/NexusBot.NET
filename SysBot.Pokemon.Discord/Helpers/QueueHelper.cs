@@ -528,8 +528,10 @@ public static class QueueHelper<T> where T : PKM, new()
         {
             string eggImageUrl = GetEggTypeImageUrl(pk);
             speciesImageUrl = TradeExtensions<T>.PokeImg(pk, false, true, null);
-            System.Drawing.Image combinedImage = await OverlaySpeciesOnEgg(eggImageUrl, speciesImageUrl);
-            embedImageUrl = SaveImageLocally(combinedImage);
+            using (System.Drawing.Image combinedImage = await OverlaySpeciesOnEgg(eggImageUrl, speciesImageUrl))
+            {
+                embedImageUrl = SaveImageLocally(combinedImage);
+            }
         }
         else
         {
@@ -574,7 +576,10 @@ public static class QueueHelper<T> where T : PKM, new()
             (System.Drawing.Image? finalCombinedImage, bool ballImageLoaded) = await OverlayBallOnSpecies(speciesImageUrl, ballImgUrl);
             if (finalCombinedImage != null)
             {
-                embedImageUrl = SaveImageLocally(finalCombinedImage);
+                using (finalCombinedImage)
+                {
+                    embedImageUrl = SaveImageLocally(finalCombinedImage);
+                }
             }
             else
             {
@@ -633,67 +638,76 @@ public static class QueueHelper<T> where T : PKM, new()
         
         if (eggImage == null || speciesImage == null)
         {
+            eggImage?.Dispose();
+            speciesImage?.Dispose();
             throw new InvalidOperationException("Failed to load egg or species image.");
-        }
-
-#pragma warning disable CA1416 // Validate platform compatibility
-        double scaleRatio = Math.Min((double)eggImage.Width / speciesImage.Width, (double)eggImage.Height / speciesImage.Height);
-        Size newSize = new((int)(speciesImage.Width * scaleRatio), (int)(speciesImage.Height * scaleRatio));
-        System.Drawing.Image resizedSpeciesImage = new Bitmap(speciesImage, newSize);
-
-        using (Graphics g = Graphics.FromImage(eggImage))
-        {
-            int speciesX = (eggImage.Width - resizedSpeciesImage.Width) / 2;
-            int speciesY = (eggImage.Height - resizedSpeciesImage.Height) / 2;
-            g.DrawImage(resizedSpeciesImage, speciesX, speciesY, resizedSpeciesImage.Width, resizedSpeciesImage.Height);
-        }
-
-        speciesImage.Dispose();
-        resizedSpeciesImage.Dispose();
-
-        double scale = Math.Min(128.0 / eggImage.Width, 128.0 / eggImage.Height);
-        int newWidth = (int)(eggImage.Width * scale);
-        int newHeight = (int)(eggImage.Height * scale);
-
-        Bitmap finalImage = new(128, 128);
-
-        using (Graphics g = Graphics.FromImage(finalImage))
-        {
-            int x = (128 - newWidth) / 2;
-            int y = (128 - newHeight) / 2;
-            g.DrawImage(eggImage, x, y, newWidth, newHeight);
-        }
-
-        eggImage.Dispose();
-#pragma warning restore CA1416 // Validate platform compatibility
-        return finalImage;
-    }
-
-    private static async Task<System.Drawing.Image?> LoadImageFromUrl(string url)
-    {
-        HttpResponseMessage response = await NetUtil.HttpClient.GetAsync(url);
-        if (!response.IsSuccessStatusCode)
-        {
-            Console.WriteLine($"Failed to load image from {url}. Status code: {response.StatusCode}");
-            return null;
-        }
-
-        Stream stream = await response.Content.ReadAsStreamAsync();
-        if (stream == null || stream.Length == 0)
-        {
-            Console.WriteLine($"No data or empty stream received from {url}");
-            return null;
         }
 
         try
         {
 #pragma warning disable CA1416 // Validate platform compatibility
-            return System.Drawing.Image.FromStream(stream);
+            double scaleRatio = Math.Min((double)eggImage.Width / speciesImage.Width, (double)eggImage.Height / speciesImage.Height);
+            Size newSize = new((int)(speciesImage.Width * scaleRatio), (int)(speciesImage.Height * scaleRatio));
+            using System.Drawing.Image resizedSpeciesImage = new Bitmap(speciesImage, newSize);
+
+            using (Graphics g = Graphics.FromImage(eggImage))
+            {
+                int speciesX = (eggImage.Width - resizedSpeciesImage.Width) / 2;
+                int speciesY = (eggImage.Height - resizedSpeciesImage.Height) / 2;
+                g.DrawImage(resizedSpeciesImage, speciesX, speciesY, resizedSpeciesImage.Width, resizedSpeciesImage.Height);
+            }
+
+            double scale = Math.Min(128.0 / eggImage.Width, 128.0 / eggImage.Height);
+            int newWidth = (int)(eggImage.Width * scale);
+            int newHeight = (int)(eggImage.Height * scale);
+
+            Bitmap finalImage = new(128, 128);
+
+            using (Graphics g = Graphics.FromImage(finalImage))
+            {
+                int x = (128 - newWidth) / 2;
+                int y = (128 - newHeight) / 2;
+                g.DrawImage(eggImage, x, y, newWidth, newHeight);
+            }
+
+            return finalImage;
 #pragma warning restore CA1416 // Validate platform compatibility
         }
-        catch (ArgumentException ex)
+        finally
         {
-            Console.WriteLine($"Failed to create image from stream. URL: {url}, Exception: {ex}");
+#pragma warning disable CA1416 // Validate platform compatibility
+            eggImage.Dispose();
+            speciesImage.Dispose();
+#pragma warning restore CA1416 // Validate platform compatibility
+        }
+    }
+
+    private static async Task<System.Drawing.Image?> LoadImageFromUrl(string url)
+    {
+        try
+        {
+            using HttpResponseMessage response = await NetUtil.HttpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Failed to load image from {url}. Status code: {response.StatusCode}");
+                return null;
+            }
+
+            await using Stream stream = await response.Content.ReadAsStreamAsync();
+            if (stream == null || stream.Length == 0)
+            {
+                Console.WriteLine($"No data or empty stream received from {url}");
+                return null;
+            }
+
+#pragma warning disable CA1416 // Validate platform compatibility
+            var img = System.Drawing.Image.FromStream(stream);
+            return new Bitmap(img); // Create a copy so the stream can be closed
+#pragma warning restore CA1416 // Validate platform compatibility
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load image from URL: {url}, Exception: {ex.Message}");
             return null;
         }
     }
@@ -738,7 +752,7 @@ public static class QueueHelper<T> where T : PKM, new()
     {
         try
         {
-            Bitmap image = await LoadImageAsync(imagePath);
+            using Bitmap image = await LoadImageAsync(imagePath);
 
             var colorCount = new Dictionary<Color, int>();
 #pragma warning disable CA1416 // Validate platform compatibility
@@ -773,8 +787,6 @@ public static class QueueHelper<T> where T : PKM, new()
                     }
                 }
             });
-
-            image.Dispose();
 #pragma warning restore CA1416 // Validate platform compatibility
 
             if (colorCount.Count == 0)
@@ -866,58 +878,64 @@ public static class QueueHelper<T> where T : PKM, new()
 
     public static (string, Embed) CreateLGLinkCodeSpriteEmbed(List<Pictocodes> lgcode)
     {
-        int codecount = 0;
         List<System.Drawing.Image> spritearray = [];
-        foreach (Pictocodes cd in lgcode)
+        try
         {
-            var showdown = new ShowdownSet(cd.ToString());
-            var sav = BlankSaveFile.Get(EntityContext.Gen7b, "pip");
-            PKM pk = sav.GetLegalFromSet(showdown).Created;
-#pragma warning disable CA1416 // Validate platform compatibility
-            System.Drawing.Image png = pk.Sprite();
-            var destRect = new Rectangle(-40, -65, 137, 130);
-            var destImage = new Bitmap(137, 130);
-
-            destImage.SetResolution(png.HorizontalResolution, png.VerticalResolution);
-
-            using (var graphics = Graphics.FromImage(destImage))
+            foreach (Pictocodes cd in lgcode)
             {
-                graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
-                graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-                graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
-                graphics.DrawImage(png, destRect, 0, 0, png.Width, png.Height, GraphicsUnit.Pixel);
-            }
-            png = destImage;
-            spritearray.Add(png);
+                var showdown = new ShowdownSet(cd.ToString());
+                var sav = BlankSaveFile.Get(EntityContext.Gen7b, "pip");
+                PKM pk = sav.GetLegalFromSet(showdown).Created;
+#pragma warning disable CA1416 // Validate platform compatibility
+                using System.Drawing.Image png = pk.Sprite();
+                var destRect = new Rectangle(-40, -65, 137, 130);
+                var destImage = new Bitmap(137, 130);
+
+                destImage.SetResolution(png.HorizontalResolution, png.VerticalResolution);
+
+                using (var graphics = Graphics.FromImage(destImage))
+                {
+                    graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+                    graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                    graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                    graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                    graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+                    graphics.DrawImage(png, destRect, 0, 0, png.Width, png.Height, GraphicsUnit.Pixel);
+                }
+                spritearray.Add(destImage);
 #pragma warning restore CA1416 // Validate platform compatibility
-            codecount++;
-        }
+            }
 
 #pragma warning disable CA1416 // Validate platform compatibility
-        int outputImageWidth = spritearray[0].Width + 20;
-        int outputImageHeight = spritearray[0].Height - 65;
+            int outputImageWidth = spritearray[0].Width + 20;
+            int outputImageHeight = spritearray[0].Height - 65;
 
-        Bitmap outputImage = new(outputImageWidth, outputImageHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            using Bitmap outputImage = new(outputImageWidth, outputImageHeight, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
 
-        using (Graphics graphics = Graphics.FromImage(outputImage))
-        {
-            graphics.DrawImage(spritearray[0], new Rectangle(0, 0, spritearray[0].Width, spritearray[0].Height),
-                new Rectangle(new Point(), spritearray[0].Size), GraphicsUnit.Pixel);
-            graphics.DrawImage(spritearray[1], new Rectangle(50, 0, spritearray[1].Width, spritearray[1].Height),
-                new Rectangle(new Point(), spritearray[1].Size), GraphicsUnit.Pixel);
-            graphics.DrawImage(spritearray[2], new Rectangle(100, 0, spritearray[2].Width, spritearray[2].Height),
-                new Rectangle(new Point(), spritearray[2].Size), GraphicsUnit.Pixel);
-        }
+            using (Graphics graphics = Graphics.FromImage(outputImage))
+            {
+                graphics.DrawImage(spritearray[0], new Rectangle(0, 0, spritearray[0].Width, spritearray[0].Height),
+                    new Rectangle(new Point(), spritearray[0].Size), GraphicsUnit.Pixel);
+                graphics.DrawImage(spritearray[1], new Rectangle(50, 0, spritearray[1].Width, spritearray[1].Height),
+                    new Rectangle(new Point(), spritearray[1].Size), GraphicsUnit.Pixel);
+                graphics.DrawImage(spritearray[2], new Rectangle(100, 0, spritearray[2].Width, spritearray[2].Height),
+                    new Rectangle(new Point(), spritearray[2].Size), GraphicsUnit.Pixel);
+            }
 
-        System.Drawing.Image finalembedpic = outputImage;
-        var filename = $"{Directory.GetCurrentDirectory()}//finalcode.png";
-        finalembedpic.Save(filename);
+            var filename = $"{Directory.GetCurrentDirectory()}//finalcode.png";
+            outputImage.Save(filename);
 #pragma warning restore CA1416 // Validate platform compatibility
 
-        filename = Path.GetFileName($"{Directory.GetCurrentDirectory()}//finalcode.png");
-        Embed returnembed = new EmbedBuilder().WithTitle($"{lgcode[0]}, {lgcode[1]}, {lgcode[2]}").WithImageUrl($"attachment://{filename}").Build();
-        return (filename, returnembed);
+            filename = Path.GetFileName(filename);
+            Embed returnembed = new EmbedBuilder().WithTitle($"{lgcode[0]}, {lgcode[1]}, {lgcode[2]}").WithImageUrl($"attachment://{filename}").Build();
+            return (filename, returnembed);
+        }
+        finally
+        {
+#pragma warning disable CA1416 // Validate platform compatibility
+            foreach (var img in spritearray)
+                img.Dispose();
+#pragma warning restore CA1416 // Validate platform compatibility
+        }
     }
 }

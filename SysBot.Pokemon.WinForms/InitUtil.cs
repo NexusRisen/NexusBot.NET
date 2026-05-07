@@ -26,7 +26,7 @@ public static class InitUtil
         SpriteUtil.Initialize(sav);
         StreamSettings.CreateSpriteFile = (pk, fn) =>
         {
-            var png = pk.Sprite();
+            using var png = pk.Sprite();
             png.Save(fn);
         };
     }

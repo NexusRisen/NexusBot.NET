@@ -115,13 +115,14 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _services = ConfigureServices();
 
         _client.PresenceUpdated += Client_PresenceUpdated;
+        _client.Disconnected += OnDisconnected;
+    }
 
-        _client.Disconnected += (exception) =>
-        {
-            LogUtil.LogText($"Discord connection lost. Reason: {exception?.Message ?? "Unknown"}");
-            Task.Run(() => ReconnectAsync());
-            return Task.CompletedTask;
-        };
+    private Task OnDisconnected(Exception exception)
+    {
+        LogUtil.LogText($"Discord connection lost. Reason: {exception?.Message ?? "Unknown"}");
+        Task.Run(() => ReconnectAsync());
+        return Task.CompletedTask;
     }
 
     private void OnBotConnectionError(object? sender, Exception ex) => Task.Run(HandleBotStop);
@@ -154,6 +155,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _client.Log -= Log;
         _commands.Log -= Log;
         _client.PresenceUpdated -= Client_PresenceUpdated;
+        _client.Disconnected -= OnDisconnected;
         _client.Ready -= LoadLoggingAndEcho;
         _client.MessageReceived -= HandleMessageAsync;
 

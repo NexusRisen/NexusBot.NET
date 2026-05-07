@@ -1,22 +1,24 @@
 # Release Notes
 
-## [v6.1.3] - 2026-05-06
+## [v6.1.4] - 2026-05-07
 
 ### Added
-- **Dynamic Bot Tracking**: Added `BotAdded` and `BotRemoved` events to `PokeBotRunner` to allow integrations (Discord, Kook) to dynamically manage bot event subscriptions.
-- **Bot Logger Cleanup**: Implemented `LogUtil.ClearBotLogger` to prevent unbounded memory growth in the bot logger cache.
-
-### Fixed
-- **Critical Memory Leak Remediation**:
-  - Fixed event subscription leaks in `SysCord` and `SysKook` by replacing anonymous lambdas with named delegates and ensuring unsubscription during disposal.
-  - Resolved resource leaks in `Pokepaste.cs` by ensuring all GDI+ objects (`Bitmap`, `Image`, `Graphics`) are properly disposed.
-  - Fixed an infinite reconnection loop leak in `TwitchBot.cs` using a disposal flag.
-  - Ensured static `QueuePool` in `TwitchBot` is cleared upon disposal.
-  - Fixed build errors in `SysBot.Pokemon.Discord` and `SysBot.Pokemon.Kook` related to incorrect bot property access.
-- **Resource Optimization**:
-  - Centralized `HttpClient` in `NetUtil.cs` to prevent socket exhaustion.
-  - Optimized image composition and overlay logic in `QueueHelper.cs` with proper resource disposal.
+- **Main Creators**: Officially added **Havok** and **Link** as the main creators of DudeBot in the information command.
 
 ### Changed
-- **Dependency Updates**: Merged PR #22 to bump `Google.Apis.YouTube.v3` from 1.73.0.4134 to 1.74.0.4137.
-- **Version Update**: Incremented application version to **v6.1.3**.
+- **About Command Rewrite**: Completely redesigned the Discord `about`/`info` command with a cleaner layout and improved information architecture.
+- **Resource Management**: Implemented `IDisposable` across core classes (`IPokeBotRunner`, `BotSource`, `PokeTradeHub`, `BotSynchronizer`, `LedyDistributor`) to ensure proper cleanup of unmanaged resources.
+
+### Fixed
+- **Memory Leaks (GDI+)**: Fixed numerous memory leaks involving `System.Drawing.Image`, `Bitmap`, and `Graphics` objects in trade notification and Picto Code generation logic.
+- **Memory Leaks (Event Handlers)**: Fixed potential memory leaks caused by unsubscribed event handlers in Discord and Kook bot modules.
+- **Socket Exhaustion**: Optimized `HttpClient` usage by switching to a shared singleton instance for attachment downloads and image loading.
+- **Bot Lifecycle**: Fixed resource leaks occurring during bot restarts and game mode switching in the WinForms application.
+- **Logging Cache**: Improved cleanup of bot-specific logging buffers and caches when bots are removed.
+
+---
+
+## [v6.1.3] - 2026-05-06
+- Initial release of DudeBot.NET.
+- Integrated Discord, Kook, and Twitch bot platforms.
+- Support for multiple Pokémon generations and automation routines.

@@ -1,9 +1,10 @@
 using PKHeX.Core;
+using System;
 using System.Collections.Generic;
 
 namespace SysBot.Pokemon;
 
-public class LedyDistributor<T> where T : PKM, new()
+public class LedyDistributor<T> : IDisposable where T : PKM, new()
 {
     public readonly Dictionary<string, LedyRequest<T>> UserRequests = [];
     public readonly Dictionary<string, LedyRequest<T>> Distribution;
@@ -15,6 +16,13 @@ public class LedyDistributor<T> where T : PKM, new()
     {
         Pool = pool;
         Distribution = Pool.Files;
+    }
+
+    public void Dispose()
+    {
+        UserRequests.Clear();
+        Previous.Clear();
+        GC.SuppressFinalize(this);
     }
 
     private const Species NoMatchSpecies = Species.None;

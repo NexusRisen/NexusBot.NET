@@ -420,8 +420,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
             {
                 foreach (var attachment in attachments)
                 {
-                    using var httpClient = new HttpClient();
-                    var stream = await httpClient.GetStreamAsync(attachment.Url);
+                    var stream = await NetUtil.HttpClient.GetStreamAsync(attachment.Url);
                     var file = new FileAttachment(stream, attachment.Filename);
                     await dmChannel.SendFileAsync(file, embed: embed.Build());
                 }
@@ -480,8 +479,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
         {
             foreach (var attachment in attachments)
             {
-                using var httpClient = new HttpClient();
-                var stream = await httpClient.GetStreamAsync(attachment.Url);
+                var stream = await NetUtil.HttpClient.GetStreamAsync(attachment.Url);
                 var file = new FileAttachment(stream, attachment.Filename);
                 await messageChannel.SendFileAsync(file, actualMessage);
             }

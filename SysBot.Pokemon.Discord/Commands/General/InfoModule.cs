@@ -17,7 +17,6 @@ public class InfoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
 {
     private const string WebsiteUrl = "https://nexusrisen.net";
     private const string ThumbnailUrl = "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/refs/heads/main/BotIcons/dudebot.png";
-    private const string Description = "An open-source Discord bot powered by PKHeX.Core and other open-source projects.";
 
     [Command("Info")]
     [Alias("about", "whoami", "owner")]
@@ -30,30 +29,31 @@ public class InfoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
 
         var embed = new EmbedBuilder()
             .WithTitle("DudeBot.NET - Information")
-            .WithDescription(Description)
+            .WithDescription("A high-performance Pokemon automation bot powered by PKHeX.Core.")
             .WithColor(Color.Gold)
             .WithThumbnailUrl(ThumbnailUrl)
-            .AddField("Project Info",
+            .AddField("👑 Main Creators",
+                $"{Format.Bold("Havok")}\n" +
+                $"{Format.Bold("Link")}")
+            .AddField("📊 Project Info",
                 $"{Format.Bold("Main Developer")}: [Nexus Risen]({WebsiteUrl})\n" +
-                $"{Format.Bold("Owner")}: {app.Owner.Mention} ({app.Owner.Id})\n" +
-                $"{Format.Bold("Current Mode")}: {gameName}\n" +
-                $"{Format.Bold("Version")}: {DudeBot.Version}\n" +
-                $"{Format.Bold("Build Time")}: {GetVersionInfo("SysBot.Base", false)}")
-            .AddField("Contributors",
+                $"{Format.Bold("Owner")}: {app.Owner.Mention}\n" +
+                $"{Format.Bold("Mode")}: {gameName}\n" +
+                $"{Format.Bold("Version")}: {DudeBot.Version}", inline: true)
+            .AddField("🛠️ System Stats",
+                $"{Format.Bold("Uptime")}: {uptime}\n" +
+                $"{Format.Bold("Guilds")}: {Context.Client.Guilds.Count}\n" +
+                $"{Format.Bold("Users")}: {Context.Client.Guilds.Sum(g => (long)g.MemberCount)}\n" +
+                $"{Format.Bold("Memory")}: {heapSize} MiB", inline: true)
+            .AddField("👥 Contributors",
                 $"{Format.Bold("Nexus Risen")}: Project Lead & Developer\n" +
                 $"{Format.Bold("Lusamine")}: Research & Data Analysis\n" +
                 $"{Format.Bold("Hexbyt3")}: Core Engine Enhancements\n" +
                 $"{Format.Bold("SantaCrab2")}: Auto-Legality Mod (ALM)")
-            .AddField("Dependencies",
+            .AddField("📦 Dependencies",
                 $"{Format.Bold("PKHeX.Core")}: {GetVersionInfo("PKHeX.Core")}\n" +
                 $"{Format.Bold("AutoLegality")}: {GetVersionInfo("PKHeX.Core.AutoMod")}\n" +
                 $"{Format.Bold("Base System")}: [SysBot.NET](https://github.com/kwsch/SysBot.NET)")
-            .AddField("System Stats",
-                $"{Format.Bold("Uptime")}: {uptime}\n" +
-                $"{Format.Bold("Guilds")}: {Context.Client.Guilds.Count}\n" +
-                $"{Format.Bold("Users")}: {Context.Client.Guilds.Sum(g => (long)g.MemberCount)}\n" +
-                $"{Format.Bold("Heap Size")}: {heapSize} MiB\n" +
-                $"{Format.Bold("Runtime")}: {RuntimeInformation.FrameworkDescription}")
             .WithFooter(footer => footer.Text = $"OS: {RuntimeInformation.OSDescription} ({RuntimeInformation.OSArchitecture})")
             .Build();
 

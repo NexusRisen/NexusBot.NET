@@ -70,15 +70,15 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         });
 
         _client.Log += Log;
-        
-        _client.Disconnected += (exception) =>
-        {
-            LogUtil.LogText($"Kook connection lost. Reason: {exception?.Message ?? "Unknown"}");
-            Task.Run(() => ReconnectAsync());
-            return Task.CompletedTask;
-        };
-
+        _client.Disconnected += OnDisconnected;
         _client.MessageReceived += OnMessageReceived;
+    }
+
+    private Task OnDisconnected(Exception exception)
+    {
+        LogUtil.LogText($"Kook connection lost. Reason: {exception?.Message ?? "Unknown"}");
+        Task.Run(() => ReconnectAsync());
+        return Task.CompletedTask;
     }
 
     private Task OnMessageReceived(SocketMessage msg, SocketUser author, ISocketMessageChannel channel) => HandleMessageAsync(msg);
@@ -113,6 +113,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         _cts.Dispose();
 
         _client.Log -= Log;
+        _client.Disconnected -= OnDisconnected;
         _client.MessageReceived -= OnMessageReceived;
 
         if (Runner != null)

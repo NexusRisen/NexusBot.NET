@@ -174,13 +174,13 @@ public class RecoverableBotSource<T> : BotSource<T>, IDisposable where T : class
         _lastCrashException = null;
     }
     
-    public void Dispose()
+    public override void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
     
-    protected virtual void Dispose(bool disposing)
+    protected override void Dispose(bool disposing)
     {
         if (_disposed)
             return;
@@ -190,6 +190,7 @@ public class RecoverableBotSource<T> : BotSource<T>, IDisposable where T : class
             StopMonitoring();
         }
         
+        base.Dispose(disposing);
         _disposed = true;
     }
 }

@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace SysBot.Base;
 
-public class BotSynchronizer
+public class BotSynchronizer : IDisposable
 {
     /// <summary>
     /// Blocks bots from proceeding until all participating bots are waiting at the same step.
@@ -32,5 +32,11 @@ public class BotSynchronizer
         var ms = Config.SynchronizeDelayBarrier;
         if (ms != 0)
             Thread.Sleep(ms);
+    }
+
+    public void Dispose()
+    {
+        Barrier.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

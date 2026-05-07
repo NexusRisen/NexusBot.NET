@@ -1,9 +1,10 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace SysBot.Base;
 
-public class BotSource<T>(RoutineExecutor<T> Bot)
+public class BotSource<T>(RoutineExecutor<T> Bot) : IDisposable
     where T : class, IConsoleBotConfig
 {
     public readonly RoutineExecutor<T> Bot = Bot;
@@ -15,6 +16,8 @@ public class BotSource<T>(RoutineExecutor<T> Bot)
     public bool IsRunning { get; private set; }
 
     public bool IsStopping { get; private set; }
+
+    private bool _disposed;
 
     public void Pause()
     {
@@ -79,11 +82,32 @@ public class BotSource<T>(RoutineExecutor<T> Bot)
 
         IsStopping = true;
         Source.Cancel();
+        Source.Dispose();
         Source = new CancellationTokenSource();
 
         Task.Run(async () => await Bot.HardStop()
             .ContinueWith(ReportFailure, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
             .ContinueWith(_ => IsPaused = IsRunning = IsStopping = false));
+    }
+
+    public virtual void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing)
+        {
+            Source.Cancel();
+            Source.Dispose();
+        }
+
+        _disposed = true;
     }
 
     private void ReportFailure(Task finishedTask)
