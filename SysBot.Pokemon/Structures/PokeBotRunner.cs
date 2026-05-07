@@ -41,6 +41,7 @@ public interface IPokeBotRunner : IDisposable
 
 public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPokeBotRunner where T : PKM, new()
 {
+    public static PokeTradeHub<T>? ActiveHub { get; private set; }
     public readonly PokeTradeHub<T> Hub;
 
     private readonly BotFactory<T> Factory;
@@ -63,6 +64,7 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
     {
         Hub = hub;
         Factory = factory;
+        ActiveHub = hub;
     }
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -72,6 +74,7 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
     {
         Factory = factory;
         Hub = new PokeTradeHub<T>(config);
+        ActiveHub = Hub;
     }
 
     protected virtual void AddIntegrations()
@@ -218,6 +221,8 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
         }
         Integrations.Clear();
         Hub.Dispose();
+        if (ActiveHub == Hub)
+            ActiveHub = null;
         base.Dispose();
     }
 

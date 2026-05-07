@@ -301,6 +301,9 @@ namespace SysBot.Pokemon.Discord
 
         private static void AddEchoChannel(ISocketMessageChannel c, ulong cid)
         {
+            if (Channels.ContainsKey(cid))
+                return;
+
             async void l(string msg) => await SendMessageWithRetry(c, msg).ConfigureAwait(false);
             async void rb(byte[] bytes, string fileName, EmbedBuilder embed) => await RaidEmbedAsync(c, bytes, fileName, embed).ConfigureAwait(false);
 

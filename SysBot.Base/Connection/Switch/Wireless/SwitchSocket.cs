@@ -40,7 +40,11 @@ public abstract class SwitchSocket : IConsoleConnection
 
     public abstract void Disconnect();
 
-    public void InitializeSocket() => Connection = new Socket(Type, Protocol);
+    public void InitializeSocket()
+    {
+        Connection?.Dispose();
+        Connection = new Socket(Type, Protocol);
+    }
 
     public void Log(string message) => LogInfo(message);
 

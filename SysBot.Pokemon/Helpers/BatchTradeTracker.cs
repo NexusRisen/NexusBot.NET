@@ -106,6 +106,12 @@ namespace SysBot.Pokemon.Helpers
             {
                 _activeBatches.TryRemove(key, out _);
                 _lastTradeTime.TryRemove(key, out _);
+                
+                // Clear received Pokemon for this trainer if they have no other active batches
+                if (!_activeBatches.Keys.Any(k => k.TrainerId == key.TrainerId))
+                {
+                    _receivedPokemon.TryRemove(key.TrainerId, out _);
+                }
             }
         }
 

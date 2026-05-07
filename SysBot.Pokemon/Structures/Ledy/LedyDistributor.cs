@@ -79,15 +79,18 @@ public class LedyDistributor<T> : IDisposable where T : PKM, new()
     {
         public readonly ulong Recipient;
         public readonly List<LedyResponse<T>> Requests = new(1);
+        public DateTime LastTradeTime { get; set; }
 
         public LedyUser(ulong recipient, LedyResponse<T> first)
         {
             Recipient = recipient;
             Requests.Add(first);
+            LastTradeTime = DateTime.Now;
         }
 
         public bool CanReceive(LedyResponse<T> response)
         {
+            LastTradeTime = DateTime.Now;
             var poke = response.Receive;
             var prev = Requests.Find(z => ReferenceEquals(z.Receive, poke));
             if (prev is null)
@@ -103,5 +106,11 @@ public class LedyDistributor<T> : IDisposable where T : PKM, new()
 
             return true;
         }
+    }
+
+    public void CleanupStaleUsers(TimeSpan timeout)
+    {
+        var now = DateTime.Now;
+        Previous.RemoveAll(z => now - z.LastTradeTime > timeout);
     }
 }

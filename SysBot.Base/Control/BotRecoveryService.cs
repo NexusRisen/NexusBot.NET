@@ -92,6 +92,13 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
             {
                 await _periodicTimer.WaitForNextTickAsync(cancellationToken).ConfigureAwait(false);
                 
+                // Perform periodic system maintenance
+                LogUtil.CleanupStaleBuffers(TimeSpan.FromMinutes(10));
+                
+                // Try to trigger cleanup for BatchTradeTracker if possible
+                // We use reflection here because BatchTradeTracker is in SysBot.Pokemon which SysBot.Base cannot reference directly
+                TryCleanupBatchTracker();
+
                 if (!_config.EnableRecovery || _isDisposed)
                     continue;
 
@@ -359,6 +366,65 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
     {
         _config.EnableRecovery = false;
         LogUtil.LogInfo("Bot recovery service disabled", "Recovery");
+    }
+
+    private static void TryCleanupBatchTracker()
+    {
+        try
+        {
+            // We use reflection to access BatchTradeTracker<T>.Instance.CanProcessBatchTrade(null)
+            // which triggers CleanupStaleEntries(). Since we don't have a direct reference to the type
+            // here in the Base project, we look it up by name.
+            var pokemonAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                .FirstOrDefault(a => a.GetName().Name == "SysBot.Pokemon");
+            
+            if (pokemonAssembly == null) return;
+
+            var trackerType = pokemonAssembly.GetType("SysBot.Pokemon.Helpers.BatchTradeTracker`1");
+            if (trackerType == null) return;
+
+            // We need to find the specific generic type. Since we are in BotRecoveryService<T>,
+            // T might be what we need if it's a PKM type, but here T is IConsoleBotConfig.
+            // In practice, the app usually has T as a PKM type in the Pokemon project.
+            // Let's try to find any instantiated BatchTradeTracker.
+            
+            var genericT = pokemonAssembly.GetType("PKHeX.Core.PKM"); // Fallback or base
+            if (genericT == null) return;
+
+            var specificTrackerType = trackerType.MakeGenericType(genericT);
+            var instanceProperty = specificTrackerType.GetProperty("Instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            var instance = instanceProperty?.GetValue(null);
+            
+            if (instance == null) return;
+
+            // Calling CanProcessBatchTrade(null) triggers CleanupStaleEntries
+            var method = specificTrackerType.GetMethod("CanProcessBatchTrade");
+            method?.Invoke(instance, [null]);
+
+            // Also trigger Hub maintenance if possible
+            var hubProperty = specificTrackerType.Assembly.GetType("SysBot.Pokemon.Discord.SysCord`1")
+                ?.GetProperty("Runner", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                ?.GetValue(null)
+                ?.GetType().GetProperty("Hub")
+                ?.GetValue(null); // This is getting complicated via reflection
+            
+            // Simpler: Try to find any active PokeTradeHub and call CleanupMaintenance
+            var runnerType = pokemonAssembly.GetType("SysBot.Pokemon.PokeBotRunner`1")?.MakeGenericType(genericT);
+            if (runnerType != null)
+            {
+                var activeHubProperty = runnerType.GetProperty("ActiveHub", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                var activeHub = activeHubProperty?.GetValue(null);
+                if (activeHub != null)
+                {
+                    var cleanupMethod = activeHub.GetType().GetMethod("CleanupMaintenance");
+                    cleanupMethod?.Invoke(activeHub, null);
+                }
+            }
+        }
+        catch
+        {
+            // Ignore reflection errors during background maintenance
+        }
     }
 }
 

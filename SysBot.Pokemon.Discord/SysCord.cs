@@ -29,6 +29,7 @@ public static class SysCordSettings
 public sealed class SysCord<T> : IDisposable where T : PKM, new()
 {
     public readonly PokeTradeHub<T> Hub;
+    private readonly PokeBotRunner<T> _runner;
     private readonly ProgramConfig _config;
     private readonly Dictionary<ulong, ulong> _announcementMessageIds = [];
     private readonly DiscordSocketClient _client;
@@ -51,6 +52,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
     public SysCord(PokeBotRunner<T> runner, ProgramConfig config)
     {
+        _runner = runner;
         Runner = runner;
         Hub = runner.Hub;
         Manager = new DiscordManager(Hub.Config.Discord);
@@ -116,17 +118,19 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
         _client.PresenceUpdated += Client_PresenceUpdated;
         _client.Disconnected += OnDisconnected;
+
+        QueueMonitor<T>.OnQueueStatusChanged = (full, count, max) => Task.Run(() => EchoModule.SendQueueStatusEmbedAsync(full, count, max));
     }
 
     private Task OnDisconnected(Exception exception)
     {
         LogUtil.LogText($"Discord connection lost. Reason: {exception?.Message ?? "Unknown"}");
-        Task.Run(() => ReconnectAsync());
+        Task.Run(() => ReconnectAsync(_cts.Token), _cts.Token);
         return Task.CompletedTask;
     }
 
-    private void OnBotConnectionError(object? sender, Exception ex) => Task.Run(HandleBotStop);
-    private void OnBotConnectionSuccess(object? sender, EventArgs e) => Task.Run(HandleBotStart);
+    private void OnBotConnectionError(object? sender, Exception ex) => Task.Run(HandleBotStop, _cts.Token);
+    private void OnBotConnectionSuccess(object? sender, EventArgs e) => Task.Run(HandleBotStart, _cts.Token);
 
     private void OnBotAdded(object? sender, PokeRoutineExecutorBase b)
     {
@@ -159,9 +163,13 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _client.Ready -= LoadLoggingAndEcho;
         _client.MessageReceived -= HandleMessageAsync;
 
+        QueueMonitor<T>.OnQueueStatusChanged = null;
+        _announcementMessageIds.Clear();
+
         LogModule.ClearAll();
         EchoModule.ClearAll();
         TradeStartModule<T>.ClearAll();
+        DiscordManager.ClearAllCaches();
 
         if (Runner != null)
         {
@@ -176,6 +184,10 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                 }
             }
         }
+        
+        // Clear static reference to prevent memory leaks when reloading environment
+        if (ReferenceEquals(Runner, _runner))
+            Runner = null!;
 
         try
         {
@@ -190,16 +202,16 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
     // Track loading of Echo/Logging channels, so they aren't loaded multiple times.
     private bool MessageChannelsLoaded { get; set; }
 
-    private async Task ReconnectAsync()
+    private async Task ReconnectAsync(CancellationToken token)
     {
         const int maxRetries = 5;
         const int delayBetweenRetries = 5000; // 5 seconds
         const int initialDelay = 10000; // 10 seconds
 
         // Initial delay to allow Discord's automatic reconnection
-        await Task.Delay(initialDelay).ConfigureAwait(false);
+        try { await Task.Delay(initialDelay, token).ConfigureAwait(false); } catch (OperationCanceledException) { return; }
 
-        for (int i = 0; i < maxRetries; i++)
+        for (int i = 0; i < maxRetries && !token.IsCancellationRequested; i++)
         {
             try
             {
@@ -213,7 +225,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                 if (_client.ConnectionState == ConnectionState.Connecting)
                 {
                     LogUtil.LogText("Client is already attempting to reconnect.");
-                    await Task.Delay(delayBetweenRetries).ConfigureAwait(false);
+                    try { await Task.Delay(delayBetweenRetries, token).ConfigureAwait(false); } catch (OperationCanceledException) { return; }
                     continue;
                 }
 
@@ -226,15 +238,21 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
             {
                 LogUtil.LogText($"Reconnection attempt {i + 1} failed: {ex.Message}");
                 if (i < maxRetries - 1)
-                    await Task.Delay(delayBetweenRetries).ConfigureAwait(false);
+                {
+                    try { await Task.Delay(delayBetweenRetries, token).ConfigureAwait(false); } catch (OperationCanceledException) { return; }
+                }
             }
         }
+
+        if (token.IsCancellationRequested) return;
 
         // If all attempts to reconnect fail, stop and restart the bot
         LogUtil.LogText("Failed to reconnect after maximum attempts. Restarting the bot...");
 
         // Stop the bot
         await _client.StopAsync().ConfigureAwait(false);
+
+        if (token.IsCancellationRequested) return;
 
         // Restart the bot
         await _client.LoginAsync(TokenType.Bot, Hub.Config.Discord.Token).ConfigureAwait(false);

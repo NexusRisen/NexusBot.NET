@@ -286,13 +286,20 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
             if (detail.UserID.Equals(null))
             {
                 LogUtil.LogInfo(nameof(TradeQueueInfo<T>), $"Removing {detail.Trade.Trainer.TrainerName}");
-                return UsersInQueue.Remove(detail);
             }
             else
             {
                 LogUtil.LogInfo(nameof(TradeQueueInfo<T>), $"Removing {detail.UserID} - {detail.Trade.Trainer.TrainerName}");
-                return UsersInQueue.Remove(detail);
             }
+
+            // Notify the notifier that the trade is being removed/canceled
+            // This ensures any periodic timers (like in DiscordTradeNotifier) are stopped
+            if (!detail.Trade.IsCanceled && !detail.Trade.IsProcessing)
+            {
+                detail.Trade.TradeCanceled(null!, PokeTradeResult.UserCanceled);
+            }
+
+            return UsersInQueue.Remove(detail);
         }
     }
 

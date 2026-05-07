@@ -24,6 +24,12 @@ public class RecoverableBotRunner<T> : BotRunner<T>, IDisposable where T : class
     {
         if (_recoveryService != null)
         {
+            // Unsubscribe from old recovery events to prevent memory leaks and duplicate logging
+            _recoveryService.BotCrashed -= OnBotCrashed;
+            _recoveryService.RecoveryAttempted -= OnRecoveryAttempted;
+            _recoveryService.RecoverySucceeded -= OnRecoverySucceeded;
+            _recoveryService.RecoveryFailed -= OnRecoveryFailed;
+            
             _recoveryService.Dispose();
         }
 

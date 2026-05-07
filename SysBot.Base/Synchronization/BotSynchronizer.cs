@@ -36,6 +36,7 @@ public class BotSynchronizer : IDisposable
 
     public void Dispose()
     {
+        BarrierReleasingActions.Clear();
         Barrier.Dispose();
         GC.SuppressFinalize(this);
     }

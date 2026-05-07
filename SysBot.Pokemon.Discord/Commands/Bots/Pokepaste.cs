@@ -122,7 +122,11 @@ namespace SysBot.Pokemon.Discord
 
                                 string speciesImageUrl = TradeExtensions<PK9>.PokeImg(pk, false, false);
 #pragma warning disable CA1416 // Validate platform compatibility
-                                var speciesImage = await Task.Run(async () => System.Drawing.Image.FromStream(await NetUtil.HttpClient.GetStreamAsync(speciesImageUrl))).ConfigureAwait(false);
+                                var speciesImage = await Task.Run(async () =>
+                                {
+                                    using var stream = await NetUtil.HttpClient.GetStreamAsync(speciesImageUrl).ConfigureAwait(false);
+                                    return System.Drawing.Image.FromStream(stream);
+                                }).ConfigureAwait(false);
 #pragma warning restore CA1416 // Validate platform compatibility
 #pragma warning disable CA1416 // Validate platform compatibility
                                 pokemonImages.Add(speciesImage);

@@ -24,6 +24,7 @@ public static class SysKookSettings
 public sealed class SysKook<T> : IDisposable where T : PKM, new()
 {
     public readonly PokeTradeHub<T> Hub;
+    private readonly PokeBotRunner<T> _runner;
     private readonly ProgramConfig _config;
     private readonly KookSocketClient _client;
     // Kook.Net doesn't have a direct CommandService like Discord.Net yet in some versions, 
@@ -44,6 +45,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
 
     public SysKook(PokeBotRunner<T> runner, ProgramConfig config)
     {
+        _runner = runner;
         Runner = runner;
         Hub = runner.Hub;
         Manager = new KookManager(Hub.Config.Kook);
@@ -77,7 +79,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
     private Task OnDisconnected(Exception exception)
     {
         LogUtil.LogText($"Kook connection lost. Reason: {exception?.Message ?? "Unknown"}");
-        Task.Run(() => ReconnectAsync());
+        Task.Run(() => ReconnectAsync(_cts.Token), _cts.Token);
         return Task.CompletedTask;
     }
 
@@ -101,8 +103,8 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         }
     }
 
-    private void OnBotConnectionError(object? sender, Exception ex) => Task.Run(HandleBotStop);
-    private void OnBotConnectionSuccess(object? sender, EventArgs e) => Task.Run(HandleBotStart);
+    private void OnBotConnectionError(object? sender, Exception ex) => Task.Run(HandleBotStop, _cts.Token);
+    private void OnBotConnectionSuccess(object? sender, EventArgs e) => Task.Run(HandleBotStart, _cts.Token);
 
     private Task HandleBotStop() => Task.CompletedTask; // TODO: Implement
     private Task HandleBotStart() => Task.CompletedTask; // TODO: Implement
@@ -129,6 +131,10 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
                 }
             }
         }
+        
+        // Clear static reference to prevent memory leaks when reloading environment
+        if (ReferenceEquals(Runner, _runner))
+            Runner = null!;
 
         try
         {
@@ -140,14 +146,14 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
 
     public static PokeBotRunner<T> Runner { get; private set; } = default!;
 
-    private async Task ReconnectAsync()
+    private async Task ReconnectAsync(CancellationToken token)
     {
         const int maxRetries = 5;
         const int delayBetweenRetries = 5000;
 
-        await Task.Delay(10000).ConfigureAwait(false);
+        try { await Task.Delay(10000, token).ConfigureAwait(false); } catch (OperationCanceledException) { return; }
 
-        for (int i = 0; i < maxRetries; i++)
+        for (int i = 0; i < maxRetries && !token.IsCancellationRequested; i++)
         {
             try
             {
@@ -160,7 +166,10 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
             catch (Exception ex)
             {
                 LogUtil.LogText($"Kook reconnection attempt {i + 1} failed: {ex.Message}");
-                if (i < maxRetries - 1) await Task.Delay(delayBetweenRetries).ConfigureAwait(false);
+                if (i < maxRetries - 1)
+                {
+                    try { await Task.Delay(delayBetweenRetries, token).ConfigureAwait(false); } catch (OperationCanceledException) { return; }
+                }
             }
         }
     }

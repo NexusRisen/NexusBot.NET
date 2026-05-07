@@ -101,6 +101,8 @@ public class DiscordManager(DiscordSettings Config)
 
     public void ClearDMChannelCache(ulong userId) => _dmChannels.TryRemove(userId, out _);
 
+    public static void ClearAllCaches() => _dmChannels.Clear();
+
     public bool CanUseCommandChannel(ulong channel) => (WhitelistedChannels.List.Count == 0 && WhitelistedChannels.AllowIfEmpty) || WhitelistedChannels.Contains(channel);
 
     public bool CanUseCommandUser(ulong uid) => !BlacklistedUsers.Contains(uid);

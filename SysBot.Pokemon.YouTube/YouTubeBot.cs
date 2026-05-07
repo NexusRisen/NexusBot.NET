@@ -77,19 +77,24 @@ public class YouTubeBot<T> : IDisposable where T : PKM, new()
     {
         Task.Run(async () =>
         {
-            await client.SendMessage("5...").ConfigureAwait(false);
-            await Task.Delay(1_000).ConfigureAwait(false);
-            await client.SendMessage("4...").ConfigureAwait(false);
-            await Task.Delay(1_000).ConfigureAwait(false);
-            await client.SendMessage("3...").ConfigureAwait(false);
-            await Task.Delay(1_000).ConfigureAwait(false);
-            await client.SendMessage("2...").ConfigureAwait(false);
-            await Task.Delay(1_000).ConfigureAwait(false);
-            await client.SendMessage("1...").ConfigureAwait(false);
-            await Task.Delay(1_000).ConfigureAwait(false);
-            if (!string.IsNullOrWhiteSpace(message))
-                await client.SendMessage(message).ConfigureAwait(false);
-        });
+            try
+            {
+                await client.SendMessage("5...").ConfigureAwait(false);
+                await Task.Delay(1_000, _cts.Token).ConfigureAwait(false);
+                await client.SendMessage("4...").ConfigureAwait(false);
+                await Task.Delay(1_000, _cts.Token).ConfigureAwait(false);
+                await client.SendMessage("3...").ConfigureAwait(false);
+                await Task.Delay(1_000, _cts.Token).ConfigureAwait(false);
+                await client.SendMessage("2...").ConfigureAwait(false);
+                await Task.Delay(1_000, _cts.Token).ConfigureAwait(false);
+                await client.SendMessage("1...").ConfigureAwait(false);
+                await Task.Delay(1_000, _cts.Token).ConfigureAwait(false);
+                if (!string.IsNullOrWhiteSpace(message))
+                    await client.SendMessage(message).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex) { LogUtil.LogError(ex.Message, nameof(YouTubeBot<T>)); }
+        }, _cts.Token);
     }
 
     private static void Logger_LogOccurred(object? sender, Log e)

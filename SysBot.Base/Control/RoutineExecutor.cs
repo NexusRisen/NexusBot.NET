@@ -42,10 +42,16 @@ namespace SysBot.Base
 
         public async Task RebootAndStopAsync(CancellationToken token)
         {
-            Connection.Connect();
-            await InitialStartup(token).ConfigureAwait(false);
-            await RebootAndStop(token).ConfigureAwait(false);
-            Connection.Disconnect();
+            try
+            {
+                Connection.Connect();
+                await InitialStartup(token).ConfigureAwait(false);
+                await RebootAndStop(token).ConfigureAwait(false);
+            }
+            finally
+            {
+                Connection.Disconnect();
+            }
         }
 
         public void ReportStatus() => LastTime = DateTime.Now;
@@ -56,12 +62,18 @@ namespace SysBot.Base
         /// <param name="token">Cancel this token to have the bot stop looping.</param>
         public async Task RunAsync(CancellationToken token)
         {
-            Connection.Connect();
-            Log("Initializing connection with console...");
-            await InitialStartup(token).ConfigureAwait(false);
-            await SetController(ControllerType.ProController, token);
-            await MainLoop(token).ConfigureAwait(false);
-            Connection.Disconnect();
+            try
+            {
+                Connection.Connect();
+                Log("Initializing connection with console...");
+                await InitialStartup(token).ConfigureAwait(false);
+                await SetController(ControllerType.ProController, token);
+                await MainLoop(token).ConfigureAwait(false);
+            }
+            finally
+            {
+                Connection.Disconnect();
+            }
         }
 
         public abstract Task SetController(ControllerType Controller, CancellationToken token);

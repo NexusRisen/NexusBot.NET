@@ -638,8 +638,10 @@ public static class QueueHelper<T> where T : PKM, new()
         
         if (eggImage == null || speciesImage == null)
         {
+#pragma warning disable CA1416 // Validate platform compatibility
             eggImage?.Dispose();
             speciesImage?.Dispose();
+#pragma warning restore CA1416 // Validate platform compatibility
             throw new InvalidOperationException("Failed to load egg or species image.");
         }
 

@@ -236,7 +236,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
     public async Task RePeek()
     {
         string ip = OwnerModule<T>.GetBotIPFromJsonConfig();
-        var source = new CancellationTokenSource();
+        using var source = new CancellationTokenSource();
         var token = source.Token;
 
         var bot = SysCord<T>.Runner.GetBot(ip);
@@ -283,7 +283,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
         try
         {
             string ip = OwnerModule<T>.GetBotIPFromJsonConfig();
-            var source = new CancellationTokenSource();
+            using var source = new CancellationTokenSource();
             var token = source.Token;
             var bot = SysCord<T>.Runner.GetBot(ip);
 
@@ -420,9 +420,9 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
             {
                 foreach (var attachment in attachments)
                 {
-                    var stream = await NetUtil.HttpClient.GetStreamAsync(attachment.Url);
+                    using var stream = await NetUtil.HttpClient.GetStreamAsync(attachment.Url).ConfigureAwait(false);
                     var file = new FileAttachment(stream, attachment.Filename);
-                    await dmChannel.SendFileAsync(file, embed: embed.Build());
+                    await dmChannel.SendFileAsync(file, embed: embed.Build()).ConfigureAwait(false);
                 }
             }
             else
@@ -479,9 +479,9 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
         {
             foreach (var attachment in attachments)
             {
-                var stream = await NetUtil.HttpClient.GetStreamAsync(attachment.Url);
+                using var stream = await NetUtil.HttpClient.GetStreamAsync(attachment.Url).ConfigureAwait(false);
                 var file = new FileAttachment(stream, attachment.Filename);
-                await messageChannel.SendFileAsync(file, actualMessage);
+                await messageChannel.SendFileAsync(file, actualMessage).ConfigureAwait(false);
             }
         }
         else

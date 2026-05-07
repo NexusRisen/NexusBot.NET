@@ -335,6 +335,50 @@ public static class LogUtil
     {
         BotLoggers.TryRemove(identity, out _);
         LogBuffer.TryRemove(identity, out _);
+
+        // Remove NLog target and rule to prevent memory leak in NLog configuration
+        var config = LogManager.Configuration;
+        if (config == null) return;
+
+        var safeBotName = SanitizeBotName(identity);
+        var targetName = $"botlog_{safeBotName}";
+        var loggerName = $"BotLogger_{safeBotName}";
+
+        var target = config.FindTargetByName(targetName);
+        if (target != null)
+        {
+            // Remove all rules associated with this target
+            var rulesToRemove = config.LoggingRules.Where(r => r.Targets.Contains(target) || r.LoggerNamePattern == loggerName).ToList();
+            foreach (var rule in rulesToRemove)
+            {
+                config.LoggingRules.Remove(rule);
+            }
+
+            config.RemoveTarget(targetName);
+            LogManager.Configuration = config; // Re-apply configuration
+        }
+    }
+
+    /// <summary>
+    /// Periodically cleans up stale buffered logs that were never flushed
+    /// </summary>
+    public static void CleanupStaleBuffers(TimeSpan timeout)
+    {
+        var now = DateTime.Now;
+        var staleIdentities = new List<string>();
+
+        foreach (var kvp in LogBuffer)
+        {
+            if (kvp.Value.Count > 0 && now - kvp.Value.Max(z => z.Timestamp) > timeout)
+            {
+                staleIdentities.Add(kvp.Key);
+            }
+        }
+
+        foreach (var id in staleIdentities)
+        {
+            LogBuffer.TryRemove(id, out _);
+        }
     }
 
     /// <summary>

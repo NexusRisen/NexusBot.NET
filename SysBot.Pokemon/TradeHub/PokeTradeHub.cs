@@ -40,6 +40,11 @@ public class PokeTradeHub<T> : IDisposable where T : PKM, new()
         GC.SuppressFinalize(this);
     }
 
+    public void CleanupMaintenance()
+    {
+        Ledy.CleanupStaleUsers(TimeSpan.FromHours(24));
+    }
+
     public bool TradeBotsReady => !Bots.All(z => z.Config.CurrentRoutineType == PokeRoutineType.Idle);
 
     #region Distribution Queue

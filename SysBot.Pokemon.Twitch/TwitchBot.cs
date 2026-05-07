@@ -24,6 +24,7 @@ namespace SysBot.Pokemon.Twitch
 
         private readonly TwitchSettings Settings;
         private readonly Action<string> _echoForwarder;
+        private readonly CancellationTokenSource _cts = new();
         private bool _isDisposed;
 
         public TwitchBot(TwitchSettings settings, PokeTradeHub<T> hub)
@@ -99,6 +100,8 @@ namespace SysBot.Pokemon.Twitch
         public void Dispose()
         {
             _isDisposed = true;
+            _cts.Cancel();
+            _cts.Dispose();
             QueuePool.Clear();
             EchoUtil.Forwarders.Remove(_echoForwarder);
             client.OnLog -= Client_OnLog;
@@ -131,19 +134,24 @@ namespace SysBot.Pokemon.Twitch
         {
             Task.Run(async () =>
             {
-                client.SendMessage(Channel, "5...");
-                await Task.Delay(1_000).ConfigureAwait(false);
-                client.SendMessage(Channel, "4...");
-                await Task.Delay(1_000).ConfigureAwait(false);
-                client.SendMessage(Channel, "3...");
-                await Task.Delay(1_000).ConfigureAwait(false);
-                client.SendMessage(Channel, "2...");
-                await Task.Delay(1_000).ConfigureAwait(false);
-                client.SendMessage(Channel, "1...");
-                await Task.Delay(1_000).ConfigureAwait(false);
-                if (!string.IsNullOrWhiteSpace(message))
-                    client.SendMessage(Channel, message);
-            });
+                try
+                {
+                    client.SendMessage(Channel, "5...");
+                    await Task.Delay(1_000, _cts.Token).ConfigureAwait(false);
+                    client.SendMessage(Channel, "4...");
+                    await Task.Delay(1_000, _cts.Token).ConfigureAwait(false);
+                    client.SendMessage(Channel, "3...");
+                    await Task.Delay(1_000, _cts.Token).ConfigureAwait(false);
+                    client.SendMessage(Channel, "2...");
+                    await Task.Delay(1_000, _cts.Token).ConfigureAwait(false);
+                    client.SendMessage(Channel, "1...");
+                    await Task.Delay(1_000, _cts.Token).ConfigureAwait(false);
+                    if (!string.IsNullOrWhiteSpace(message))
+                        client.SendMessage(Channel, message);
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex) { LogUtil.LogError(ex.Message, "TwitchBot"); }
+            }, _cts.Token);
         }
 
         private static int GenerateUniqueTradeID()
