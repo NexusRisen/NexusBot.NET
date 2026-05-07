@@ -74,6 +74,9 @@ public class KookTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
 
     public void TradeCanceled(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeResult msg)
     {
+        if (routine != null)
+            OnFinish?.Invoke(routine);
+            
         Trader.SendTextAsync($"Trade canceled: {msg}").ConfigureAwait(false);
     }
 

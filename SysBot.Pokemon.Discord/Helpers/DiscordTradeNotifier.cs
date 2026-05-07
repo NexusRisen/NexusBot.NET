@@ -276,7 +276,9 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
 
     public void TradeCanceled(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeResult msg)
     {
-        OnFinish?.Invoke(routine);
+        if (routine != null)
+            OnFinish?.Invoke(routine);
+            
         StopPeriodicUpdates();
 
         var cancelMessage = TotalBatchTrades > 1
@@ -291,7 +293,9 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
         // Only stop updates and invoke OnFinish for single trades or the last trade in a batch
         if (TotalBatchTrades <= 1 || BatchTradeNumber == TotalBatchTrades)
         {
-            OnFinish?.Invoke(routine);
+            if (routine != null)
+                OnFinish?.Invoke(routine);
+                
             StopPeriodicUpdates();
         }
 

@@ -65,8 +65,9 @@ public class PokeTradeLogNotifier<T> : IPokeTradeNotifier<T> where T : PKM, new(
     public void TradeCanceled(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeResult msg)
     {
         var batchInfo = info.TotalBatchTrades > 1 ? $"[Batch trade {BatchTradeNumber}/{info.TotalBatchTrades}] " : "";
-        LogUtil.LogInfo(routine.Connection.Label, $"{batchInfo}Canceling trade with {info.Trainer.TrainerName}, because {msg}.");
-        OnFinish?.Invoke(routine);
+        var label = routine?.Connection.Label ?? "Queue";
+        LogUtil.LogInfo(label, $"{batchInfo}Canceling trade with {info.Trainer.TrainerName}, because {msg}.");
+        OnFinish?.Invoke(routine!);
     }
 
     public void TradeFinished(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, T result)

@@ -296,6 +296,7 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
             // This ensures any periodic timers (like in DiscordTradeNotifier) are stopped
             if (!detail.Trade.IsCanceled && !detail.Trade.IsProcessing)
             {
+                detail.Trade.IsCanceled = true; // Set this first to prevent recursion via OnFinish callback
                 detail.Trade.TradeCanceled(null!, PokeTradeResult.UserCanceled);
             }
 
