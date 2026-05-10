@@ -16,7 +16,7 @@ namespace SysBot.Pokemon.Discord;
 public class InfoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new()
 {
     private const string WebsiteUrl = "https://nexusrisen.net";
-    private const string ThumbnailUrl = "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/refs/heads/main/BotIcons/dudebot.png";
+    private const string ThumbnailUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Characters/dudebot.png";
 
     [Command("Info")]
     [Alias("about", "whoami", "owner")]

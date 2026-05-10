@@ -53,7 +53,7 @@ namespace SysBot.Pokemon.Discord.Modules
                     .WithTitle(title)
                     .WithDescription(description)
                     .WithColor(Color.Blue)
-                    .WithImageUrl("https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/refs/heads/main/homereadybreak.png");
+                    .WithImageUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Status/homereadybreak.png");
 
                 return await ReplyAsync(embed: embed.Build());
             }

@@ -92,14 +92,14 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
             if (user == null) { Console.WriteLine($"User not found for ID {detail.Trainer.ID}."); return; }
 
             string speciesName = detail.TradeData != null ? GameInfo.Strings.Species[detail.TradeData.Species] : "";
-            string ballImgUrl = "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/difficulty.png";
+            string ballImgUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Balls/Alt/28x28/difficulty.png";
 
             if (detail.TradeData != null && detail.Type != PokeTradeType.Clone && detail.Type != PokeTradeType.Dump && detail.Type != PokeTradeType.Seed && detail.Type != PokeTradeType.FixOT)
             {
                 var ballName = GameInfo.GetStrings("en").balllist[detail.TradeData.Ball]
                     .Replace(" ", "").Replace("(LA)", "").ToLower();
                 ballName = ballName == "pokéball" ? "pokeball" : (ballName.Contains("(la)") ? "la" + ballName : ballName);
-                ballImgUrl = $"https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/AltBallImg/28x28/{ballName}.png";
+                ballImgUrl = $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Balls/Alt/28x28/{ballName}.png";
             }
 
             string tradeTitle = detail.IsMysteryEgg ? "✨ Mystery Egg" : detail.Type switch
@@ -111,12 +111,12 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
                 _ => speciesName
             };
 
-            string embedImageUrl = detail.IsMysteryEgg ? "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/mysteryegg3.png" : detail.Type switch
+            string embedImageUrl = detail.IsMysteryEgg ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/mysteryegg3.png" : detail.Type switch
             {
-                PokeTradeType.Clone => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Cloning.png",
-                PokeTradeType.Dump => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Dumping.png",
-                PokeTradeType.FixOT => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/FixOTing.png",
-                PokeTradeType.Seed => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Seeding.png",
+                PokeTradeType.Clone => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/Cloning.png",
+                PokeTradeType.Dump => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/Dumping.png",
+                PokeTradeType.FixOT => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/FixOTing.png",
+                PokeTradeType.Seed => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/Seeding.png",
                 _ => detail.TradeData != null ? TradeExtensions<T>.PokeImg(detail.TradeData, false, true) : ""
             };
 

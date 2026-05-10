@@ -44,7 +44,7 @@ public static class MedalHelpers
 
         if (milestone > 0)
         {
-            string imageUrl = $"https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/{milestone:D4}.png";
+            string imageUrl = $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/{milestone:D4}.png";
             return new EmbedBuilder()
                 .WithTitle($"{user.Username}'s Trading Status")
                 .WithColor(new Color(255, 215, 0))
@@ -54,7 +54,7 @@ public static class MedalHelpers
         }
         else
         {
-            string imageUrl = $"https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0000.png";
+            string imageUrl = $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0000.png";
             return new EmbedBuilder()
                 .WithTitle($"{user.Username}'s Trading Status")
                 .WithColor(new Color(0, 255, 0)) // Lime Green

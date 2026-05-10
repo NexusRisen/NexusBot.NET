@@ -148,32 +148,60 @@ namespace SysBot.Pokemon.Helpers
 
         public static string PokeImg(PKM pkm, bool canGmax, bool fullSize, ImageSize? preferredImageSize = null)
         {
-            var sizePath = fullSize ? "512x512" : (preferredImageSize ?? ImageSize.Size256x256) switch { ImageSize.Size128x128 => "128x128", _ => "256x256" };
-            
-            bool md = false, fd = false;
-            if (Enum.IsDefined(typeof(GenderDependent), pkm.Species) && !canGmax && pkm.Form == 0)
+            if (pkm.IsEgg)
             {
-                if (pkm.Gender == 0 && pkm.Species != (int)Species.Torchic) md = true; else fd = true;
+                return "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/egg.png";
             }
 
-            int form = pkm.Species switch { (int)Species.Sinistea or (int)Species.Polteageist or (int)Species.Rockruff or (int)Species.Mothim => 0, (int)Species.Alcremie when pkm.IsShiny || canGmax => 0, _ => pkm.Form };
-            if (pkm.Species == (ushort)Species.Sneasel) { if (pkm.Gender == 0) md = true; else fd = true; }
-            
-            if (pkm.Species == (ushort)Species.Basculegion)
+            string shinyFolder = pkm.IsShiny ? "Shiny" : "Non-Shiny";
+            var strings = GameInfo.GetStrings("en");
+            string speciesName = strings.Species[pkm.Species];
+            string rangeFolder = GetAlphabeticalRange(speciesName);
+
+            string baseSpecies = speciesName.ToLower()
+                .Replace(" ", "-")
+                .Replace("'", "")
+                .Replace(".", "")
+                .Replace(":", "")
+                .Replace("é", "e");
+
+            // Special cases for species names
+            if (pkm.Species == (ushort)Species.NidoranF) baseSpecies = "nidoran-f";
+            if (pkm.Species == (ushort)Species.NidoranM) baseSpecies = "nidoran-m";
+
+            string formSuffix = "";
+            if (canGmax)
             {
-                int bForm = pkm.Gender == 0 ? 0 : 1;
-                string s = pkm.IsShiny ? "r" : "n";
-                string g = pkm.Gender == 0 ? "md" : "fd";
-                return $"https://raw.githubusercontent.com/Havokx89/HomeImages/master/{sizePath}/poke_capture_0{pkm.Species:D3}_00{bForm}_{g}_n_00000000_f_{s}.png";
+                formSuffix = "-Gigantamax";
+            }
+            else if (pkm.Form > 0)
+            {
+                string[] forms = FormConverter.GetFormList(pkm.Species, strings.Types, strings.forms, GameInfo.GenderSymbolASCII, pkm.Context);
+                if (pkm.Form < forms.Length)
+                {
+                    string f = forms[pkm.Form].ToLower().Replace(" ", "-");
+                    if (!string.IsNullOrEmpty(f) && f != "0")
+                    {
+                        f = f.Replace("alolan", "alola")
+                             .Replace("galarian", "galar")
+                             .Replace("hisuian", "hisui");
+                        formSuffix = "-" + f;
+                    }
+                }
             }
 
-            string speciesStr = pkm.Species >= 1000 ? pkm.Species.ToString() : pkm.Species.ToString("D4");
-            string genderStr = pkm.PersonalInfo.OnlyFemale ? "fo" : pkm.PersonalInfo.OnlyMale ? "mo" : pkm.PersonalInfo.Genderless ? "uk" : fd ? "fd" : md ? "md" : "mf";
-            string gmaxStr = canGmax ? "g" : "n";
-            string argStr = (pkm.Species == (int)Species.Alcremie && !canGmax) ? ((IFormArgument)pkm).FormArgument.ToString("D8") : "00000000";
-            string shinyStr = pkm.IsShiny ? "r" : "n";
+            return $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/{shinyFolder}/PNG/{rangeFolder}/{baseSpecies}{formSuffix}.png";
+        }
 
-            return $"https://raw.githubusercontent.com/Havokx89/HomeImages/master/{sizePath}/poke_capture_{speciesStr}_{form:D3}_{genderStr}_{gmaxStr}_{argStr}_f_{shinyStr}.png";
+        private static string GetAlphabeticalRange(string speciesName)
+        {
+            if (string.IsNullOrEmpty(speciesName)) return "A-G";
+            char firstChar = char.ToUpper(speciesName[0]);
+            if (firstChar >= 'A' && firstChar <= 'G') return "A-G";
+            if (firstChar >= 'H' && firstChar <= 'N') return "H-N";
+            if (firstChar >= 'O' && firstChar <= 'T') return "O-T";
+            if (firstChar >= 'U' && firstChar <= 'Z') return "U-Z";
+            return "A-G";
         }
 
         public static bool ShinyLockCheck(ushort species, string form, string ball = "")

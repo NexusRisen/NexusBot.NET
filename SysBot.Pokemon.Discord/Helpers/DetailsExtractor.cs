@@ -125,7 +125,7 @@ public static class DetailsExtractor<T> where T : PKM, new()
     {
         if (isCloneRequest || isSpecialRequest)
         {
-            embedBuilder.WithThumbnailUrl("https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/profoak.png");
+            embedBuilder.WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/NPCs/profoak.png");
         }
         else if (!string.IsNullOrEmpty(heldItemUrl))
         {

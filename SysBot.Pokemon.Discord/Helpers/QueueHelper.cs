@@ -25,27 +25,27 @@ public static class QueueHelper<T> where T : PKM, new()
 
     private static readonly Dictionary<int, string> MilestoneImages = new()
     {
-         { 1, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0001.png" },
-     { 50, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0050.png" },
-     { 100, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0100.png" },
-     { 150, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0150.png" },
-     { 200, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0200.png" },
-     { 250, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0250.png" },
-     { 300, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0300.png" },
-     { 350, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0350.png" },
-     { 400, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0400.png" },
-     { 450, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0450.png" },
-     { 500, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0500.png" },
-     { 550, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0550.png" },
-     { 600, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0600.png" },
-     { 650, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0650.png" },
-     { 700, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0700.png" },
-     { 750, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0750.png" },
-     { 800, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0800.png" },
-     { 850, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0850.png" },
-     { 900, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0900.png" },
-     { 950, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/0950.png" },
-     { 1000, "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Medal/1000.png" }
+         { 1, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0001.png" },
+     { 50, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0050.png" },
+     { 100, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0100.png" },
+     { 150, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0150.png" },
+     { 200, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0200.png" },
+     { 250, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0250.png" },
+     { 300, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0300.png" },
+     { 350, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0350.png" },
+     { 400, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0400.png" },
+     { 450, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0450.png" },
+     { 500, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0500.png" },
+     { 550, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0550.png" },
+     { 600, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0600.png" },
+     { 650, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0650.png" },
+     { 700, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0700.png" },
+     { 750, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0750.png" },
+     { 800, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0800.png" },
+     { 850, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0850.png" },
+     { 900, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0900.png" },
+     { 950, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0950.png" },
+     { 1000, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/1000.png" }
  };
 
     private static string GetMilestoneDescription(int tradeCount)
@@ -196,11 +196,11 @@ public static class QueueHelper<T> where T : PKM, new()
         {
             (string embedImageUrl, DiscordColor embedColor) = await PrepareEmbedDetails(pk);
 
-            embedData.EmbedImageUrl = isMysteryEgg ? "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/mysteryegg3.png?raw=true&width=300&height=300" :
-                type == PokeRoutineType.Dump ? "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Dumping.png?raw=true&width=300&height=300" :
-                type == PokeRoutineType.Clone ? "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Cloning.png?raw=true&width=300&height=300" :
-                type == PokeRoutineType.SeedCheck ? "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/Seeding.png?raw=true&width=300&height=300" :
-                type == PokeRoutineType.FixOT ? "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/FixOTing.png?raw=true&width=300&height=300" :
+            embedData.EmbedImageUrl = isMysteryEgg ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/mysteryegg3.png?raw=true&width=300&height=300" :
+                type == PokeRoutineType.Dump ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/Dumping.png?raw=true&width=300&height=300" :
+                type == PokeRoutineType.Clone ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/Cloning.png?raw=true&width=300&height=300" :
+                type == PokeRoutineType.SeedCheck ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/Seeding.png?raw=true&width=300&height=300" :
+                type == PokeRoutineType.FixOT ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/FixOTing.png?raw=true&width=300&height=300" :
                     embedImageUrl;
 
             embedData.HeldItemUrl = string.Empty;
@@ -241,23 +241,23 @@ public static class QueueHelper<T> where T : PKM, new()
             {
                 if (homeTrack.HasTracker && isNonNative)
                 {
-                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/setedited.png";
+                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/setedited.png";
                     embedBuilder.AddField("**__Notice__**: **This Pokemon is Non-Native & Has Home Tracker.**", "*AutoOT not applied.*");
                 }
                 else if (homeTrack.HasTracker)
                 {
-                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/setedited.png";
+                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/setedited.png";
                     embedBuilder.AddField("**__Notice__**: **Home Tracker Detected.**", "*AutoOT not applied.*");
                 }
                 else if (isNonNative)
                 {
-                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/setedited.png";
+                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/setedited.png";
                     embedBuilder.AddField("**__Notice__**: **This Pokemon is Non-Native.**", "*Cannot enter HOME & AutoOT not applied.*");
                 }
             }
             else if (isNonNative)
             {
-                embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/setedited.png";
+                embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/setedited.png";
                 embedBuilder.AddField("**__Notice__**: **This Pokemon is Non-Native.**", "*Cannot enter HOME & AutoOT not applied.*");
             }
 
@@ -435,7 +435,7 @@ public static class QueueHelper<T> where T : PKM, new()
                         .WithAuthor(new EmbedAuthorBuilder()
                             .WithName(embedData.AuthorName)
                             .WithIconUrl(trader.GetAvatarUrl() ?? trader.GetDefaultAvatarUrl())
-                            .WithUrl("https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/FromTheHeart2.png"));
+                            .WithUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Extras/FromTheHeart2.png"));
 
                     DetailsExtractor<T>.AddAdditionalText(embedBuilder);
                     DetailsExtractor<T>.AddNormalTradeFields(embedBuilder, embedData, trader.Mention, pk);
@@ -445,7 +445,7 @@ public static class QueueHelper<T> where T : PKM, new()
                     {
                         if (homeTrack.HasTracker)
                         {
-                            embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/setedited.png";
+                            embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/setedited.png";
                             embedBuilder.AddField("**__Notice__**: **Home Tracker Detected.**", "*AutoOT not applied.*");
                         }
                     }
@@ -551,7 +551,7 @@ public static class QueueHelper<T> where T : PKM, new()
             ballName = ballName.Replace(" ", "").ToLower();
         }
 
-        string ballImgUrl = $"https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/AltBallImg/28x28/{ballName}.png";
+        string ballImgUrl = $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Balls/Alt/28x28/{ballName}.png";
 
         if (Uri.TryCreate(embedImageUrl, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeFile)
         {
@@ -875,7 +875,7 @@ public static class QueueHelper<T> where T : PKM, new()
             ? typeNames[typeIndex]
             : "Normal";
 
-        return $"https://raw.githubusercontent.com/Havokx89/HomeImages/ebd562941ff77b1889a297ee50eacfa8cb3589de/128x128/Egg_{typeName}.png";
+        return $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/Egg_{typeName}.png";
     }
 
     public static (string, Embed) CreateLGLinkCodeSpriteEmbed(List<Pictocodes> lgcode)

@@ -190,13 +190,13 @@ namespace SysBot.Pokemon.Discord
         {
             var thumbnailOptions = new List<string>
     {
-        "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/gengarmegaphone.png",
-        "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/pikachumegaphone.png",
-        "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/umbreonmegaphone.png",
-        "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/sylveonmegaphone.png",
-        "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/charmandermegaphone.png",
-        "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/jigglypuffmegaphone.png",
-        "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/flareonmegaphone.png",
+        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/gengarmegaphone.png",
+        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/pikachumegaphone.png",
+        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/umbreonmegaphone.png",
+        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/sylveonmegaphone.png",
+        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/charmandermegaphone.png",
+        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/jigglypuffmegaphone.png",
+        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/flareonmegaphone.png",
     };
             var random = new Random();
             return thumbnailOptions[random.Next(thumbnailOptions.Count)];
@@ -220,14 +220,14 @@ namespace SysBot.Pokemon.Discord
         {
             return option switch
             {
-                ThumbnailOption.Gengar => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/gengarmegaphone.png",
-                ThumbnailOption.Pikachu => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/pikachumegaphone.png",
-                ThumbnailOption.Umbreon => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/umbreonmegaphone.png",
-                ThumbnailOption.Sylveon => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/sylveonmegaphone.png",
-                ThumbnailOption.Charmander => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/charmandermegaphone.png",
-                ThumbnailOption.Jigglypuff => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/jigglypuffmegaphone.png",
-                ThumbnailOption.Flareon => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/flareonmegaphone.png",
-                _ => "https://raw.githubusercontent.com/Havokx89/Bot-Sprite-Images/main/imgs/gengarmegaphone.png",
+                ThumbnailOption.Gengar => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/gengarmegaphone.png",
+                ThumbnailOption.Pikachu => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/pikachumegaphone.png",
+                ThumbnailOption.Umbreon => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/umbreonmegaphone.png",
+                ThumbnailOption.Sylveon => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/sylveonmegaphone.png",
+                ThumbnailOption.Charmander => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/charmandermegaphone.png",
+                ThumbnailOption.Jigglypuff => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/jigglypuffmegaphone.png",
+                ThumbnailOption.Flareon => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/flareonmegaphone.png",
+                _ => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/gengarmegaphone.png",
             };
         }
 

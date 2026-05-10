@@ -1,21 +1,19 @@
 # Release Notes
 
-## [v6.1.5] - 2026-05-07
+## [v6.1.6] - 2026-05-10
 
 ### Summary
-This release focuses on a comprehensive "Great Memory Leak Purge," involving a complete architectural audit of resource management across all bot platforms and core systems. Stability for long-running sessions is significantly improved.
+This release migrates the entire DudeBot.NET image infrastructure to the new Nexus-Risen-Edition-Sprite-Images repository. It introduces a modernized, language-neutral sprite generation engine and improves asset organization across all bot platforms.
 
 ### Added
-- **Automated Background Maintenance**: A new background service that periodically prunes stale trade history, prunes log buffers, and clears expired batch trade data.
-- **Resource Lifecycle Guards**: Implemented `IDisposable` and cancellation support across all platform-specific bot modules (Discord, Kook, Twitch, YouTube).
+- **New Asset Bank Integration**: Integrated the `NexusRisen/Nexus-Risen-Edition-Sprite-Images` repository for all bot assets.
+- **Alphabetical Range Mapping**: Automated folder selection (A-G, H-N, O-T, U-Z) based on species names for optimized repository access.
 
 ### Changed
-- **NLog Configuration Optimization**: Logging targets and rules are now surgically removed when bots disconnect, preventing indefinite memory growth in the NLog engine.
-- **Connection Integrity**: Enhanced console connection logic with mandatory `try-finally` blocks to ensure USB and Socket handles are released even during hardware crashes.
-- **Network Optimization**: Centralized `HttpClient` usage and ensured all network streams are deterministically disposed of.
+- **Dynamic Sprite Engine**: Refactored `PokeImg` to utilize English species names and standardized form suffixes, ensuring 100% reliability in image resolution regardless of the user's input language.
+- **Static Asset Paths**: Updated all hardcoded URLs for medals, icons, status indicators, and DMs to point to the new structured repository.
+- **Form Suffix Logic**: Standardized regional form suffixes (`-alola`, `-galar`, `-hisui`) and Gigantamax indicators to match the new asset naming convention.
 
 ### Fixed
-- **Memory Leaks (GDI+)**: Fixed critical leaks in WinForms, Discord, and Kook modules related to `Bitmap`, `Graphics`, and `Image` objects.
-- **Zombie Tasks**: Resolved issues where background reconnection loops and countdown timers would continue running after a bot was stopped or disposed.
-- **Static Collection Growth**: Fixed "slow death" leaks where Discord DM caches and trade history lists grew indefinitely.
-- **Build Warnings**: Resolved all platform-compatibility warnings (`CA1416`) in the Discord and Kook integrations.
+- **Multi-Language URL Resolution**: Fixed an issue where non-English Showdown sets could fail to resolve image URLs by forcing English translation during the link-building phase.
+- **Ambiguous Form Naming**: Improved form name sanitization to prevent broken image links for species with complex form strings.
