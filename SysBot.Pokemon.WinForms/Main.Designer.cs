@@ -638,9 +638,9 @@ namespace SysBot.Pokemon.WinForms
             L_CreditsContribNames.Font = new Font("Segoe UI", 12F);
             L_CreditsContribNames.Location = new Point(0, 310);
             L_CreditsContribNames.Name = "L_CreditsContribNames";
-            L_CreditsContribNames.Size = new Size(662, 75);
+            L_CreditsContribNames.Size = new Size(662, 125);
             L_CreditsContribNames.TabIndex = 5;
-            L_CreditsContribNames.Text = "Lusamine, Research & Data Analysis\r\nHexbyt3, Core Engine Enhancements\r\nSantaCrab2, Auto-Legality Mod (ALM)";
+            L_CreditsContribNames.Text = "Lusamine, Research & Data Analysis\r\nHexbyt3, Core Engine Enhancements\r\nSantaCrab2, Auto-Legality Mod (ALM)\r\nLink, Graphics & Design (Images and Logo)\r\nHavok, Graphics & Design (Images and Logo)";
             L_CreditsContribNames.TextAlign = ContentAlignment.TopCenter;
             // 
             // L_CreditsContribTitle

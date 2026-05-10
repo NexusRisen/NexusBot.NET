@@ -1,5 +1,10 @@
 # Release Notes
 
+## [v6.1.7] - 2026-05-10
+
+### Added
+- **Program Credits**: Added Graphics & Design credits for Link and Havok in the WinForms application.
+
 ## [v6.1.6] - 2026-05-10
 
 ### Summary
