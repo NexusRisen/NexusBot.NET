@@ -32,9 +32,9 @@ public class InfoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
             .WithDescription("A high-performance Pokemon automation bot powered by PKHeX.Core.")
             .WithColor(Color.Gold)
             .WithThumbnailUrl(ThumbnailUrl)
-            .AddField("👑 Main Creators",
-                $"{Format.Bold("Havok")}\n" +
-                $"{Format.Bold("Link")}")
+            .AddField("👑 Project Owners",
+                $"{Format.Bold("Havok")}: Logo & Asset Creation\n" +
+                $"{Format.Bold("Link")}: Logo & Asset Creation")
             .AddField("📊 Project Info",
                 $"{Format.Bold("Main Developer")}: [Nexus Risen]({WebsiteUrl})\n" +
                 $"{Format.Bold("Owner")}: {app.Owner.Mention}\n" +
@@ -47,6 +47,7 @@ public class InfoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
                 $"{Format.Bold("Memory")}: {heapSize} MiB", inline: true)
             .AddField("👥 Contributors",
                 $"{Format.Bold("Nexus Risen")}: Project Lead & Developer\n" +
+                $"{Format.Bold("Secludedly")}: Medals, Refactoring & Feature Enhancements\n" +
                 $"{Format.Bold("Lusamine")}: Research & Data Analysis\n" +
                 $"{Format.Bold("Hexbyt3")}: Core Engine Enhancements\n" +
                 $"{Format.Bold("SantaCrab2")}: Auto-Legality Mod (ALM)")

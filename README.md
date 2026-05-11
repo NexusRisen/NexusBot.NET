@@ -143,10 +143,10 @@ See the full list of [Contributors](CONTRIBUTORS).
 - **[Nexus Risen](https://nexusrisen.net)** - Main Developer
 - **Lusamine** - Research & Data Analysis
 - **Hexbyt3** - Core Engine Enhancements
-- **Secludedly** - Medals, Refactoring & Feature Enhancements
+- **[Secludedly](https://github.com/Secludedly)** - Medals, Refactoring & Feature Enhancements
 - **SantaCrab2** - Auto-Legality Mod (ALM)
-- **[Link](https://github.com/link2026)** - Graphics & Design (Images and Logo)
-- **[Havok](https://github.com/Havokx89)** - Graphics & Design (Images and Logo)
+- **[Link](https://github.com/link2026)** - Project Owners (Logo & Asset Creation)
+- **[Havok](https://github.com/Havokx89)** - Project Owners (Logo & Asset Creation)
 
 ---
 
