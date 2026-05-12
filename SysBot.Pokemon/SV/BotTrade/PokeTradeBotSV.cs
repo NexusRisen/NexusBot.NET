@@ -382,7 +382,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
             if (!newEC.SequenceEqual(oldEC))
             {
                 var offered = await ReadUntilPresent(TradePartnerOfferedOffset, 2_000, 0_500, BoxFormatSlotSize, token).ConfigureAwait(false);
-                await Task.Delay(25_000, token).ConfigureAwait(false);
+                await Task.Delay(Hub.Config.Trade.TradeConfiguration.TradeAnimationMaxDelaySeconds * 1000, token).ConfigureAwait(false);
                 return PokeTradeResult.Success;
             }
         }
@@ -682,13 +682,14 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
 
 
         // Separate this out from WaitForPokemonChanged since we compare to old EC from original read.
-        var partnerFound = await ReadUntilChanged(TradePartnerOfferedOffset, oldEC, 15_000, 0_200, false, true, token).ConfigureAwait(false);
+        var waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+        var partnerFound = await ReadUntilChanged(TradePartnerOfferedOffset, oldEC, waitTime, 0_200, false, true, token).ConfigureAwait(false);
         if (!partnerFound)
         {
             poke.SendNotification(this, "**HEY CHANGE IT NOW OR I AM LEAVING!!!**");
 
             // They get one more chance.
-            partnerFound = await ReadUntilChanged(TradePartnerOfferedOffset, oldEC, 15_000, 0_200, false, true, token).ConfigureAwait(false);
+            partnerFound = await ReadUntilChanged(TradePartnerOfferedOffset, oldEC, waitTime, 0_200, false, true, token).ConfigureAwait(false);
         }
 
         // Check if the user has cancelled the trade
@@ -701,7 +702,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
             return (offered, PokeTradeResult.TrainerTooSlow);
         }
 
-        var pk2 = await ReadUntilPresent(TradePartnerOfferedOffset, 25_000, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
+        var pk2 = await ReadUntilPresent(TradePartnerOfferedOffset, waitTime, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
         if (!partnerFound || pk2 is null || SearchUtil.HashByDetails(pk2) == SearchUtil.HashByDetails(offered))
         {
             Log("Trade partner did not change their Pokémon.");
@@ -795,14 +796,15 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
         // Wait for a bit in case trading partner tries to switch out.
         await Task.Delay(2_000, token).ConfigureAwait(false);
 
-        var pk2 = await ReadUntilPresent(TradePartnerOfferedOffset, 15_000, 0_200, BoxFormatSlotSize, token).ConfigureAwait(false);
+        var waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+        var pk2 = await ReadUntilPresent(TradePartnerOfferedOffset, waitTime, 0_200, BoxFormatSlotSize, token).ConfigureAwait(false);
         bool changed = pk2 is null || pk2.Species != offered.Species || offered.OriginalTrainerName != pk2.OriginalTrainerName;
         if (changed)
         {
             // They get one more chance.
             poke.SendNotification(this, "**Offer the originally shown Pokémon or I'm leaving!**");
 
-            var timer = 10_000;
+            var timer = waitTime;
             while (changed)
             {
                 pk2 = await ReadUntilPresent(TradePartnerOfferedOffset, 2_000, 0_500, BoxFormatSlotSize, token).ConfigureAwait(false);
@@ -972,6 +974,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
         {
             var currentTradeIndex = i;
             var toSend = tradesToProcess[currentTradeIndex];
+            var waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
 
             poke.TradeData = toSend;
             poke.Notifier.UpdateBatchProgress(currentTradeIndex + 1, toSend, poke.UniqueTradeID);
@@ -1124,6 +1127,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
                     }
                 }
 
+                waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
                 var partnerCheck = CheckPartnerReputation(this, poke, trainerNID, tradePartner.TrainerName, AbuseSettings, token);
                 if (partnerCheck != PokeTradeResult.Success)
                 {
@@ -1136,7 +1140,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
                     return partnerCheck;
                 }
 
-                var tradeOffered = await ReadUntilChanged(TradePartnerOfferedOffset, lastOffered, 10_000, 0_500, false, true, token).ConfigureAwait(false);
+                var tradeOffered = await ReadUntilChanged(TradePartnerOfferedOffset, lastOffered, waitTime, 0_500, false, true, token).ConfigureAwait(false);
                 if (!tradeOffered)
                 {
                     poke.SendNotification(this, "Trade partner took too long. Canceling the batch trades.");
@@ -1181,7 +1185,8 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
                 poke.SendNotification(this, $"Please offer your Pokémon for trade 1/{totalBatchTrades}.");
             }
 
-            var offered = await ReadUntilPresent(TradePartnerOfferedOffset, 25_000, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
+            waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+            var offered = await ReadUntilPresent(TradePartnerOfferedOffset, waitTime, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
             var oldEC = await SwitchConnection.ReadBytesAbsoluteAsync(TradePartnerOfferedOffset, 8, token).ConfigureAwait(false);
             if (offered == null || offered.Species == 0 || !offered.ChecksumValid)
             {
@@ -1559,7 +1564,8 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
 
         // Hard check to verify that the offset changed from the last thing offered from the previous trade.
         // This is because box opening times can vary per person, the offset persists between trades, and can also change offset between trades.
-        var tradeOffered = await ReadUntilChanged(TradePartnerOfferedOffset, lastOffered, 10_000, 0_500, false, true, token).ConfigureAwait(false);
+        var waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+        var tradeOffered = await ReadUntilChanged(TradePartnerOfferedOffset, lastOffered, waitTime, 0_500, false, true, token).ConfigureAwait(false);
         if (!tradeOffered)
         {
             await ExitTradeToPortal(false, token).ConfigureAwait(false);
@@ -1589,7 +1595,8 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
             }
         }
         // Wait for user input...
-        var offered = await ReadUntilPresent(TradePartnerOfferedOffset, 25_000, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
+        waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+        var offered = await ReadUntilPresent(TradePartnerOfferedOffset, waitTime, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
         var oldEC = await SwitchConnection.ReadBytesAbsoluteAsync(TradePartnerOfferedOffset, 8, token).ConfigureAwait(false);
         if (offered == null || offered.Species == 0 || !offered.ChecksumValid)
         {

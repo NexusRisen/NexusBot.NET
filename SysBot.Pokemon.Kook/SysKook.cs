@@ -242,6 +242,108 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         {
             await HandleTradeCommandAsync(message, parts.Skip(1).ToList());
         }
+        else if (cmd == "itemtrade" || cmd == "item" || cmd == "it")
+        {
+            await HandleItemTradeCommandAsync(message, parts.Skip(1).ToList());
+        }
+    }
+
+    private async Task HandleItemTradeCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (args.Count == 0)
+        {
+            await message.Channel.SendTextAsync("Please provide at least one item name.");
+            return;
+        }
+
+        var itemInput = string.Join(" ", args);
+        var itemNames = itemInput.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        
+        if (typeof(T) == typeof(PB7) && itemNames.Length > 1)
+        {
+            await message.Channel.SendTextAsync("Batch trades are not supported in Let's Go Pikachu/Eevee. You can only request one item at a time.");
+            return;
+        }
+
+        var batchSettings = Hub.Config.Trade.BatchSettings;
+        var maxItemBatch = batchSettings.MaxItemBatchAmount;
+
+        if (itemNames.Length > 1 && !batchSettings.AllowBatchTrades)
+        {
+            await message.Channel.SendTextAsync("Batch trades are currently disabled. You can only request one item at a time.");
+            return;
+        }
+
+        if (itemNames.Length > maxItemBatch)
+        {
+            await message.Channel.SendTextAsync($"You can only request up to {maxItemBatch} items at a time.");
+            return;
+        }
+
+        var pkmList = new List<T>();
+        var errors = new List<string>();
+
+        var tradeConfig = Hub.Config.Trade.TradeConfiguration;
+        Species species = tradeConfig.ItemTradeSpecies == Species.None ? Species.Pikachu : tradeConfig.ItemTradeSpecies;
+        var baseSpeciesName = SpeciesName.GetSpeciesNameGeneration((ushort)species, 2, 8);
+
+        for (int i = 0; i < itemNames.Length; i++)
+        {
+            var itemName = itemNames[i];
+            var set = new ShowdownSet($"{baseSpeciesName} @ {itemName}");
+            var template = AutoLegalityWrapper.GetTemplate(set);
+            var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
+            var pkm = sav.GetLegal(template, out _);
+
+            if (pkm == null)
+            {
+                errors.Add($"Item '{itemName}': Failed to legalize.");
+                continue;
+            }
+
+            pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
+
+            if (pkm.HeldItem == 0)
+            {
+                errors.Add($"Item '{itemName}': Unrecognized item.");
+                continue;
+            }
+
+            if (TradeRestrictions.IsUntradableHeld(pkm.Context, pkm.HeldItem))
+            {
+                errors.Add($"Item '{itemName}': Untradable item.");
+                continue;
+            }
+
+            var la = new LegalityAnalysis(pkm);
+            if (pkm is not T pk || !la.Valid)
+            {
+                errors.Add($"Item '{itemName}': Invalid Pokémon generated.");
+                continue;
+            }
+
+            pk.ResetPartyStats();
+            pkmList.Add(pk);
+        }
+
+        if (errors.Count > 0)
+        {
+            await message.Channel.SendTextAsync("Errors occurred:\n" + string.Join("\n", errors));
+            return;
+        }
+
+        if (pkmList.Count == 0) return;
+
+        var code = Hub.Queues.Info.GetRandomTradeCode(message.Author.Id);
+
+        if (pkmList.Count == 1)
+        {
+            await KookHelper<T>.AddToQueueAsync(message, code, message.Author.Username, pkmList[0], message.Author, _client);
+        }
+        else
+        {
+            await KookHelper<T>.AddBatchContainerToQueueAsync(message, code, message.Author.Username, pkmList[0], pkmList, message.Author, _client);
+        }
     }
 
     private async Task HandleTradeCommandAsync(SocketMessage message, List<string> args)

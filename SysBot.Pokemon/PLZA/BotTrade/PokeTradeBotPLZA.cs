@@ -489,6 +489,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             {
                 Log("Trade started!");
                 SetTradeState(TradeState.Trading);
+                await Task.Delay(Hub.Config.Trade.TradeConfiguration.TradeAnimationMaxDelaySeconds * 1000, token).ConfigureAwait(false);
                 return PokeTradeResult.Success;
             }
         }
@@ -1063,7 +1064,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         CancellationToken token)
     {
         var start = DateTime.UtcNow;
-        var timeout = TimeSpan.FromSeconds(45);
+        var timeout = TimeSpan.FromSeconds(Hub.Config.Trade.TradeConfiguration.TradeWaitTime);
 
         while (!token.IsCancellationRequested)
         {
@@ -1770,15 +1771,16 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
     private async Task<bool> CheckCloneChangedOffer(CancellationToken token)
     {
+        var waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
         // Watch their status to indicate they canceled, then offered a new Pokémon.
-        var hovering = await ReadUntilChanged(TradePartnerStatusOffset, [0x2], 25_000, 1_000, true, true, token).ConfigureAwait(false);
+        var hovering = await ReadUntilChanged(TradePartnerStatusOffset, [0x2], waitTime, 1_000, true, true, token).ConfigureAwait(false);
         if (!hovering)
         {
             Log("Trade partner did not change their initial offer.");
             SetTradeState(TradeState.Failed);
             return false;
         }
-        var offering = await ReadUntilChanged(TradePartnerStatusOffset, [0x3], 25_000, 1_000, true, true, token).ConfigureAwait(false);
+        var offering = await ReadUntilChanged(TradePartnerStatusOffset, [0x3], waitTime, 1_000, true, true, token).ConfigureAwait(false);
         if (!offering)
         {
             return false;

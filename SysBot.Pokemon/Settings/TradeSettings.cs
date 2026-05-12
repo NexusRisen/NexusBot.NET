@@ -81,8 +81,8 @@ public class TradeSettings : IBotStateSettings, ICountSettings
         [Category(TradeConfig), Description("Dump Trade: If enabled, Dumping routine will output legality check information to the user."), DisplayName("Dump Trade Legality Check")]
         public bool DumpTradeLegalityCheck { get; set; } = true;
 
-        [Category(TradeConfig), Description("LGPE Setting.")]
-        public int TradeAnimationMaxDelaySeconds = 25;
+        [Category(TradeConfig), Description("Time to wait (in seconds) for a trade animation to complete before returning to the trade menu."), DisplayName("Trade Animation Delay")]
+        public int TradeAnimationMaxDelaySeconds { get; set; } = 25;
 
         public enum HeldItem
         {
@@ -111,16 +111,19 @@ public class TradeSettings : IBotStateSettings, ICountSettings
         [Category("BatchTradeConfig"), Description("Toggle to allow or disallow batch trades."), DisplayName("Allow Batch Trades")]
         public bool AllowBatchTrades { get; set; } = true;
 
-        private int _maxPkmsPerTrade = 10;
-        [Category("BatchTradeConfig"), Description("Maximum Pokémon per trade. Batch mode will default to 10 if this configuration is less than 1. No upper limit, mind your queues."), DisplayName("Maximum Pokémon per Trade")]
+        private int _maxPkmsPerTrade = 3;
+        [Category("BatchTradeConfig"), Description("Maximum Pokémon per trade. Batch mode will default to 3 if this configuration is less than 1. No upper limit, mind your queues."), DisplayName("Maximum Pokémon per Trade")]
         public int MaxPkmsPerTrade
         {
-            get => _maxPkmsPerTrade < 1 ? 10 : _maxPkmsPerTrade;
+            get => _maxPkmsPerTrade < 1 ? 3 : _maxPkmsPerTrade;
             set => _maxPkmsPerTrade = value;
         }
 
         [Category("BatchTradeConfig"), Description("Toggle to give users the option to use the BatchNormalizer, which utilizes Showdown in place of batch commands. Refer to the Wiki for details."), DisplayName("Batch Commands to Showdown")]
         public bool BatchNormalizer { get; set; } = true;
+
+        [Category("BatchTradeConfig"), Description("Maximum number of items allowed in a single itemTrade ($it) command. Set to 1 to disable batching for items."), DisplayName("Max Items per Item Trade")]
+        public int MaxItemBatchAmount { get; set; } = 3;
     }
 
     [Category(EmbedSettings), TypeConverter(typeof(CategoryConverter<TradeEmbedSettingsCategory>))]

@@ -51,6 +51,40 @@ public static class KookHelper<T> where T : PKM, new()
         }
     }
 
+    public static async Task AddBatchContainerToQueueAsync(SocketMessage message, int code, string trainerName, T firstTrade, List<T> allTrades, SocketUser trader, KookSocketClient client)
+    {
+        var userID = trader.Id;
+        var name = trader.Username;
+        var trainer_info = new PokeTradeTrainerInfo(trainerName, userID);
+        var notifier = new KookTradeNotifier<T>(firstTrade, trainer_info, code, trader, client, null);
+
+        int uniqueTradeID = (int)(DateTime.UtcNow.Ticks % int.MaxValue);
+
+        var detail = new PokeTradeDetail<T>(firstTrade, trainer_info, notifier, PokeTradeType.Batch, code,
+            false, null, 1, allTrades.Count, false, false, uniqueTradeID, false, false)
+        {
+            BatchTrades = allTrades
+        };
+
+        var trade = new TradeEntry<T>(detail, userID, PokeRoutineType.Batch, name, uniqueTradeID: uniqueTradeID);
+        
+        var isSudo = SysKookSettings.Settings.GlobalSudoList.Contains(userID);
+        var added = Info.AddToTradeQueue(trade, userID, false, isSudo);
+
+        if (added == QueueResultAdd.Added)
+        {
+            await notifier.SendInitialQueueUpdate();
+        }
+        else if (added == QueueResultAdd.AlreadyInQueue)
+        {
+            await message.Channel.SendTextAsync($"{trader.Username}, you are already in the queue!");
+        }
+        else if (added == QueueResultAdd.QueueFull)
+        {
+            await message.Channel.SendTextAsync("The queue is currently full. Please try again later.");
+        }
+    }
+
     public static async Task<T?> ProcessShowdownSetAsync(string content)
     {
         if (!ShowdownParsing.TryParseAnyLanguage(content, out ShowdownSet? set) || set == null || set.Species == 0)

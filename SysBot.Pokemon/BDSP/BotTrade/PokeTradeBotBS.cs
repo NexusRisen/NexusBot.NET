@@ -379,12 +379,11 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             // EC is detectable at the start of the animation.
             var newEC = await SwitchConnection.ReadBytesAbsoluteAsync(BoxStartOffset, 8, token).ConfigureAwait(false);
             if (!newEC.SequenceEqual(oldEC))
-            {   
+            {
              var offered = await ReadPokemon(LinkTradePokemonOffset, BoxFormatSlotSize, token).ConfigureAwait(false);
-             await Task.Delay(25_000, token).ConfigureAwait(false);
+             await Task.Delay(Hub.Config.Trade.TradeConfiguration.TradeAnimationMaxDelaySeconds * 1000, token).ConfigureAwait(false);
              return PokeTradeResult.Success;
-            }
-        }
+            }        }
 
         // If we don't detect a B1S1 change, the trade didn't go through in that time.
         return PokeTradeResult.TrainerTooSlow;
@@ -685,13 +684,14 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
 
 
         // For BDSP, we need to read from LinkTradePokemonOffset instead of TradePartnerOfferedOffset
-        var partnerFound = await ReadUntilChanged(LinkTradePokemonOffset, await SwitchConnection.ReadBytesAbsoluteAsync(LinkTradePokemonOffset, 8, token).ConfigureAwait(false), 15_000, 0_200, false, true, token).ConfigureAwait(false);
+        var waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+        var partnerFound = await ReadUntilChanged(LinkTradePokemonOffset, await SwitchConnection.ReadBytesAbsoluteAsync(LinkTradePokemonOffset, 8, token).ConfigureAwait(false), waitTime, 0_200, false, true, token).ConfigureAwait(false);
         if (!partnerFound)
         {
             poke.SendNotification(this, "**HEY CHANGE IT NOW OR I AM LEAVING!!!**");
 
             // They get one more chance
-            partnerFound = await ReadUntilChanged(LinkTradePokemonOffset, await SwitchConnection.ReadBytesAbsoluteAsync(LinkTradePokemonOffset, 8, token).ConfigureAwait(false), 15_000, 0_200, false, true, token).ConfigureAwait(false);
+            partnerFound = await ReadUntilChanged(LinkTradePokemonOffset, await SwitchConnection.ReadBytesAbsoluteAsync(LinkTradePokemonOffset, 8, token).ConfigureAwait(false), waitTime, 0_200, false, true, token).ConfigureAwait(false);
         }
 
         // In BDSP we check if we're still in the Union Room
@@ -809,10 +809,11 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             Log($"{name} changed the shown Pokémon ({GameInfo.GetStrings("en").Species[clone.Species]}){(pk2 != null ? $" to {GameInfo.GetStrings("en").Species[pk2.Species]}" : "")}");
             poke.SendNotification(this, "**Send away the originally shown Pokémon, please!**");
 
-            bool verify = await ReadUntilChanged(LinkTradePokemonOffset, comp, 10_000, 0_200, false, true, token).ConfigureAwait(false);
-            if (verify)
-                verify = await ReadUntilChanged(LinkTradePokemonOffset, lastOffered, 5_000, 0_200, true, true, token).ConfigureAwait(false);
-            changed = !verify && (pk2 == null || clone.Species != pk2.Species || offered.OriginalTrainerName != pk2.OriginalTrainerName);
+            var waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+            var partnerFound = await ReadUntilChanged(LinkTradePokemonOffset, comp, waitTime, 0_200, false, true, token).ConfigureAwait(false);
+            if (partnerFound)
+                partnerFound = await ReadUntilChanged(LinkTradePokemonOffset, lastOffered, 5_000, 0_200, true, true, token).ConfigureAwait(false);
+            changed = !partnerFound && (pk2 == null || clone.Species != pk2.Species || offered.OriginalTrainerName != pk2.OriginalTrainerName);
         }
 
         // Update the last Pokémon they showed us.
@@ -1068,7 +1069,8 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             return await ProcessDumpTradeAsync(poke, token).ConfigureAwait(false);
 
         // Wait for user input... Needs to be different from the previously offered Pokémon.
-        var tradeOffered = await ReadUntilChanged(LinkTradePokemonOffset, lastOffered, 25_000, 1_000, false, true, token).ConfigureAwait(false);
+        var waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+        var tradeOffered = await ReadUntilChanged(LinkTradePokemonOffset, lastOffered, waitTime, 1_000, false, true, token).ConfigureAwait(false);
         if (!tradeOffered)
             return PokeTradeResult.TrainerTooSlow;
 
@@ -1445,7 +1447,8 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
 
             LinkTradePokemonOffset = await SwitchConnection.PointerAll(Offsets.LinkTradePartnerPokemonPointer, token).ConfigureAwait(false);
 
-            var offered = await ReadUntilPresent(LinkTradePokemonOffset, 25_000, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
+            var waitTime = Hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+            var offered = await ReadUntilPresent(LinkTradePokemonOffset, waitTime, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
             if (offered == null || offered.Species == 0 || !offered.ChecksumValid)
             {
                 poke.SendNotification(this, $"Invalid Pokémon offered after trade {completedTrades + 1}/{totalBatchTrades}. Canceling the remaining trades.");

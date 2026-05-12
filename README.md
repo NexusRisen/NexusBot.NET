@@ -75,6 +75,7 @@ Full remote control and interaction support across multiple platforms:
 - **High-Performance Logic**: BDSP trade routines refactored with `Span<byte>` and `MemoryMarshal` for maximum speed and zero-allocation memory management.
 - **Async Modernization**: Fully non-blocking batch trade sequences using `Task`-based operations.
 - **AutoOT Integration**: Personalize Pokémon with the receiver's trainer information automatically.
+- **Item Batching**: The `itemTrade` (`$it`) command now supports requesting up to 3 items at once, automatically generating a batch trade for efficiency.
 
 ### 📊 Enhanced Discord Experience
 - **Visual Embeds**: Multi-column layouts for clean and professional data visualization.

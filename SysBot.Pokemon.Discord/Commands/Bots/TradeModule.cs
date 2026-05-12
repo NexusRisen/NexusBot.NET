@@ -409,62 +409,109 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     private async Task ProcessItemTradeAsync(int code, string item)
     {
+        var itemNames = item.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var batchSettings = SysCord<T>.Runner.Config.Trade.BatchSettings;
+        var maxItemBatch = batchSettings.MaxItemBatchAmount;
+
+        if (typeof(T) == typeof(PB7) && itemNames.Length > 1)
+        {
+            await Helpers<T>.ReplyAndDeleteAsync(Context, "Batch trades are not supported in Let's Go Pikachu/Eevee. You can only request one item at a time.", 2);
+            return;
+        }
+
+        if (itemNames.Length > 1 && !batchSettings.AllowBatchTrades)
+        {
+            await Helpers<T>.ReplyAndDeleteAsync(Context, "Batch trades are currently disabled. You can only request one item at a time.", 2);
+            return;
+        }
+
+        if (itemNames.Length > maxItemBatch)
+        {
+            await Helpers<T>.ReplyAndDeleteAsync(Context, $"You can only request up to {maxItemBatch} items at a time.", 2);
+            return;
+        }
+
+        var pkmList = new List<T>();
+        var errors = new List<BatchTradeError>();
+
         Species species = Info.Hub.Config.Trade.TradeConfiguration.ItemTradeSpecies == Species.None
             ? Species.Pikachu
             : Info.Hub.Config.Trade.TradeConfiguration.ItemTradeSpecies;
+        var baseSpeciesName = SpeciesName.GetSpeciesNameGeneration((ushort)species, 2, 8);
 
-        var set = new ShowdownSet($"{SpeciesName.GetSpeciesNameGeneration((ushort)species, 2, 8)} @ {item.Trim()}");
-        var template = AutoLegalityWrapper.GetTemplate(set);
-        var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-        var pkm = sav.GetLegal(template, out var result);
-
-        if (pkm == null)
+        for (int i = 0; i < itemNames.Length; i++)
         {
-            await ReplyAsync("Set took too long to legalize.");
+            var itemName = itemNames[i];
+            var set = new ShowdownSet($"{baseSpeciesName} @ {itemName}");
+            var template = AutoLegalityWrapper.GetTemplate(set);
+            var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
+            var pkm = sav.GetLegal(template, out var result);
+
+            if (pkm == null)
+            {
+                errors.Add(new BatchTradeError { TradeNumber = i + 1, SpeciesName = baseSpeciesName, ErrorMessage = "Set took too long to legalize.", ShowdownSet = itemName });
+                continue;
+            }
+
+            pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
+
+            if (pkm.HeldItem == 0)
+            {
+                errors.Add(new BatchTradeError { TradeNumber = i + 1, SpeciesName = baseSpeciesName, ErrorMessage = "Sorry, the item you entered wasn't recognized.", ShowdownSet = itemName });
+                continue;
+            }
+
+            if (pkm.HeldItem == 535 || pkm.HeldItem == 534) //Blue and Red Orbs
+            {
+                const ushort goldBottleCap = 796; // PA9 ID
+                var oldItem = pkm.HeldItem;
+
+                pkm.HeldItem = goldBottleCap;
+
+                var speciesName = GameInfo.Strings.Species[pkm.Species];
+                var oldItemName = GameInfo.Strings.Item[oldItem];
+                var newItemName = GameInfo.Strings.Item[goldBottleCap];
+
+                Base.LogUtil.LogInfo($"Replaced illegal item '{oldItemName}' with '{newItemName}' for {speciesName}", "BlockItem");
+            }
+
+            if (TradeRestrictions.IsUntradableHeld(pkm.Context, pkm.HeldItem))
+            {
+                errors.Add(new BatchTradeError { TradeNumber = i + 1, SpeciesName = baseSpeciesName, ErrorMessage = "Sorry, the item you entered can't be traded.", ShowdownSet = itemName });
+                continue;
+            }
+
+            var la = new LegalityAnalysis(pkm);
+            if (pkm is not T pk || !la.Valid)
+            {
+                var reason = result == "Timeout" ? "That set took too long to generate." : "I wasn't able to create something from that.";
+                errors.Add(new BatchTradeError { TradeNumber = i + 1, SpeciesName = baseSpeciesName, ErrorMessage = reason, ShowdownSet = itemName });
+                continue;
+            }
+
+            pk.ResetPartyStats();
+            pkmList.Add(pk);
+        }
+
+        if (errors.Count > 0)
+        {
+            await BatchHelpers<T>.SendBatchErrorEmbedAsync(Context, errors, itemNames.Length);
             return;
         }
 
-        pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
-
-        if (pkm.HeldItem == 0)
-        {
-            await Helpers<T>.ReplyAndDeleteAsync(Context, $"Sorry, the item you entered wasn't recognized.", 2);
+        if (pkmList.Count == 0)
             return;
-        }
-        if (pkm.HeldItem == 535 || pkm.HeldItem == 534) //Blue and Red Orbs
+
+        if (pkmList.Count == 1)
         {
-            const ushort goldBottleCap = 796; // PA9 ID
-            var oldItem = pkm.HeldItem;
-
-            pkm.HeldItem = goldBottleCap;
-
-            var speciesName = GameInfo.Strings.Species[pkm.Species];
-            var oldItemName = GameInfo.Strings.Item[oldItem];
-            var newItemName = GameInfo.Strings.Item[goldBottleCap];
-
-            Base.LogUtil.LogInfo($"Replaced illegal item '{oldItemName}' with '{newItemName}' for {speciesName}", "BlockItem");
+            var sig = Context.User.GetFavor();
+            await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pkmList[0],
+                PokeRoutineType.LinkTrade, PokeTradeType.Specific).ConfigureAwait(false);
         }
-
-        if (TradeRestrictions.IsUntradableHeld(pkm.Context, pkm.HeldItem))
+        else
         {
-            await Helpers<T>.ReplyAndDeleteAsync(Context, $"Sorry, the item you entered can't be traded.", 2);
-            return;
+            await BatchHelpers<T>.ProcessBatchContainer(Context, pkmList, code, pkmList.Count);
         }
-       
-        
-        var la = new LegalityAnalysis(pkm);
-        if (pkm is not T pk || !la.Valid)
-        {
-            var reason = result == "Timeout" ? "That set took too long to generate." : "I wasn't able to create something from that.";
-            var imsg = $"Oops! {reason} Here's my best attempt for that {species}!";
-            await Context.Channel.SendPKMAsync(pkm, imsg).ConfigureAwait(false);
-            return;
-        }
-
-        pk.ResetPartyStats();
-        var sig = Context.User.GetFavor();
-        await QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, pk,
-            PokeRoutineType.LinkTrade, PokeTradeType.Specific).ConfigureAwait(false);
 
         if (Context.Message is IUserMessage userMessage)
             _ = Helpers<T>.DeleteMessagesAfterDelayAsync(userMessage, null, 2);
@@ -547,6 +594,12 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public async Task BatchTradeAsync([Summary("List of Showdown Sets separated by '---'")][Remainder] string content = "")
     {
+        if (typeof(T) == typeof(PB7))
+        {
+            await Helpers<T>.ReplyAndDeleteAsync(Context, "Batch trades are not supported in Let's Go Pikachu/Eevee.", 2);
+            return;
+        }
+
         var batchSettings = SysCord<T>.Runner.Config.Trade.BatchSettings;
 
         // Check if batch trades are allowed

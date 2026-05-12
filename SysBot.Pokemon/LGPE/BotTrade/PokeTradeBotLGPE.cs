@@ -453,7 +453,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
         poke.TradeFinished(this, received);
 
         // Still need to wait out the trade animation.
-        await Task.Delay(10_000, token).ConfigureAwait(false);
+        await Task.Delay(Hub.Config.Trade.TradeConfiguration.TradeAnimationMaxDelaySeconds * 1000, token).ConfigureAwait(false);
 
         await ExitTrade(false, token).ConfigureAwait(false);
         return PokeTradeResult.Success;

@@ -356,4 +356,5 @@ MigrationBackup/
 
 # Environment variables
 .env
+.env.*
 

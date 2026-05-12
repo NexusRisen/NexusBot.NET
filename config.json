@@ -260,11 +260,13 @@
         "SuggestRelearnMoves": true,
         "MaxDumpsPerTrade": 20,
         "MaxDumpTradeTime": 180,
-        "DumpTradeLegalityCheck": true
+        "DumpTradeLegalityCheck": true,
+        "TradeAnimationMaxDelaySeconds": 25
       },
       "BatchSettings": {
         "AllowBatchTrades": true,
         "MaxPkmsPerTrade": 3,
+        "MaxItemBatchAmount": 3,
         "BatchNormalizer": true
       },
       "TradeEmbedSettings": {

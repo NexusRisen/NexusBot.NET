@@ -451,7 +451,8 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
             }
 
             // Read the offered Pokémon
-            var offered = await ReadUntilPresent(LinkTradePartnerPokemonOffset, 25_000, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
+            var waitTime = hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+            var offered = await ReadUntilPresent(LinkTradePartnerPokemonOffset, waitTime, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
             var oldEC = await Connection.ReadBytesAsync(LinkTradePartnerPokemonOffset, 4, token).ConfigureAwait(false);
 
             if (offered == null)
@@ -833,7 +834,8 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
             return await ProcessDumpTradeAsync(poke, token).ConfigureAwait(false);
 
         // After reading the offered Pokemon:
-        var offered = await ReadUntilPresent(LinkTradePartnerPokemonOffset, 25_000, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
+        var waitTime = hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+        var offered = await ReadUntilPresent(LinkTradePartnerPokemonOffset, waitTime, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
         var oldEC = await Connection.ReadBytesAsync(LinkTradePartnerPokemonOffset, 4, token).ConfigureAwait(false);
         if (offered is null)
         {
@@ -973,10 +975,9 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
             var newEC = await Connection.ReadBytesAsync(BoxStartOffset, 8, token).ConfigureAwait(false);
             if (!newEC.SequenceEqual(oldEC))
             {
-                await Task.Delay(25_000, token).ConfigureAwait(false);
+                await Task.Delay(hub.Config.Trade.TradeConfiguration.TradeAnimationMaxDelaySeconds * 1000, token).ConfigureAwait(false);
                 return PokeTradeResult.Success;
-            }
-        }
+            }        }
 
         if (await IsOnOverworld(OverworldOffset, token).ConfigureAwait(false))
             return PokeTradeResult.TrainerLeft;
@@ -1040,17 +1041,18 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
 
 
         // Separate this out from WaitForPokemonChanged since we compare to old EC from original read.
-        var partnerFound = await ReadUntilChanged(LinkTradePartnerPokemonOffset, oldEC, 15_000, 0_200, false, token).ConfigureAwait(false);
+        var waitTime = hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+        var partnerFound = await ReadUntilChanged(LinkTradePartnerPokemonOffset, oldEC, waitTime, 0_200, false, token).ConfigureAwait(false);
 
         if (!partnerFound)
         {
             poke.SendNotification(this, "**HEY CHANGE IT NOW OR I AM LEAVING!!!**");
 
             // They get one more chance.
-            partnerFound = await ReadUntilChanged(LinkTradePartnerPokemonOffset, oldEC, 15_000, 0_200, false, token).ConfigureAwait(false);
+            partnerFound = await ReadUntilChanged(LinkTradePartnerPokemonOffset, oldEC, waitTime, 0_200, false, token).ConfigureAwait(false);
         }
 
-        var pk2 = await ReadUntilPresent(LinkTradePartnerPokemonOffset, 3_000, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
+        var pk2 = await ReadUntilPresent(LinkTradePartnerPokemonOffset, waitTime, 1_000, BoxFormatSlotSize, token).ConfigureAwait(false);
         if (!partnerFound || pk2 == null || SearchUtil.HashByDetails(pk2) == SearchUtil.HashByDetails(offered))
         {
             Log("Trade partner did not change their Pokémon.");
@@ -1622,7 +1624,8 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
         {
             Log($"{name} changed the shown Pokémon ({GameInfo.GetStrings("en").Species[clone.Species]}){(pk2 != null ? $" to {GameInfo.GetStrings("en").Species[pk2.Species]}" : "")}");
             poke.SendNotification(this, "**Send away the originally shown Pokémon, please!**");
-            var timer = 10_000;
+            var waitTime = hub.Config.Trade.TradeConfiguration.TradeWaitTime * 1000;
+            var timer = waitTime;
             while (changed)
             {
                 pk2 = await ReadUntilPresent(LinkTradePartnerPokemonOffset, 2_000, 0_500, BoxFormatSlotSize, token).ConfigureAwait(false);
