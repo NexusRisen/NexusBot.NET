@@ -77,6 +77,14 @@ Full remote control and interaction support across multiple platforms:
 - **AutoOT Integration**: Personalize Pokémon with the receiver's trainer information automatically.
 - **Item Batching**: The `itemTrade` (`$it`) command now supports requesting up to 3 items at once, automatically generating a batch trade for efficiency.
 
+### 🧠 AI Chatbot Integration (v6.2.0)
+DudeBot.NET now features a state-of-the-art **AI Chatbot** powered by [Hugging Face](https://huggingface.co/).
+- **Natural Language Requests**: Request Pokémon using normal conversation (e.g., "@DudeBot can I have a competitive Mewtwo?").
+- **Automated Queueing**: The AI generates legal Showdown sets and, upon your confirmation, adds them directly to the trade queue.
+- **Legality Verification**: All AI-suggested Pokémon are verified by the internal PKHeX engine. If a set is illegal, the bot automatically asks the AI to fix it before queueing.
+- **Dynamic Personality**: The AI adopts your bot's name and maintains expert knowledge of competitive play and historical events.
+- **Learn More**: See the [AI Chatbot Wiki](https://github.com/NexusRisen/DudeBot.NET/wiki/AI-Chatbot) for setup instructions.
+
 ### 📊 Enhanced Discord Experience
 - **Visual Embeds**: Multi-column layouts for clean and professional data visualization.
 - **Advanced Metadata**: 
