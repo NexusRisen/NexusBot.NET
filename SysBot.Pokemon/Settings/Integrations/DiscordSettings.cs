@@ -18,6 +18,8 @@ public class DiscordSettings
 
     private const string Users = nameof(Users);
 
+    private const string AICategory = "AI Settings";
+
     public enum EmbedColorOption
     {
         Blue,
@@ -179,7 +181,24 @@ public class DiscordSettings
     [Category(Users), Description("Users with these user IDs cannot use the bot."), DisplayName("User Blacklist")]
     public RemoteControlAccessList UserBlacklist { get; set; } = new();
 
+    public AISettingsCategory AISettings { get; set; } = new();
+
     public override string ToString() => "Discord Integration Settings";
+
+    [Category(AICategory), TypeConverter(typeof(CategoryConverter<AISettingsCategory>))]
+    public class AISettingsCategory
+    {
+        [Category(AICategory), Description("Hugging Face API Key."), DisplayName("Hugging Face API Key")]
+        public string HuggingFaceApiKey { get; set; } = string.Empty;
+
+        [Category(AICategory), Description("Hugging Face Model ID (e.g., 'gpt2', 'mistralai/Mistral-7B-Instruct-v0.2')."), DisplayName("Hugging Face Model")]
+        public string HuggingFaceModel { get; set; } = "mistralai/Mistral-7B-Instruct-v0.2";
+
+        [Category(AICategory), Description("Enable AI Chatbot functionality."), DisplayName("Enable AI Chatbot")]
+        public bool EnableAIChatbot { get; set; } = false;
+
+        public override string ToString() => "AI Chatbot Settings";
+    }
 
     [Category(Operation), TypeConverter(typeof(CategoryConverter<AnnouncementSettingsCategory>))]
     public class AnnouncementSettingsCategory

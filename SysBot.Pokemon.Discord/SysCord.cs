@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using static Discord.GatewayIntents;
 using static SysBot.Pokemon.DiscordSettings;
 using SysBot.Pokemon.Discord.Helpers;
+using SysBot.Pokemon.Helpers;
 using Discord.Net;
 
 namespace SysBot.Pokemon.Discord;
@@ -36,6 +37,8 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
     private readonly CommandService _commands;
 
     private readonly IServiceProvider _services;
+    private readonly AI.HuggingFaceService? _aiService;
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<ulong, string> _pendingAIRequests = new();
 
     private readonly HashSet<string> _validCommands = new HashSet<string>
     {
@@ -113,8 +116,12 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _client.Log += Log;
         _commands.Log += Log;
 
-        // Setup your DI container.
         _services = ConfigureServices();
+
+        if (Hub.Config.Discord.AISettings.EnableAIChatbot && !string.IsNullOrWhiteSpace(Hub.Config.Discord.AISettings.HuggingFaceApiKey))
+        {
+            _aiService = new AI.HuggingFaceService(Hub.Config.Discord.AISettings.HuggingFaceApiKey, Hub.Config.Discord.AISettings.HuggingFaceModel);
+        }
 
         _client.PresenceUpdated += Client_PresenceUpdated;
         _client.Disconnected += OnDisconnected;
@@ -266,7 +273,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         if (!SysCordSettings.Settings.BotEmbedStatus)
             return;
 
-        var botName = string.IsNullOrEmpty(SysCordSettings.HubConfig.BotName) ? "DudeBot" : SysCordSettings.HubConfig.BotName;
+        var botName = string.IsNullOrEmpty(SysCordSettings.HubConfig.BotName) ? DudeBot.Name : SysCordSettings.HubConfig.BotName;
         var fullStatusMessage = $"**Status**: {botName} is {status}!";
         var thumbnailUrl = status == "Online"
             ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Status/botgo.png"
@@ -353,6 +360,12 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
     public async Task InitCommands()
     {
         var assembly = Assembly.GetExecutingAssembly();
+
+        _client.Ready += () =>
+        {
+            DudeBot.Name = _client.CurrentUser.Username;
+            return Task.CompletedTask;
+        };
 
         await _commands.AddModulesAsync(assembly, _services).ConfigureAwait(false);
         foreach (var t in assembly.DefinedTypes.Where(z => z.IsSubclassOf(typeof(ModuleBase<SocketCommandContext>)) && z.IsGenericType))
@@ -528,6 +541,12 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                 return;
             }
 
+            if (_pendingAIRequests.ContainsKey(msg.Author.Id))
+            {
+                if (await HandleAIPendingAsync(msg).ConfigureAwait(false))
+                    return;
+            }
+
             var correctPrefix = SysCordSettings.Settings.CommandPrefix;
             var content = msg.Content;
             var argPos = 0;
@@ -538,6 +557,12 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                 var handled = await TryHandleCommandAsync(msg, context, argPos);
                 if (handled)
                     return;
+
+                if (msg.HasMentionPrefix(_client.CurrentUser, ref argPos) && _aiService != null)
+                {
+                    await TryHandleAIAsync(msg, content[argPos..].Trim()).ConfigureAwait(false);
+                    return;
+                }
             }
             else if (content.Length > 1 && content[0] != correctPrefix[0])
             {
@@ -714,6 +739,145 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         catch (Exception ex)
         {
             await Log(new LogMessage(LogSeverity.Error, "Command", $"Error sending message: {ex.Message}", ex)).ConfigureAwait(false);
+        }
+    }
+
+    private async Task TryHandleAIAsync(SocketUserMessage msg, string userRequest)
+    {
+        if (_aiService == null)
+            return;
+
+        try
+        {
+            await msg.Channel.TriggerTypingAsync();
+
+            var prompt = $"You are {DudeBot.Name}, the ultimate Pokemon assistant for a trade bot. " +
+                         $"Your goal is to provide 100% legal, competitive, and authentic Pokemon Showdown sets. " +
+                         $"\n\nSTRICT RULES:" +
+                         $"\n1. LEGALITY: You MUST only provide legal Pokemon. Never suggest shiny-locked Pokemon as shiny (e.g., Koraidon, Miraidon, Victini, Hoopa). Verify that moves, abilities, and Pokeballs are legal for the specific species and game." +
+                         $"\n2. SHOWDOWN FORMAT: Always provide sets in standard Pokemon Showdown format. Wrap them in [SHOWDOWN] and [/SHOWDOWN] tags." +
+                         $"\n3. COMPETITIVE KNOWLEDGE: Use top-tier Smogon or VGC builds for competitive requests. Include optimized EVs, IVs, Natures, and Items." +
+                         $"\n4. EVENTS & EGGS: You have complete knowledge of all historical events and egg moves. If an event Pokemon is requested, match its original OT, ID, and moveset perfectly." +
+                         $"\n5. SUPPORTED GAMES: You support Sword/Shield, Brilliant Diamond/Shining Pearl, Legends: Arceus, Scarlet/Violet, and Let's Go Pikachu/Eevee." +
+                         $"\n6. NO ILLEGALS: If a user asks for something illegal, politely explain why it's illegal and offer the closest legal alternative." +
+                         $"\n\nAlways be professional, concise, and helpful. " +
+                         $"Answer the following user request: {userRequest}";
+
+            var response = await _aiService.GetAIResponseAsync(prompt);
+
+            if (string.IsNullOrWhiteSpace(response))
+            {
+                await SafeSendMessageAsync(msg.Channel, "I'm sorry, I couldn't think of a response right now.");
+                return;
+            }
+
+            await SafeSendMessageAsync(msg.Channel, response);
+
+            // Check if there's a Showdown set in the response
+            if (response.Contains("[SHOWDOWN]") && response.Contains("[/SHOWDOWN]"))
+            {
+                await HandleAIShowdownValidationAsync(msg, response, userRequest);
+            }
+        }
+        catch (Exception ex)
+        {
+            await Log(new LogMessage(LogSeverity.Error, "AI", $"Error in TryHandleAIAsync: {ex.Message}", ex));
+        }
+    }
+
+    private async Task HandleAIShowdownValidationAsync(SocketUserMessage msg, string response, string userRequest, int retryCount = 0)
+    {
+        var startIndex = response.IndexOf("[SHOWDOWN]") + "[SHOWDOWN]".Length;
+        var endIndex = response.IndexOf("[/SHOWDOWN]");
+        var showdownSet = response[startIndex..endIndex].Trim();
+
+        if (string.IsNullOrWhiteSpace(showdownSet))
+            return;
+
+        var result = await Helpers<T>.ProcessShowdownSetAsync(showdownSet, false);
+        if (result.Pokemon == null)
+        {
+            if (retryCount < 2 && _aiService != null)
+            {
+                await Log(new LogMessage(LogSeverity.Info, "AI", $"AI provided illegal set, requesting fix (Attempt {retryCount + 1}). Error: {result.Error}"));
+                
+                var fixPrompt = $"The Showdown set you provided for '{userRequest}' is ILLEGAL. " +
+                                $"Error: {result.Error}\n" +
+                                $"Hint: {result.LegalizationHint}\n" +
+                                $"Please provide a FIXED, 100% LEGAL version of this Pokemon set. " +
+                                $"Remember to wrap the fixed set in [SHOWDOWN] and [/SHOWDOWN] tags.";
+                
+                var fixedResponse = await _aiService.GetAIResponseAsync(fixPrompt);
+                if (!string.IsNullOrWhiteSpace(fixedResponse) && fixedResponse.Contains("[SHOWDOWN]"))
+                {
+                    await HandleAIShowdownValidationAsync(msg, fixedResponse, userRequest, retryCount + 1);
+                    return;
+                }
+            }
+
+            await SafeSendMessageAsync(msg.Channel, $"I found a set, but it appears to be illegal: {result.Error}. I'm sorry I couldn't provide a legal version.");
+            return;
+        }
+
+        _pendingAIRequests[msg.Author.Id] = showdownSet;
+        await SafeSendMessageAsync(msg.Channel, "Would you like to be put in the queue for this Pokemon? (Yes/No)");
+    }
+
+    private async Task<bool> HandleAIPendingAsync(SocketUserMessage msg)
+    {
+        var content = msg.Content.ToLower().Trim();
+        if (content == "yes" || content == "y")
+        {
+            if (_pendingAIRequests.TryRemove(msg.Author.Id, out var showdownSet))
+            {
+                await ProcessAIShowdownSetAsync(msg, showdownSet);
+                return true;
+            }
+        }
+        
+        if (content == "no" || content == "n")
+        {
+            if (_pendingAIRequests.TryRemove(msg.Author.Id, out _))
+            {
+                await SafeSendMessageAsync(msg.Channel, "Understood. I won't add you to the queue.");
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private async Task ProcessAIShowdownSetAsync(SocketUserMessage msg, string showdownSet)
+    {
+        try
+        {
+            var userID = msg.Author.Id;
+            if (!await Helpers<T>.EnsureUserNotInQueueAsync(userID))
+            {
+                await SafeSendMessageAsync(msg.Channel, "You already have an existing trade in the queue. Please wait until it is processed.");
+                return;
+            }
+
+            var result = await Helpers<T>.ProcessShowdownSetAsync(showdownSet, false);
+            if (result.Pokemon == null)
+            {
+                await SafeSendMessageAsync(msg.Channel, "I found a Showdown set, but I couldn't process it. Make sure it's valid.");
+                return;
+            }
+
+            var code = Hub.Queues.Info.GetRandomTradeCode(userID);
+            var sig = msg.Author.GetFavor();
+
+            await Helpers<T>.AddTradeToQueueAsync(
+                new SocketCommandContext(_client, msg), code, msg.Author.Username, result.Pokemon, sig, msg.Author,
+                lgcode: result.LgCode
+            );
+
+            await SafeSendMessageAsync(msg.Channel, "I've added that Pokemon to the queue for you!");
+        }
+        catch (Exception ex)
+        {
+            await Log(new LogMessage(LogSeverity.Error, "AI", $"Error processing AI Showdown set: {ex.Message}", ex));
         }
     }
 }
