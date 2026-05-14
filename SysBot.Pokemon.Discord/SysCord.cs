@@ -761,16 +761,19 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
             await msg.Channel.TriggerTypingAsync();
 
             var botName = _client.CurrentUser?.Username ?? DudeBot.Name;
+            var legalityContext = AI.PKHeXContextHelper.GetLegalityContext(userRequest);
+            
             var systemPrompt = $"You are {botName}, the ultimate Pokemon assistant for a trade bot. " +
                          $"Your goal is to provide 100% legal, competitive, and authentic Pokemon Showdown sets. " +
                          $"\n\nSTRICT RULES:" +
                          $"\n1. LEGALITY: You MUST only provide legal Pokemon. Never suggest shiny-locked Pokemon as shiny (e.g., Koraidon, Miraidon, Victini, Hoopa). Verify that moves, abilities, and Pokeballs are legal for the specific species and game." +
                          $"\n2. SHOWDOWN FORMAT: Always provide sets in standard Pokemon Showdown format. Wrap them in [SHOWDOWN] and [/SHOWDOWN] tags." +
-                         $"\n3. COMPETITIVE KNOWLEDGE: Use top-tier Smogon or VGC builds for competitive requests. Include optimized EVs, IVs, Natures, and Items." +
-                         $"\n4. EVENTS & EGGS: You have complete knowledge of all historical events and egg moves. If an event Pokemon is requested, match its original OT, ID, and moveset perfectly." +
-                         $"\n5. SUPPORTED GAMES: You support Sword/Shield, Brilliant Diamond/Shining Pearl, Legends: Arceus, Scarlet/Violet, and Let's Go Pikachu/Eevee." +
+                         $"\n3. ALM OVERRIDES: You can use `~` overrides for complex legality requirements (e.g., `~Level: 50`, `~Shiny: Yes`, `~TeraType: Water`). This ensures the AutoLegality Mod (ALM) handles the specifics correctly." +
+                         $"\n4. COMPETITIVE KNOWLEDGE: Use top-tier Smogon or VGC builds for competitive requests. Include optimized EVs, IVs, Natures, and Items." +
+                         $"\n5. EVENTS & EGGS: You have complete knowledge of all historical events and egg moves. If an event Pokemon is requested, match its original OT, ID, and moveset perfectly." +
                          $"\n6. NO ILLEGALS: If a user asks for something illegal, politely explain why it's illegal and offer the closest legal alternative." +
-                         $"\n\nExample Output:" +
+                         $"\n\n{legalityContext}" +
+                         $"\nExample Output:" +
                          $"\nUser: Give me a competitive Garchomp for Scarlet and Violet." +
                          $"\nAssistant: Here is a top-tier Jolly Garchomp for Scarlet and Violet singles:" +
                          $"\n[SHOWDOWN]" +
@@ -784,6 +787,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                          $"\n- Dragon Claw" +
                          $"\n- Swords Dance" +
                          $"\n- Iron Head" +
+                         $"\n~Ball: Luxury Ball" +
                          $"\n[/SHOWDOWN]" +
                          $"\n\nAlways be professional, concise, and helpful.";
 
@@ -827,7 +831,9 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
             {
                 await Log(new LogMessage(LogSeverity.Info, "AI", $"AI provided illegal set, requesting fix (Attempt {retryCount + 1}). Error: {result.Error}"));
                 
-                var fixPrompt = $"The Showdown set you provided for '{userRequest}' is ILLEGAL. " +
+                var legalityContext = AI.PKHeXContextHelper.GetLegalityContext(userRequest);
+                var fixPrompt = $"{legalityContext}\n" +
+                                $"The Showdown set you provided for '{userRequest}' is ILLEGAL. " +
                                 $"Error: {result.Error}\n" +
                                 $"Hint: {result.LegalizationHint}\n" +
                                 $"Please provide a FIXED, 100% LEGAL version of this Pokemon set. " +

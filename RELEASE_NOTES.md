@@ -1,18 +1,21 @@
-# Release Notes - v6.2.0
+# Release Notes
 
-## New Features
-- **AI Chatbot Integration**: Integrated Hugging Face AI to assist users with Pokémon-related questions in Discord.
-- **Natural Language Requests**: Users can now request Pokémon using natural language by mentioning the bot (e.g., "@DudeBot I want a competitive Charizard").
-- **Automated AI Queueing**: The AI can automatically generate legal Showdown sets and, upon user confirmation (Yes/No), add them directly to the trade queue.
-- **AI Legality Guard**: Implemented a real-time legality validation loop that verifies AI-generated Pokémon using PKHeX.Core before they reach the queue.
-- **Dynamic Bot Naming**: The bot now automatically retrieves its name from the Discord Developer Portal, personalizing both status announcements and AI interactions.
-- **Concurrent Request Handling**: Optimized Discord message processing with thread-safe state management for high-traffic servers.
+## v6.2.1 (Draft)
+### ✨ Hugging Face AI Enhancements
+- **Chat History (Memory):** The AI now remembers the last 10 messages in a conversation, allowing for follow-up questions and context-aware responses.
+- **Dynamic Identity:** The AI now automatically uses the bot's Discord username as its persona name.
+- **Improved API Integration:** Switched to the modern Chat Completions API for better instruction following and formatting.
+- **Robust Retry Logic:** Added automatic retry handling for "503 Service Unavailable" errors when models are loading.
+- **Advanced Configuration:** Added new settings for `Max Tokens`, `Temperature`, and `Top P` in `config.json` to fine-tune AI behavior.
+- **Few-Shot Prompting:** Updated the system prompt with examples to ensure more consistent Showdown set formatting.
+- **PKHeX.Core & ALM Data Integration:** The AI now "reads" actual game data! It automatically extracts species-specific abilities and metadata from `PKHeX.Core` based on the user's request and includes it in the prompt context.
+- **ALM Override Awareness:** The AI is now trained to use `~` RegenTemplate overrides to ensure 100% legality for complex requests (e.g., specific Pokéballs, Tera Types, or levels).
 
-## Improvements
-- **Legality Engine**: Updated internal prompt logic to strictly forbid illegal or shiny-locked Pokémon unless officially released.
-- **User Settings**: Added new AI Settings category in Discord Integration for API Key and Model customization.
-- **Code Stability**: Fixed several internal naming conflicts and improved dependency management for JSON processing.
+### 🛠️ AI Commands
+- **New `$ai` Command:** A built-in help guide for AI features (uses the configured command prefix).
+- **New `$clearAI` Command:** Allows users to clear their conversation history and start a fresh chat.
 
-## Version Details
-- **Internal Version**: v6.2.0
-- **Build Date**: May 12, 2026
+### 📦 Dependency Updates
+- Bumped `LibUsbDotNet` from 2.2.75 to 2.2.85.
+
+---
