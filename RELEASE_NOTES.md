@@ -1,6 +1,6 @@
 # Release Notes
 
-## v6.2.1 (Draft)
+## v6.2.1
 ### ✨ Hugging Face AI Enhancements
 - **Chat History (Memory):** The AI now remembers the last 10 messages in a conversation, allowing for follow-up questions and context-aware responses.
 - **Dynamic Identity:** The AI now automatically uses the bot's Discord username as its persona name.
