@@ -18,5 +18,8 @@
 
 ### 📦 Dependency Updates
 - Bumped `LibUsbDotNet` from 2.2.75 to 2.2.85.
+- Updated `PKHeX.Core` to the latest `PKHeXth` version (v26.05.05-rev.3).
+- Updated `AutoLegalityMod` (ALM) to the latest version (26.05.05) from `santacrab2/PKHeX-Plugins`.
+- Recompiled and patched ALM to ensure full compatibility with `PKHeXth` and .NET 10.
 
 ---
