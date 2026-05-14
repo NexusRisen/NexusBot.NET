@@ -25,6 +25,8 @@ public static class SysCordSettings
     public static DiscordManager Manager { get; internal set; } = default!;
 
     public static DiscordSettings Settings => Manager.Config;
+
+    public static AI.HuggingFaceService? AIService { get; internal set; }
 }
 
 public sealed class SysCord<T> : IDisposable where T : PKM, new()
@@ -120,7 +122,14 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
         if (Hub.Config.Discord.AISettings.EnableAIChatbot && !string.IsNullOrWhiteSpace(Hub.Config.Discord.AISettings.HuggingFaceApiKey))
         {
-            _aiService = new AI.HuggingFaceService(Hub.Config.Discord.AISettings.HuggingFaceApiKey, Hub.Config.Discord.AISettings.HuggingFaceModel);
+            var aiSettings = Hub.Config.Discord.AISettings;
+            _aiService = new AI.HuggingFaceService(
+                aiSettings.HuggingFaceApiKey, 
+                aiSettings.HuggingFaceModel, 
+                aiSettings.MaxTokens, 
+                aiSettings.Temperature, 
+                aiSettings.TopP);
+            SysCordSettings.AIService = _aiService;
         }
 
         _client.PresenceUpdated += Client_PresenceUpdated;
@@ -751,7 +760,8 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         {
             await msg.Channel.TriggerTypingAsync();
 
-            var prompt = $"You are {DudeBot.Name}, the ultimate Pokemon assistant for a trade bot. " +
+            var botName = _client.CurrentUser?.Username ?? DudeBot.Name;
+            var systemPrompt = $"You are {botName}, the ultimate Pokemon assistant for a trade bot. " +
                          $"Your goal is to provide 100% legal, competitive, and authentic Pokemon Showdown sets. " +
                          $"\n\nSTRICT RULES:" +
                          $"\n1. LEGALITY: You MUST only provide legal Pokemon. Never suggest shiny-locked Pokemon as shiny (e.g., Koraidon, Miraidon, Victini, Hoopa). Verify that moves, abilities, and Pokeballs are legal for the specific species and game." +
@@ -760,10 +770,26 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                          $"\n4. EVENTS & EGGS: You have complete knowledge of all historical events and egg moves. If an event Pokemon is requested, match its original OT, ID, and moveset perfectly." +
                          $"\n5. SUPPORTED GAMES: You support Sword/Shield, Brilliant Diamond/Shining Pearl, Legends: Arceus, Scarlet/Violet, and Let's Go Pikachu/Eevee." +
                          $"\n6. NO ILLEGALS: If a user asks for something illegal, politely explain why it's illegal and offer the closest legal alternative." +
-                         $"\n\nAlways be professional, concise, and helpful. " +
-                         $"Answer the following user request: {userRequest}";
+                         $"\n\nExample Output:" +
+                         $"\nUser: Give me a competitive Garchomp for Scarlet and Violet." +
+                         $"\nAssistant: Here is a top-tier Jolly Garchomp for Scarlet and Violet singles:" +
+                         $"\n[SHOWDOWN]" +
+                         $"\nGarchomp @ Life Orb" +
+                         $"\nAbility: Rough Skin" +
+                         $"\nLevel: 100" +
+                         $"\nTera Type: Ground" +
+                         $"\nEVs: 252 Atk / 4 SpD / 252 Spe" +
+                         $"\nJolly Nature" +
+                         $"\n- Earthquake" +
+                         $"\n- Dragon Claw" +
+                         $"\n- Swords Dance" +
+                         $"\n- Iron Head" +
+                         $"\n[/SHOWDOWN]" +
+                         $"\n\nAlways be professional, concise, and helpful.";
 
-            var response = await _aiService.GetAIResponseAsync(prompt);
+            var userPrompt = $"Answer the following user request: {userRequest}";
+
+            var response = await _aiService.GetAIResponseAsync(msg.Author.Id, userPrompt, systemPrompt);
 
             if (string.IsNullOrWhiteSpace(response))
             {
@@ -807,7 +833,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                                 $"Please provide a FIXED, 100% LEGAL version of this Pokemon set. " +
                                 $"Remember to wrap the fixed set in [SHOWDOWN] and [/SHOWDOWN] tags.";
                 
-                var fixedResponse = await _aiService.GetAIResponseAsync(fixPrompt);
+                var fixedResponse = await _aiService.GetAIResponseAsync(msg.Author.Id, fixPrompt);
                 if (!string.IsNullOrWhiteSpace(fixedResponse) && fixedResponse.Contains("[SHOWDOWN]"))
                 {
                     await HandleAIShowdownValidationAsync(msg, fixedResponse, userRequest, retryCount + 1);

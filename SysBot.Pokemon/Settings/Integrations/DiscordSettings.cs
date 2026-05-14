@@ -194,6 +194,15 @@ public class DiscordSettings
         [Category(AICategory), Description("Hugging Face Model ID (e.g., 'gpt2', 'mistralai/Mistral-7B-Instruct-v0.2')."), DisplayName("Hugging Face Model")]
         public string HuggingFaceModel { get; set; } = "mistralai/Mistral-7B-Instruct-v0.2";
 
+        [Category(AICategory), Description("The maximum number of tokens the AI can generate."), DisplayName("Max Tokens")]
+        public int MaxTokens { get; set; } = 800;
+
+        [Category(AICategory), Description("Controls randomness. Lower is more deterministic, higher is more creative."), DisplayName("Temperature")]
+        public float Temperature { get; set; } = 0.7f;
+
+        [Category(AICategory), Description("Controls diversity via nucleus sampling."), DisplayName("Top P")]
+        public float TopP { get; set; } = 0.9f;
+
         [Category(AICategory), Description("Enable AI Chatbot functionality."), DisplayName("Enable AI Chatbot")]
         public bool EnableAIChatbot { get; set; } = false;
 
