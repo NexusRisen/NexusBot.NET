@@ -32,14 +32,6 @@ The driving force to develop this project is automated bots for Nintendo Switch 
 - Provide a discord login token and the Roles that are allowed to interact with your bots.
 - Commands are provided to manage & join the distribution queue.
 
-## SysBot.Pokemon.Twitch:
-- Twitch.tv interface for remotely announcing when the distribution starts.
-- Provide a Twitch login token, username, and channel for login.
-
-## SysBot.Pokemon.YouTube:
-- YouTube.com interface for remotely announcing when the distribution starts.
-- Provide a YouTube login ClientID, ClientSecret, and ChannelID for login.
-
 Uses [Discord.Net](https://github.com/discord-net/Discord.Net) , [TwitchLib](https://github.com/TwitchLib/TwitchLib) and [StreamingClientLibary](https://github.com/SaviorXTanren/StreamingClientLibrary) as a dependency via Nuget.
 
 ## Other Dependencies
