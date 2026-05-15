@@ -23,6 +23,8 @@ public abstract class SwitchUSB : IConsoleConnection
 
     private UsbEndpointWriter? writer;
 
+    protected readonly byte[] _sharedBuffer = new byte[0x40001];
+
     protected SwitchUSB(int port)
     {
         Port = port;
@@ -130,12 +132,13 @@ public abstract class SwitchUSB : IConsoleConnection
         Thread.Sleep(1);
         lock (_sync)
         {
-            byte[] sizeOfReturn = new byte[4];
             if (reader == null)
                 throw new Exception("USB device not found or not connected.");
 
-            reader.Read(sizeOfReturn, 5000, out _);
-            int size = BitConverter.ToInt32(sizeOfReturn, 0);
+            // Use shared buffer for size header
+            reader.Read(_sharedBuffer, 0, 4, 5000, out _);
+            int size = BitConverter.ToInt32(_sharedBuffer, 0);
+
             byte[] buffer = new byte[size];
             int transfSize = 0;
             while (transfSize < size)
@@ -172,10 +175,9 @@ public abstract class SwitchUSB : IConsoleConnection
                 throw new Exception("USB device not found or not connected.");
 
             // Let usb-botbase tell us the response size.
-            byte[] sizeOfReturn = new byte[4];
-            reader.Read(sizeOfReturn, 5000, out _);
+            reader.Read(_sharedBuffer, 0, 4, 5000, out _);
 
-            int size = BitConverter.ToInt32(sizeOfReturn, 0);
+            int size = BitConverter.ToInt32(_sharedBuffer, 0);
             byte[] buffer = new byte[size];
 
             // Loop until we have read everything.

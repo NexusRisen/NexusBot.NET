@@ -18,6 +18,9 @@ namespace SysBot.Base;
 /// </remarks>
 public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
 {
+    private readonly byte[] _sharedBuffer = new byte[0x40001];
+    private readonly byte[] _destinationArray = new byte[0x20000];
+
     private SwitchSocketAsync(IWirelessConnectionConfig cfg) : base(cfg)
     {
     }
@@ -106,11 +109,16 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
     {
         await SendAsync(SwitchCommand.PixelPeek(), token).ConfigureAwait(false);
         await Task.Delay((Connection.ReceiveBufferSize / DelayFactor) + BaseDelay, token).ConfigureAwait(false);
-        var data = await FlexRead(token).ConfigureAwait(false);
+        var length = await FlexReadIntoBuffer(token).ConfigureAwait(false);
 
         try
         {
-            return Decoder.ConvertHexByteStringToBytes(data);
+            if (length <= 0)
+                return [];
+
+            var decodedLength = (length - 1) / 2;
+            Decoder.LoadHexBytesTo(_sharedBuffer.AsSpan(0, length - 1), _destinationArray.AsSpan(0, decodedLength), 2);
+            return _destinationArray.AsSpan(0, decodedLength).ToArray();
         }
         catch (Exception e)
         {
@@ -186,46 +194,49 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
 
     public Task WriteBytesMainAsync(byte[] data, ulong offset, CancellationToken token) => Write(Main, data, offset, token);
 
-    private static byte[] DecodeResult(ReadOnlyMemory<byte> buffer, int length)
-    {
-        var result = new byte[length];
-        var span = buffer.Span[..^1]; // Last byte is always a terminator
-        Decoder.LoadHexBytesTo(span, result, 2);
-        return result;
-    }
-
     private static byte[] GetPoke(ICommandBuilder b, byte[] data, ulong offset, int i, int length)
     {
         var slice = data.AsSpan(i, length);
         return b.Poke(offset + (uint)i, slice);
     }
 
-    private async Task<byte[]> FlexRead(CancellationToken token)
+    private async Task<int> FlexReadIntoBuffer(CancellationToken token)
     {
-        List<byte> flexBuffer = [];
-        int available = Connection.Available;
+        int totalRead = 0;
         Connection.ReceiveTimeout = 1_000;
 
-        do
+        try
         {
-            byte[] buffer = new byte[available];
-            try
+            while (true)
             {
-                Connection.Receive(buffer, available, SocketFlags.None);
-                flexBuffer.AddRange(buffer);
-            }
-            catch (Exception ex)
-            {
-                LogError($"Socket exception thrown while receiving data:\n{ex.Message}");
-                return Array.Empty<byte>();
-            }
+                int available = Connection.Available;
+                if (available > 0)
+                {
+                    int toRead = Math.Min(available, _sharedBuffer.Length - totalRead);
+                    if (toRead > 0)
+                    {
+                        int read = await Connection.ReceiveAsync(_sharedBuffer.AsMemory(totalRead, toRead), SocketFlags.None, token).ConfigureAwait(false);
+                        totalRead += read;
+                    }
+                }
 
-            await Task.Delay((MaximumTransferSize / DelayFactor) + BaseDelay, token).ConfigureAwait(false);
-            available = Connection.Available;
-        } while (flexBuffer.Count == 0 || flexBuffer.Last() != (byte)'\n');
+                if (totalRead > 0 && _sharedBuffer[totalRead - 1] == (byte)'\n')
+                    break;
 
-        Connection.ReceiveTimeout = 0;
-        return [.. flexBuffer];
+                await Task.Delay((MaximumTransferSize / DelayFactor) + BaseDelay, token).ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogError($"Socket exception thrown while receiving data:\n{ex.Message}");
+            return -1;
+        }
+        finally
+        {
+            Connection.ReceiveTimeout = 0;
+        }
+
+        return totalRead;
     }
 
     private async Task<byte[]> Read(ICommandBuilder b, ulong offset, int length, CancellationToken token)
@@ -275,24 +286,15 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
             throw new InvalidOperationException($"Invalid buffer size calculated: {size}");
         }
 
-        var buffer = ArrayPool<byte>.Shared.Rent(size);
+        var buffer = size <= _sharedBuffer.Length ? _sharedBuffer : ArrayPool<byte>.Shared.Rent(size);
         try
         {
-            if (buffer.Length < size)
-            {
-                LogError($"Rented buffer is too small. Requested: {size}, Got: {buffer.Length}");
-                throw new InvalidOperationException(
-                    $"Buffer pool returned insufficient buffer size. Requested: {size}, Got: {buffer.Length}");
-            }
-
-            var mem = buffer.AsMemory(0, size);
-
             int totalRead = 0;
 
             while (totalRead < size)
             {
                 int read = await Connection.ReceiveAsync(
-                    mem.Slice(totalRead),
+                    buffer.AsMemory(totalRead, size - totalRead),
                     token
                 ).ConfigureAwait(false);
 
@@ -310,11 +312,11 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
                 totalRead += read;
             }
 
-            // ONLY decode once we have ALL expected bytes
-            var result = DecodeResult(mem, length);
+            var result = new byte[length];
+            Decoder.LoadHexBytesTo(buffer.AsSpan(0, size - 1), result, 2);
             return result;
         }
-        catch (Exception ex) when (ex is ArgumentOutOfRangeException || ex is InvalidOperationException)
+        catch (Exception ex)
         {
             LogError(
                 $"Exception in ReadBytesFromCmdAsync. " +
@@ -325,7 +327,8 @@ public sealed class SwitchSocketAsync : SwitchSocket, ISwitchConnectionAsync
         }
         finally
         {
-            ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
+            if (buffer != _sharedBuffer)
+                ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
         }
     }
 

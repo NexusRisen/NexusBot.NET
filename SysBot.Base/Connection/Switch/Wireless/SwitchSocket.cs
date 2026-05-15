@@ -17,7 +17,7 @@ public abstract class SwitchSocket : IConsoleConnection
     {
         Type = type;
         Protocol = protocol;
-        Connection = new Socket(type, protocol);
+        Connection = new Socket(type, protocol) { NoDelay = true };
         Info = wi;
         Name = Label = wi.IP;
     }
@@ -43,7 +43,7 @@ public abstract class SwitchSocket : IConsoleConnection
     public void InitializeSocket()
     {
         Connection?.Dispose();
-        Connection = new Socket(Type, Protocol);
+        Connection = new Socket(Type, Protocol) { NoDelay = true };
     }
 
     public void Log(string message) => LogInfo(message);
