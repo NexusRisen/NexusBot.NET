@@ -7,6 +7,8 @@ public class TrackedUserLog
 {
     private const int Capacity = 1000;
     private readonly List<TrackedUser> Users = new(Capacity);
+    private readonly Dictionary<ulong, TrackedUser> NetworkCache = new(Capacity);
+    private readonly Dictionary<ulong, TrackedUser> RemoteCache = new(Capacity);
     private readonly object _sync = new();
     private int ReplaceIndex;
 
@@ -27,16 +29,22 @@ public class TrackedUserLog
 
     private TrackedUser? InsertReplace(ulong networkID, string name, ulong remoteID = 0)
     {
-        var index = Users.FindIndex(z => z.NetworkID == networkID);
-        if (index < 0)
+        if (NetworkCache.TryGetValue(networkID, out var match))
         {
-            Insert(networkID, name, remoteID);
-            return null;
+            var index = Users.FindIndex(z => z.NetworkID == networkID);
+            if (index >= 0)
+            {
+                var user = new TrackedUser(networkID, name, remoteID);
+                Users[index] = user;
+                NetworkCache[networkID] = user;
+                if (match.RemoteID != 0) RemoteCache.Remove(match.RemoteID);
+                if (remoteID != 0) RemoteCache[remoteID] = user;
+                return match;
+            }
         }
 
-        var match = Users[index];
-        Users[index] = new TrackedUser(networkID, name, remoteID);
-        return match;
+        Insert(networkID, name, remoteID);
+        return null;
     }
 
     private void Insert(ulong id, string name, ulong remoteID)
@@ -45,35 +53,65 @@ public class TrackedUserLog
         if (Users.Count != Capacity)
         {
             Users.Add(user);
-            return;
+        }
+        else
+        {
+            var old = Users[ReplaceIndex];
+            NetworkCache.Remove(old.NetworkID);
+            if (old.RemoteID != 0) RemoteCache.Remove(old.RemoteID);
+
+            Users[ReplaceIndex] = user;
+            ReplaceIndex = (ReplaceIndex + 1) % Capacity;
         }
 
-        Users[ReplaceIndex] = user;
-        ReplaceIndex = (ReplaceIndex + 1) % Capacity;
+        NetworkCache[id] = user;
+        if (remoteID != 0) RemoteCache[remoteID] = user;
     }
 
     public void RemoveAllNID(ulong networkID)
     {
         lock (_sync)
-            Users.RemoveAll(z => z.NetworkID == networkID);
+        {
+            Users.RemoveAll(z =>
+            {
+                if (z.NetworkID == networkID)
+                {
+                    NetworkCache.Remove(z.NetworkID);
+                    if (z.RemoteID != 0) RemoteCache.Remove(z.RemoteID);
+                    return true;
+                }
+                return false;
+            });
+        }
     }
 
     public void RemoveAllRemoteID(ulong remoteID)
     {
         lock (_sync)
-            Users.RemoveAll(z => z.RemoteID == remoteID);
+        {
+            Users.RemoveAll(z =>
+            {
+                if (z.RemoteID == remoteID)
+                {
+                    NetworkCache.Remove(z.NetworkID);
+                    RemoteCache.Remove(z.RemoteID);
+                    return true;
+                }
+                return false;
+            });
+        }
     }
 
     public TrackedUser? TryGetPreviousNID(ulong trainerNid)
     {
         lock (_sync)
-            return Users.Find(z => z.NetworkID == trainerNid);
+            return NetworkCache.GetValueOrDefault(trainerNid);
     }
 
     public TrackedUser? TryGetPreviousRemoteID(ulong remoteNid)
     {
         lock (_sync)
-            return Users.Find(z => z.RemoteID == remoteNid);
+            return RemoteCache.GetValueOrDefault(remoteNid);
     }
 
     public IEnumerable<string> Summarize()

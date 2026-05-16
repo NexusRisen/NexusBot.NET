@@ -77,7 +77,7 @@ Full remote control and interaction support across multiple platforms:
 - **AutoOT Integration**: Personalize Pokémon with the receiver's trainer information automatically.
 - **Item Batching**: The `itemTrade` (`$it`) command now supports requesting up to 3 items at once, automatically generating a batch trade for efficiency.
 
-### 🧠 AI Chatbot Integration (v6.2.2)
+### 🧠 AI Chatbot Integration (v6.2.3)
 DudeBot.NET features a state-of-the-art **AI Chatbot** powered by [Hugging Face](https://huggingface.co/) and the OpenAI-compatible Chat Completions API.
 - **Natural Language Requests**: Request Pokémon using normal conversation (e.g., "@DudeBot can I have a competitive Mewtwo?").
 - **Conversation Memory**: The bot now remembers the last 10 messages, allowing for follow-up questions and refined requests (e.g., "Actually, make it Shiny").

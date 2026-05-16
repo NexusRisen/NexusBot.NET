@@ -58,55 +58,75 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
         {
             // First, try to find the trade in UsersInQueue (more reliable for recently added trades)
             var tradeEntry = UsersInQueue.FirstOrDefault(z => z.UserID == uid && z.UniqueTradeID == uniqueTradeID);
-            
+
             // Try to find the trade in the queue system
-            var allTrades = Hub.Queues.AllQueues.SelectMany(q => q.Queue.Select(x => x.Value)).ToList();
-            var index = allTrades.FindIndex(z => z.Trainer.ID == uid && z.UniqueTradeID == uniqueTradeID);
-            
-            if (index >= 0)
+            TradeEntry<T>? entry = null;
+            int index = -1;
+            int currentIndex = 0;
+            var allQueues = Hub.Queues.AllQueues;
+            foreach (var q in allQueues)
+            {
+                foreach (var trade in q.Queue)
+                {
+                    var val = trade.Value;
+                    if (val.Trainer.ID == uid && val.UniqueTradeID == uniqueTradeID)
+                    {
+                        entry = new TradeEntry<T>(val, uid, type, val.Trainer.TrainerName, uniqueTradeID);
+                        index = currentIndex;
+                        break;
+                    }
+                    currentIndex++;
+                }
+                if (index >= 0)
+                    break;
+            }
+
+            if (index >= 0 && entry != null)
             {
                 // Trade found in queue - use queue-based position calculation
-                var entry = allTrades[index];
-
                 // Count total trades accounting for batch trades
                 int totalTradesAhead = 0;
                 int processingCount = 0;
+                int totalInQueue = 0;
 
-                for (int i = 0; i < allTrades.Count; i++)
+                int i = 0;
+                foreach (var q in allQueues)
                 {
-                    var trade = allTrades[i];
-
-                    // Count processing trades
-                    if (trade.IsProcessing)
+                    foreach (var trade in q.Queue)
                     {
-                        processingCount++;
-                        continue;
-                    }
+                        var val = trade.Value;
+                        // Count processing trades
+                        if (val.IsProcessing)
+                        {
+                            processingCount++;
+                        }
+                        else if (i < index)
+                        {
+                            // For trades ahead of us, count their actual trade count
+                            if (val.TotalBatchTrades > 1 && val.BatchTrades != null)
+                                totalTradesAhead += val.BatchTrades.Count;
+                            else
+                                totalTradesAhead += 1;
+                        }
 
-                    // For trades ahead of us, count their actual trade count
-                    if (i < index)
-                    {
-                        if (trade.TotalBatchTrades > 1 && trade.BatchTrades != null)
-                            totalTradesAhead += trade.BatchTrades.Count;
+                        // Calculate total trades in queue
+                        if (val.TotalBatchTrades > 1 && val.BatchTrades != null)
+                            totalInQueue += val.BatchTrades.Count;
                         else
-                            totalTradesAhead += 1;
+                            totalInQueue += 1;
+
+                        i++;
                     }
                 }
+
+                totalInQueue += processingCount;
 
                 // Calculate actual position
                 var actualIndex = totalTradesAhead + 1 + processingCount;
 
-                // Calculate total trades in queue
-                var totalInQueue = allTrades.Sum(trade =>
-                {
-                    if (trade.TotalBatchTrades > 1 && trade.BatchTrades != null)
-                        return trade.BatchTrades.Count;
-                    return 1;
-                }) + processingCount;
-
-                // Use tradeEntry if available, otherwise create new one
-                var resultEntry = tradeEntry ?? new TradeEntry<T>(entry, uid, type, entry.Trainer.TrainerName, uniqueTradeID);
-                return new QueueCheckResult<T>(true, resultEntry, actualIndex, totalInQueue, entry.BatchTradeNumber, entry.TotalBatchTrades);
+                // Use tradeEntry if available, otherwise use the one we found/created
+                var resultEntry = tradeEntry ?? entry;
+                return new QueueCheckResult<T>(true, resultEntry, actualIndex, totalInQueue, entry.Trade.BatchTradeNumber, entry.Trade.TotalBatchTrades);
             }
             else if (tradeEntry != null)
             {
@@ -117,9 +137,9 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
                 int totalTradesAhead = 0;
                 for (int i = 0; i < userIndex; i++)
                 {
-                    var entry = UsersInQueue[i];
-                    if (entry.Trade.TotalBatchTrades > 1 && entry.Trade.BatchTrades != null)
-                        totalTradesAhead += entry.Trade.BatchTrades.Count;
+                    var innerEntry = UsersInQueue[i];
+                    if (innerEntry.Trade.TotalBatchTrades > 1 && innerEntry.Trade.BatchTrades != null)
+                        totalTradesAhead += innerEntry.Trade.BatchTrades.Count;
                     else
                         totalTradesAhead += 1;
                 }
@@ -128,10 +148,10 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
                 int processingCount = UsersInQueue.Count(z => z.Trade.IsProcessing);
 
                 var actualIndex = totalTradesAhead + 1 + processingCount;
-                var totalInQueue = UsersInQueue.Sum(entry =>
+                var totalInQueue = UsersInQueue.Sum(z =>
                 {
-                    if (entry.Trade.TotalBatchTrades > 1 && entry.Trade.BatchTrades != null)
-                        return entry.Trade.BatchTrades.Count;
+                    if (z.Trade.TotalBatchTrades > 1 && z.Trade.BatchTrades != null)
+                        return z.Trade.BatchTrades.Count;
                     return 1;
                 }) + processingCount;
 
@@ -173,9 +193,12 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
     {
         lock (_sync)
         {
-            var stuckTrades = UsersInQueue.Where(x => x.Trade.IsProcessing).ToList();
-            foreach (var trade in stuckTrades)
+            for (int i = UsersInQueue.Count - 1; i >= 0; i--)
             {
+                var trade = UsersInQueue[i];
+                if (!trade.Trade.IsProcessing)
+                    continue;
+
                 trade.Trade.IsProcessing = false;
                 Remove(trade);
 

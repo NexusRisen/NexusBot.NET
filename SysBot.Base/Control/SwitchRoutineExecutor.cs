@@ -72,8 +72,26 @@ namespace SysBot.Base
         public async Task DaisyChainCommands(int delay, IEnumerable<SwitchButton> buttons, CancellationToken token)
         {
             SwitchCommand.Configure(SwitchConfigureParameter.mainLoopSleepTime, delay, UseCRLF);
-            var commands = buttons.Select(z => SwitchCommand.Click(z, UseCRLF)).ToArray();
-            var chain = commands.SelectMany(x => x).ToArray();
+
+            var buttonList = buttons as ICollection<SwitchButton> ?? buttons.ToList();
+            var commands = new byte[buttonList.Count][];
+            int totalSize = 0;
+            int i = 0;
+            foreach (var b in buttonList)
+            {
+                var cmd = SwitchCommand.Click(b, UseCRLF);
+                commands[i++] = cmd;
+                totalSize += cmd.Length;
+            }
+
+            var chain = new byte[totalSize];
+            int offset = 0;
+            foreach (var cmd in commands)
+            {
+                System.Buffer.BlockCopy(cmd, 0, chain, offset, cmd.Length);
+                offset += cmd.Length;
+            }
+
             await Connection.SendAsync(chain, token).ConfigureAwait(false);
             SwitchCommand.Configure(SwitchConfigureParameter.mainLoopSleepTime, 0, UseCRLF);
         }
