@@ -148,7 +148,7 @@ DudeBot.NET leverages several powerful open-source libraries:
 
 ## 👨‍💻 Development
 
-DudeBot.NET is actively developed by Nexus Risen and a dedicated team of contributors. The project follows a [Steering Committee](.github/GOVERNANCE.md) governance model and a community [Code of Conduct](.github/CODE_OF_CONDUCT.md).
+DudeBot.NET is actively developed by Nexus Risen and a dedicated team of contributors. The project follows a [Steering Committee](GOVERNANCE.md) governance model and a community [Code of Conduct](CODE_OF_CONDUCT.md).
 
 See the full list of [Contributors](CONTRIBUTORS).
 
@@ -166,7 +166,7 @@ See the full list of [Contributors](CONTRIBUTORS).
 ## 🤝 Support
 
 Need help setting up your instance or troubleshooting an issue?
-- 📖 **[Support Guide](.github/SUPPORT.md)**: Find all the ways to get help.
+- 📖 **[Support Guide](SUPPORT.md)**: Find all the ways to get help.
 - 📚 **[Official Wiki](https://github.com/NexusRisen/DudeBot.NET/wiki)**: Detailed setup and feature guides.
 
 > **Note**: This bot is a fork of SysBot.NET. Please do not contact the PKHeX Development Project for support regarding DudeBot.NET.
