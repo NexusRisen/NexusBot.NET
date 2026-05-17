@@ -111,12 +111,45 @@ public class TradeSettings : IBotStateSettings, ICountSettings
         [Category("BatchTradeConfig"), Description("Toggle to allow or disallow batch trades."), DisplayName("Allow Batch Trades")]
         public bool AllowBatchTrades { get; set; } = true;
 
+        [Category("BatchTradeConfig"), Description("Toggle to allow or disallow batch trades specifically for eggs."), DisplayName("Allow Egg Batch Trades")]
+        public bool AllowEggBatchTrades { get; set; } = true;
+
         private int _maxPkmsPerTrade = 3;
         [Category("BatchTradeConfig"), Description("Maximum Pokémon per trade. Batch mode will default to 3 if this configuration is less than 1. No upper limit, mind your queues."), DisplayName("Maximum Pokémon per Trade")]
         public int MaxPkmsPerTrade
         {
             get => _maxPkmsPerTrade < 1 ? 3 : _maxPkmsPerTrade;
             set => _maxPkmsPerTrade = value;
+        }
+
+        private int _maxEggsPerBatch = 3;
+        [Category("BatchTradeConfig"), Description("Maximum eggs allowed in a single batch trade. Set to 1 to disable batching for eggs specifically."), DisplayName("Max Eggs per Batch Trade")]
+        public int MaxEggsPerBatch
+        {
+            get => _maxEggsPerBatch < 1 ? 3 : _maxEggsPerBatch;
+            set => _maxEggsPerBatch = value;
+        }
+
+        [Category("BatchTradeConfig"), Description("Toggle to allow or disallow batch trades specifically for mystery eggs."), DisplayName("Allow Mystery Egg Batch Trades")]
+        public bool AllowMysteryEggBatchTrades { get; set; } = true;
+
+        private int _maxMysteryEggsPerBatch = 3;
+        [Category("BatchTradeConfig"), Description("Maximum mystery eggs allowed in a single batch trade."), DisplayName("Max Mystery Eggs per Batch")]
+        public int MaxMysteryEggsPerBatch
+        {
+            get => _maxMysteryEggsPerBatch < 1 ? 3 : _maxMysteryEggsPerBatch;
+            set => _maxMysteryEggsPerBatch = value;
+        }
+
+        [Category("BatchTradeConfig"), Description("Toggle to allow or disallow batch trades specifically for mystery pokemon."), DisplayName("Allow Mystery Pokemon Batch Trades")]
+        public bool AllowMysteryPokemonBatchTrades { get; set; } = true;
+
+        private int _maxMysteryPokemonPerBatch = 3;
+        [Category("BatchTradeConfig"), Description("Maximum mystery pokemon allowed in a single batch trade."), DisplayName("Max Mystery Pokemon per Batch")]
+        public int MaxMysteryPokemonPerBatch
+        {
+            get => _maxMysteryPokemonPerBatch < 1 ? 3 : _maxMysteryPokemonPerBatch;
+            set => _maxMysteryPokemonPerBatch = value;
         }
 
         [Category("BatchTradeConfig"), Description("Toggle to give users the option to use the BatchNormalizer, which utilizes Showdown in place of batch commands. Refer to the Wiki for details."), DisplayName("Batch Commands to Showdown")]

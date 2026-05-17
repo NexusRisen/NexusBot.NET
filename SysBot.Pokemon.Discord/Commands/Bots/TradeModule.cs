@@ -175,7 +175,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("egg")]
     [Alias("Egg")]
-    [Summary("Trades an egg generated from the provided Pokémon name.")]
+    [Summary("Trades a single egg generated from the provided Pokémon name.")]
     public async Task TradeEgg([Remainder] string egg)
     {
         var userID = Context.User.Id;
@@ -185,9 +185,33 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("egg")]
     [Alias("Egg")]
-    [Summary("Trades an egg generated from the provided Pokémon name.")]
+    [Summary("Trades a single egg generated from the provided Pokémon name.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public async Task TradeEggAsync([Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
+    {
+        await ProcessEggRequestInternal(code, content, false).ConfigureAwait(false);
+    }
+
+    [Command("begg")]
+    [Alias("bEgg")]
+    [Summary("Trades multiple eggs at once.")]
+    public async Task BatchTradeEgg([Remainder] string egg)
+    {
+        var userID = Context.User.Id;
+        var code = Info.GetRandomTradeCode(userID);
+        await BatchTradeEggAsync(code, egg).ConfigureAwait(false);
+    }
+
+    [Command("begg")]
+    [Alias("bEgg")]
+    [Summary("Trades multiple eggs at once.")]
+    [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
+    public async Task BatchTradeEggAsync([Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
+    {
+        await ProcessEggRequestInternal(code, content, true).ConfigureAwait(false);
+    }
+
+    private async Task ProcessEggRequestInternal(int code, string content, bool isBatch)
     {
         var userID = Context.User.Id;
         if (!await Helpers<T>.EnsureUserNotInQueueAsync(userID))
@@ -197,38 +221,101 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             return;
         }
 
-        content = BatchNormalizer.NormalizeBatchCommands(content);
-        content = ReusableActions.StripCodeBlock(content);
-        var set = new ShowdownSet(content);
-        var template = AutoLegalityWrapper.GetTemplate(set);
+        var batchSettings = SysCord<T>.Runner.Config.Trade.BatchSettings;
 
         _ = Task.Run(async () =>
         {
             try
             {
-                var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
+                var normalizedContent = BatchNormalizer.NormalizeBatchCommands(content);
+                normalizedContent = ReusableActions.StripCodeBlock(normalizedContent);
+                var trades = isBatch ? BatchHelpers<T>.ParseBatchTradeContent(normalizedContent) : [normalizedContent];
 
-                // Generate the egg using ALM's GenerateEgg method
-                var pkm = sav.GenerateEgg(template, out var result);
-
-                if (result != LegalizationResult.Regenerated)
+                if (!isBatch && content.Contains("---"))
                 {
-                    var reason = result == LegalizationResult.Timeout
-                        ? "Egg generation took too long."
-                        : "Failed to generate egg from the provided set.";
-                    await Helpers<T>.ReplyAndDeleteAsync(Context, reason, 2);
+                    await Helpers<T>.ReplyAndDeleteAsync(Context, "The $egg command is only for single trades. Please use $begg for batch trades.", 5);
                     return;
                 }
 
-                pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
-                if (pkm is not T pk)
+                if (isBatch)
                 {
-                    await Helpers<T>.ReplyAndDeleteAsync(Context, "Oops! I wasn't able to create an egg for that.", 2);
+                    if (!batchSettings.AllowEggBatchTrades)
+                    {
+                        await Helpers<T>.ReplyAndDeleteAsync(Context, "Batch trades for eggs are currently disabled by the bot administrator.", 2);
+                        return;
+                    }
+
+                    if (trades.Count > batchSettings.MaxEggsPerBatch)
+                    {
+                        await Helpers<T>.ReplyAndDeleteAsync(Context, $"You can only request up to {batchSettings.MaxEggsPerBatch} eggs at a time.", 2);
+                        return;
+                    }
+                }
+
+                var pkmList = new List<T>();
+                var errors = new List<BatchTradeError>();
+
+                for (int i = 0; i < trades.Count; i++)
+                {
+                    var set = new ShowdownSet(trades[i]);
+                    var template = AutoLegalityWrapper.GetTemplate(set);
+                    var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
+
+                    // Generate the egg using ALM's GenerateEgg method
+                    var pkm = sav.GenerateEgg(template, out var result);
+
+                    if (result != LegalizationResult.Regenerated)
+                    {
+                        var reason = result == LegalizationResult.Timeout
+                            ? "Egg generation took too long."
+                            : "Failed to generate egg from the provided set.";
+                        
+                        var speciesName = set.Species > 0 ? GameInfo.Strings.Species[set.Species] : "Unknown";
+                        errors.Add(new BatchTradeError
+                        {
+                            TradeNumber = i + 1,
+                            SpeciesName = speciesName,
+                            ErrorMessage = reason,
+                            ShowdownSet = string.Join("\n", set.GetSetLines())
+                        });
+                        continue;
+                    }
+
+                    pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
+                    if (pkm is not T pk)
+                    {
+                        errors.Add(new BatchTradeError
+                        {
+                            TradeNumber = i + 1,
+                            SpeciesName = GameInfo.Strings.Species[set.Species],
+                            ErrorMessage = "Oops! I wasn't able to create an egg for that.",
+                            ShowdownSet = string.Join("\n", set.GetSetLines())
+                        });
+                        continue;
+                    }
+
+                    pk.ResetPartyStats();
+                    pkmList.Add(pk);
+                }
+
+                if (errors.Count > 0)
+                {
+                    await BatchHelpers<T>.SendBatchErrorEmbedAsync(Context, errors, trades.Count);
                     return;
                 }
 
-                var sig = Context.User.GetFavor();
-                await Helpers<T>.AddTradeToQueueAsync(Context, code, Context.User.Username, pk, sig, Context.User).ConfigureAwait(false);
+                if (pkmList.Count == 0)
+                    return;
+
+                if (pkmList.Count == 1)
+                {
+                    var sig = Context.User.GetFavor();
+                    await Helpers<T>.AddTradeToQueueAsync(Context, code, Context.User.Username, pkmList[0], sig, Context.User).ConfigureAwait(false);
+                }
+                else
+                {
+                    await BatchHelpers<T>.ProcessBatchContainer(Context, pkmList, code, pkmList.Count);
+                }
             }
             catch (Exception ex)
             {
@@ -673,6 +760,25 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
                 {
                     await Context.Channel.SendMessageAsync($"{Context.User.Mention} No valid Pokémon or Showdown sets were found in your request.");
                     return;
+                }
+
+                // Check for eggs in the batch
+                int eggCount = batchPokemonList.Count(p => p.IsEgg);
+                if (eggCount > 1)
+                {
+                    if (!batchSettings.AllowEggBatchTrades)
+                    {
+                        await Helpers<T>.ReplyAndDeleteAsync(Context,
+                            "Batch trades containing multiple eggs are currently disabled by the bot administrator.", 5);
+                        return;
+                    }
+
+                    if (eggCount > batchSettings.MaxEggsPerBatch)
+                    {
+                        await Helpers<T>.ReplyAndDeleteAsync(Context,
+                            $"You can only include up to {batchSettings.MaxEggsPerBatch} eggs in a single batch trade. Your request had {eggCount}.", 5);
+                        return;
+                    }
                 }
 
                 // Use configured max trades per batch

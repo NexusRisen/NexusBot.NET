@@ -265,7 +265,13 @@
       },
       "BatchSettings": {
         "AllowBatchTrades": true,
+        "AllowEggBatchTrades": true,
         "MaxPkmsPerTrade": 3,
+        "MaxEggsPerBatch": 3,
+        "AllowMysteryEggBatchTrades": true,
+        "MaxMysteryEggsPerBatch": 3,
+        "AllowMysteryPokemonBatchTrades": true,
+        "MaxMysteryPokemonPerBatch": 3,
         "MaxItemBatchAmount": 3,
         "BatchNormalizer": true
       },
