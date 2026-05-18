@@ -149,9 +149,7 @@ namespace SysBot.Pokemon.Discord
                 return;
             }
 
-            var c = bot.Bot.Connection;
-            c.Reset();
-            bot.Start();
+            bot.Restart();
             await ReplyAsync("Bot has been restarted.").ConfigureAwait(false);
         }
     }

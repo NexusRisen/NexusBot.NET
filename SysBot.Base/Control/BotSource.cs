@@ -9,6 +9,7 @@ public class BotSource<T>(RoutineExecutor<T> Bot) : IDisposable
 {
     public readonly RoutineExecutor<T> Bot = Bot;
 
+    private readonly object _lock = new();
     private CancellationTokenSource Source = new();
 
     public bool IsPaused { get; private set; }
@@ -17,32 +18,61 @@ public class BotSource<T>(RoutineExecutor<T> Bot) : IDisposable
 
     public bool IsStopping { get; private set; }
 
+    public bool IsRestarting { get; private set; }
+
     private bool _disposed;
 
-    public void Pause()
-    {
-        if (!IsRunning || IsStopping)
-            return;
+    private Task? _stopTask;
 
-        IsPaused = true;
-        Task.Run(Bot.SoftStop)
-            .ContinueWith(ReportFailure, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
-            .ContinueWith(_ => IsPaused = false, TaskContinuationOptions.OnlyOnFaulted);
+    public virtual void Pause()
+    {
+        lock (_lock)
+        {
+            if (!IsRunning || IsStopping || IsPaused || IsRestarting)
+                return;
+
+            IsPaused = true;
+            Task.Run(Bot.SoftStop)
+                .ContinueWith(ReportFailure, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
+                .ContinueWith(_ =>
+                {
+                    lock (_lock)
+                    {
+                        IsPaused = false;
+                    }
+                }, TaskContinuationOptions.OnlyOnFaulted);
+        }
     }
 
-    public void RebootAndStop()
+    public virtual void RebootAndStop()
     {
-        Stop();
+        lock (_lock)
+        {
+            if (IsRestarting) return;
+            Stop();
 
-        Task.Run(() => Bot.RebootAndStopAsync(Source.Token)
-            .ContinueWith(ReportFailure, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
-            .ContinueWith(_ => IsRunning = false));
+            Task.Run(() => Bot.RebootAndStopAsync(Source.Token)
+                .ContinueWith(ReportFailure, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
+                .ContinueWith(_ =>
+                {
+                    lock (_lock)
+                    {
+                        IsRunning = false;
+                    }
+                }));
 
-        IsRunning = true;
+            IsRunning = true;
+        }
     }
 
-    public void Restart()
+    public virtual void Restart()
     {
+        lock (_lock)
+        {
+            if (IsRestarting) return;
+            IsRestarting = true;
+        }
+
         bool ok = true;
         Task.Run(Bot.Connection.Reset).ContinueWith(task =>
         {
@@ -51,43 +81,75 @@ public class BotSource<T>(RoutineExecutor<T> Bot) : IDisposable
         }, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
         .ContinueWith(_ =>
         {
+            lock (_lock)
+            {
+                IsRestarting = false;
+            }
             if (ok)
                 Start();
         }, TaskContinuationOptions.RunContinuationsAsynchronously | TaskContinuationOptions.NotOnFaulted);
     }
 
-    public void Resume()
+    public virtual void Resume()
     {
         Start();
     }
 
-    public void Start()
+    public virtual void Start()
     {
-        if (IsPaused)
-            Stop(); // can't soft-resume; just re-launch
+        lock (_lock)
+        {
+            if (IsPaused)
+                Stop(); // can't soft-resume; just re-launch
 
-        if (IsRunning || IsStopping)
-            return;
+            if (IsStopping)
+            {
+                _stopTask?.ContinueWith(_ => Start());
+                return;
+            }
 
-        IsRunning = true;
-        Task.Run(async () => await Bot.RunAsync(Source.Token)
-            .ContinueWith(ReportFailure, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
-            .ContinueWith(_ => IsRunning = false));
+            if (IsRunning)
+                return;
+
+            IsRunning = true;
+            var token = Source.Token;
+            Task.Run(async () => await Bot.RunAsync(token)
+                .ContinueWith(ReportFailure, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
+                .ContinueWith(_ =>
+                {
+                    lock (_lock)
+                    {
+                        IsRunning = false;
+                    }
+                }));
+        }
     }
 
-    public void Stop()
+    public virtual void Stop()
     {
-        if (!IsRunning || IsStopping)
-            return;
+        lock (_lock)
+        {
+            if (!IsRunning || IsStopping)
+                return;
 
-        IsStopping = true;
-        Source.Cancel();
-        Source.Dispose();
-        Source = new CancellationTokenSource();
+            IsStopping = true;
+            Source.Cancel();
+            // Don't dispose yet to avoid ObjectDisposedException in running tasks
+            var oldSource = Source;
+            Source = new CancellationTokenSource();
 
-        Task.Run(async () => await Bot.HardStop()
-            .ContinueWith(ReportFailure, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
-            .ContinueWith(_ => IsPaused = IsRunning = IsStopping = false));
+            _stopTask = Task.Run(async () => await Bot.HardStop()
+                .ContinueWith(ReportFailure, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
+                .ContinueWith(_ =>
+                {
+                    lock (_lock)
+                    {
+                        IsPaused = IsRunning = IsStopping = false;
+                        _stopTask = null;
+                        oldSource.Dispose();
+                    }
+                }));
+        }
     }
 
     public virtual void Dispose()

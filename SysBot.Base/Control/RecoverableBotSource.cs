@@ -38,7 +38,7 @@ public class RecoverableBotSource<T> : BotSource<T>, IDisposable where T : class
     /// </summary>
     public DateTime LastCrashTime => _lastCrashTime;
 
-    public new void Start()
+    public override void Start()
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(RecoverableBotSource<T>));
         
@@ -57,7 +57,7 @@ public class RecoverableBotSource<T> : BotSource<T>, IDisposable where T : class
         StartMonitoring();
     }
 
-    public new void Stop()
+    public override void Stop()
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(RecoverableBotSource<T>));
         
@@ -70,7 +70,7 @@ public class RecoverableBotSource<T> : BotSource<T>, IDisposable where T : class
         base.Stop();
     }
 
-    public new void Pause()
+    public override void Pause()
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(RecoverableBotSource<T>));
         
@@ -80,7 +80,7 @@ public class RecoverableBotSource<T> : BotSource<T>, IDisposable where T : class
         base.Pause();
     }
 
-    public new void RebootAndStop()
+    public override void RebootAndStop()
     {
         ObjectDisposedException.ThrowIf(_disposed, nameof(RecoverableBotSource<T>));
         
