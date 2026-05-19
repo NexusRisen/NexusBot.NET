@@ -1,4 +1,9 @@
-# Release Notes - v6.2.7
+# Release Notes - v6.2.8
+
+## [v6.2.8] - 2026-05-19
+
+### Changed
+- **USB Core Update**: Migrated the USB connection layer to **LibUsbDotNet 3.0**. This involves a major refactoring of the `SwitchUSB` core to support modern .NET standards and improved stability for USB transfers.
 
 ## [v6.2.7] - 2026-05-19
 
