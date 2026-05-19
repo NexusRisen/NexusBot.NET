@@ -1,5 +1,6 @@
 using LibUsbDotNet;
 using LibUsbDotNet.Main;
+using LibUsbDotNet.LibUsb;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -11,7 +12,7 @@ namespace SysBot.Base;
 /// </summary>
 public abstract class SwitchUSB : IConsoleConnection
 {
-    private static readonly object _registry = new();
+    private static readonly UsbContext _context = new();
 
     private readonly object _sync = new();
 
@@ -19,7 +20,7 @@ public abstract class SwitchUSB : IConsoleConnection
 
     private UsbEndpointReader? reader;
 
-    private UsbDevice? SwDevice;
+    private IUsbDevice? SwDevice;
 
     private UsbEndpointWriter? writer;
 
@@ -48,24 +49,19 @@ public abstract class SwitchUSB : IConsoleConnection
         SwDevice = TryFindUSB();
         if (SwDevice == null)
             throw new Exception("USB device not found.");
-        if (SwDevice is not IUsbDevice usb)
-            throw new Exception("Device is using a WinUSB driver. Use libusbK and create a filter.");
 
         lock (_sync)
         {
-            if (!usb.UsbRegistryInfo.IsAlive)
-                usb.ResetDevice();
+            if (SwDevice.IsOpen)
+                SwDevice.Close();
+            SwDevice.Open();
 
-            if (usb.IsOpen)
-                usb.Close();
-            usb.Open();
-
-            usb.SetConfiguration(1);
-            bool resagain = usb.ClaimInterface(0);
+            SwDevice.SetConfiguration(1);
+            bool resagain = SwDevice.ClaimInterface(0);
             if (!resagain)
             {
-                usb.ReleaseInterface(0);
-                usb.ClaimInterface(0);
+                SwDevice.ReleaseInterface(0);
+                SwDevice.ClaimInterface(0);
             }
 
             reader = SwDevice.OpenEndpointReader(ReadEndpointID.Ep01);
@@ -79,17 +75,12 @@ public abstract class SwitchUSB : IConsoleConnection
         {
             if (SwDevice is { IsOpen: true } x)
             {
-                if (x is IUsbDevice wholeUsbDevice)
-                {
-                    if (!wholeUsbDevice.UsbRegistryInfo.IsAlive)
-                        wholeUsbDevice.ResetDevice();
-                    wholeUsbDevice.ReleaseInterface(0);
-                }
+                x.ReleaseInterface(0);
                 x.Close();
             }
 
-            reader?.Dispose();
-            writer?.Dispose();
+            reader = null;
+            writer = null;
         }
     }
 
@@ -136,7 +127,7 @@ public abstract class SwitchUSB : IConsoleConnection
                 throw new Exception("USB device not found or not connected.");
 
             // Use shared buffer for size header
-            reader.Read(_sharedBuffer, 0, 4, 5000, out _);
+            reader.Read(_sharedBuffer.AsSpan(0, 4), 5000, out _);
             int size = BitConverter.ToInt32(_sharedBuffer, 0);
 
             byte[] buffer = new byte[size];
@@ -144,10 +135,10 @@ public abstract class SwitchUSB : IConsoleConnection
             while (transfSize < size)
             {
                 Thread.Sleep(1);
-                var ec = reader.Read(buffer, transfSize, Math.Min(reader.ReadBufferSize, size - transfSize), 5000, out int lenVal);
-                if (ec != ErrorCode.None)
+                var ec = reader.Read(buffer.AsSpan(transfSize, Math.Min(4096, size - transfSize)), 5000, out int lenVal);
+                if (ec != Error.Success)
                 {
-                    LogError($"Error while getting screenshot: {UsbDevice.LastErrorString}");
+                    LogError($"Error while getting screenshot: {ec}");
                     Disconnect();
                     break;
                 }
@@ -175,7 +166,7 @@ public abstract class SwitchUSB : IConsoleConnection
                 throw new Exception("USB device not found or not connected.");
 
             // Let usb-botbase tell us the response size.
-            reader.Read(_sharedBuffer, 0, 4, 5000, out _);
+            reader.Read(_sharedBuffer.AsSpan(0, 4), 5000, out _);
 
             int size = BitConverter.ToInt32(_sharedBuffer, 0);
             byte[] buffer = new byte[size];
@@ -185,11 +176,11 @@ public abstract class SwitchUSB : IConsoleConnection
             while (transfSize < size)
             {
                 Thread.Sleep(1);
-                var ec = reader.Read(buffer, transfSize, Math.Min(reader.ReadBufferSize, size - transfSize), 5000, out int lenVal);
-                if (ec != ErrorCode.None)
+                var ec = reader.Read(buffer.AsSpan(transfSize, Math.Min(4096, size - transfSize)), 5000, out int lenVal);
+                if (ec != Error.Success)
                 {
                     Disconnect();
-                    throw new Exception(UsbDevice.LastErrorString);
+                    throw new Exception(ec.ToString());
                 }
                 transfSize += lenVal;
             }
@@ -218,8 +209,8 @@ public abstract class SwitchUSB : IConsoleConnection
         if (reader == null)
             throw new Exception("USB device not found or not connected.");
 
-        reader.Read(sizeOfReturn, 5000, out _);
-        reader.Read(buffer, 5000, out var lenVal);
+        reader.Read(sizeOfReturn.AsSpan(), 5000, out _);
+        reader.Read(buffer.AsSpan(), 5000, out var lenVal);
         return lenVal;
     }
 
@@ -229,42 +220,30 @@ public abstract class SwitchUSB : IConsoleConnection
             throw new Exception("USB device not found or not connected.");
 
         uint pack = (uint)buffer.Length + 2;
-        var ec = writer.Write(BitConverter.GetBytes(pack), 2000, out _);
-        if (ec != ErrorCode.None)
+        var ec = writer.Write(BitConverter.GetBytes(pack).AsSpan(), 2000, out _);
+        if (ec != Error.Success)
         {
             Disconnect();
-            throw new Exception(UsbDevice.LastErrorString);
+            throw new Exception(ec.ToString());
         }
-        ec = writer.Write(buffer, 2000, out var l);
-        if (ec != ErrorCode.None)
+        ec = writer.Write(buffer.AsSpan(), 2000, out var l);
+        if (ec != Error.Success)
         {
             Disconnect();
-            throw new Exception(UsbDevice.LastErrorString);
+            throw new Exception(ec.ToString());
         }
         return l;
     }
 
-    private UsbDevice? TryFindUSB()
+    private IUsbDevice? TryFindUSB()
     {
-        lock (_registry)
+        lock (_context)
         {
-            foreach (var device in UsbDevice.AllLibUsbDevices)
-            {
-                if (device is not UsbRegistry ur)
-                    continue;
-                if (ur.Vid != 0x057E)
-                    continue;
-                if (ur.Pid != 0x3000)
-                    continue;
-
-                ur.DeviceProperties.TryGetValue("Address", out var addr);
-                if (Port.ToString() != addr?.ToString())
-                    continue;
-
-                return ur.Device;
-            }
+            return _context.Find(device =>
+                device.VendorId == 0x057E &&
+                device.ProductId == 0x3000 &&
+                (device as UsbDevice)?.Address.ToString() == Port.ToString());
         }
-        return null;
     }
 
     private void WriteLarge(ICommandBuilder b, ReadOnlySpan<byte> data, ulong offset)
