@@ -1,4 +1,10 @@
-# Release Notes - v6.2.6
+# Release Notes - v6.2.7
+
+## [v6.2.7] - 2026-05-19
+
+### Fixed
+- **PLZA Dump Trades**: Fixed a critical bug in Pokémon Legends: Z-A dump trades caused by incorrect box slot size and missing `FileTradeHelper` support. Dump trades are now fully enabled for PLZA.
+- **Data Integrity**: Corrected `BoxFormatSlotSize` for PLZA to match Gen 9 standards (344 bytes).
 
 ## [v6.2.6] - 2026-05-19
 

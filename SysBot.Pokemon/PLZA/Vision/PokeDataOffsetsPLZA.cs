@@ -7,7 +7,7 @@ namespace SysBot.Pokemon;
 /// </summary>
 public class PokeDataOffsetsPLZA
 {
-    public const int BoxFormatSlotSize = 0x148;                          // 328 bytes (box/stored format)
+    public const int BoxFormatSlotSize = 0x158;                          // 344 bytes (box/stored format)
     public const string PLZAID = "0100F43008C44000";
     public const string PLZAGameVersion = "2.0.2";
 
