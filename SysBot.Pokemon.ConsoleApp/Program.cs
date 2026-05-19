@@ -43,8 +43,9 @@ public static class Program
             PokeTradeBotSWSH.SeedChecker = new Z3SeedSearchHandler<PK8>();
             BotContainer.RunBots(cfg);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            LogUtil.LogError(ex.Message, "Startup");
             LogUtil.LogInfo("SysBot", "Unable to start bots with saved config file. Please copy your config from the WinForms project or delete it and reconfigure.");
             Console.ReadKey();
         }

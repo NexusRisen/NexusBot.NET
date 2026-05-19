@@ -26,6 +26,12 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     [Summary("Shows your current trade count and medal status")]
     public async Task ShowMedalsCommand()
     {
+        if (!SysCord<T>.Runner.Hub.Config.Discord.EnableMedals)
+        {
+            await ReplyAsync("The medals system is currently disabled.").ConfigureAwait(false);
+            return;
+        }
+
         var tradeCodeStorage = new TradeCodeStorage();
         int totalTrades = tradeCodeStorage.GetTradeCount(Context.User.Id);
 

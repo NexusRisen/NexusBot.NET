@@ -103,11 +103,20 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         }
     }
 
-    private void OnBotConnectionError(object? sender, Exception ex) => Task.Run(HandleBotStop, _cts.Token);
+    private void OnBotConnectionError(object? sender, Exception ex) => Task.Run(() => HandleBotStop(ex), _cts.Token);
     private void OnBotConnectionSuccess(object? sender, EventArgs e) => Task.Run(HandleBotStart, _cts.Token);
 
-    private Task HandleBotStop() => Task.CompletedTask; // TODO: Implement
-    private Task HandleBotStart() => Task.CompletedTask; // TODO: Implement
+    private Task HandleBotStop(Exception ex)
+    {
+        LogUtil.LogInfo("SysKook", $"Bot connection error: {ex.Message}. Notifying Kook users (TODO).");
+        return Task.CompletedTask;
+    }
+
+    private Task HandleBotStart()
+    {
+        LogUtil.LogInfo("SysKook", "Bot connection success. Notifying Kook users (TODO).");
+        return Task.CompletedTask;
+    }
 
     public void Dispose()
     {

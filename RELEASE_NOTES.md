@@ -1,9 +1,17 @@
-# RELEASE NOTES
+# Release Notes - v6.2.6
 
-## v6.2.5
+## [v6.2.6] - 2026-05-19
 
-### 🔧 Concurrency & State Management Overhaul
-- **Thread-Safe Bot Lifecycle**: Completely overhauled the state transitions (`Start`, `Stop`, `Pause`, `Restart`) within `BotSource` and `RecoverableBotSource` to use proper thread-locking mechanisms. This eliminates race conditions and "infinite loops" caused by rapid UI inputs or simultaneous sudo commands in Discord.
-- **Fixed Shadowing in Recovery Logic**: Resolved method shadowing in `RecoverableBotSource` by correctly utilizing `virtual` and `override`. The `BotRecoveryService` now accurately tracks intentional stops versus actual crashes, preventing false-positive recovery loops.
-- **Smart "Start While Stopping" Handling**: Fixed the "undefined state" bug where calling `Start()` on a paused or stopping bot would silently fail. The bot now gracefully queues the `Start` action via a continuation task to execute immediately after the `Stop` process finalizes.
-- **Safe Sudo Restarts**: Updated the Discord `!botRestart` command to utilize the newly synchronized `bot.Restart()` lifecycle method, preventing duplicate overlapping socket resets when multiple sudo users trigger the command concurrently.
+### Added
+- **Medals Toggle**: Added a new setting `Enable Medals System` in the Discord integration section. Users can now enable or disable the medal system (including the `$medals` command and medal display in trade embeds).
+- **Kook Integration**: Implemented initial bot connection status handlers in `SysKook.cs`, providing better internal visibility into Kook bot lifecycle events.
+
+### Fixed
+- **Medal Milestones**: Corrected a logic bug in `MedalHelpers.cs` where the **750 trades** milestone was missing, ensuring users can now correctly achieve the "Pokémon Legend" status.
+- **Legends Z-A Safety**: Re-enabled the block on PLZA dump trades in `DumpModule.cs` as they are currently reported as unstable.
+- **Resource Management**: Added missing `CancellationToken` support to `PokeBotRunnerImpl` in the WinForms project to prevent background tasks from hanging after the application closes.
+- **Twitch Stability**: Fixed a potential infinite loop in the Twitch reconnection logic by adding a cancellation check and improved error handling.
+
+### Changed
+- **Content Policy**: Renamed the 200-trade milestone from an inappropriate joke to **"Advanced Trainer"** to align with community standards.
+- **Logging**: Improved startup error reporting in the Console application. Startup failures now log the specific exception message rather than a generic error.

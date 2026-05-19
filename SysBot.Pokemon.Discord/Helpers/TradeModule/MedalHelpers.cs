@@ -8,7 +8,7 @@ public static class MedalHelpers
 {
     public static int GetCurrentMilestone(int totalTrades)
     {
-        int[] milestones = { 1000, 950, 900, 850, 800, 700, 650, 600, 550, 500, 450, 400, 350, 300, 250, 200, 150, 100, 50, 1 };
+        int[] milestones = { 1000, 950, 900, 850, 800, 750, 700, 650, 600, 550, 500, 450, 400, 350, 300, 250, 200, 150, 100, 50, 1 };
         return milestones.FirstOrDefault(m => totalTrades >= m, 0);
     }
 
@@ -20,7 +20,7 @@ public static class MedalHelpers
             50 => "Rookie Trainer",
             100 => "Rising Star",
             150 => "Challenger",
-            200 => "Master Baiter",
+            200 => "Advanced Trainer",
             250 => "Star Trainer",
             300 => "Ace Trainer",
             350 => "Veteran Trainer",

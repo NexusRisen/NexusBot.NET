@@ -220,8 +220,19 @@ namespace SysBot.Pokemon.Twitch
             LogUtil.LogText($"[{client.TwitchUsername}] - Disconnected.");
             while (!client.IsConnected && !_isDisposed)
             {
-                client.Reconnect();
-                await Task.Delay(5000).ConfigureAwait(false);
+                try
+                {
+                    client.Reconnect();
+                    await Task.Delay(5000, _cts.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    LogUtil.LogError($"Twitch reconnection failed: {ex.Message}", "TwitchBot");
+                }
             }
         }
 

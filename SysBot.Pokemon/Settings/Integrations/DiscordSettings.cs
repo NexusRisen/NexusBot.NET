@@ -142,6 +142,9 @@ public class DiscordSettings
     [Category(Operation), Description("Number of seconds to wait before deleting bot error/response messages. Only applies if MessageDeletionEnabled is true."), DisplayName("Delete Message Delay")]
     public int ErrorMessageDeleteDelaySeconds { get; set; } = 10;
 
+    [Category(Operation), Description("When enabled, users can earn medals and check their status with the $medals command."), DisplayName("Enable Medals System")]
+    public bool EnableMedals { get; set; } = true;
+
     [Category(Operation), Description("When enabled, user command messages will be deleted along with bot responses. Disable to keep user commands visible."), DisplayName("Delete Bot Commands")]
     public bool DeleteUserCommandMessages { get; set; } = true;
 

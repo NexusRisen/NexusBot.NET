@@ -286,8 +286,15 @@ public static class DetailsExtractor<T> where T : PKM, new()
         // Add Total User Trades + Medals
         if (totalTradeCount > 0)
         {
-            int totalMedals = CalculateMedals(totalTradeCount);
-            userDetailsText += $"Total User Trades: {totalTradeCount} | Medals: {totalMedals}\n";
+            if (SysCord<T>.Runner.Hub.Config.Discord.EnableMedals)
+            {
+                int totalMedals = CalculateMedals(totalTradeCount);
+                userDetailsText += $"Total User Trades: {totalTradeCount} | Medals: {totalMedals}\n";
+            }
+            else
+            {
+                userDetailsText += $"Total User Trades: {totalTradeCount}\n";
+            }
         }
 
         // First trade — no record exists yet
