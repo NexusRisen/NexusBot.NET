@@ -11,7 +11,7 @@ using PKHeX.Core;
 
 namespace SysBot.Pokemon.Discord.AI;
 
-public class HuggingFaceService
+public class HuggingFaceService : IDisposable
 {
     private readonly string _apiKey;
     private readonly string _model;
@@ -22,6 +22,7 @@ public class HuggingFaceService
 
     private readonly System.Collections.Concurrent.ConcurrentDictionary<ulong, List<Message>> _chatHistory = new();
     private const int MaxHistoryMessages = 10;
+    private bool _isDisposed;
 
     public HuggingFaceService(string apiKey, string model, int maxTokens = 800, float temperature = 0.7f, float topP = 0.9f)
     {
@@ -51,7 +52,10 @@ public class HuggingFaceService
                 // Add history
                 if (_chatHistory.TryGetValue(userId, out var history))
                 {
-                    messages.AddRange(history);
+                    lock (history)
+                    {
+                        messages.AddRange(history);
+                    }
                 }
 
                 // Add current prompt
@@ -90,13 +94,16 @@ public class HuggingFaceService
                     {
                         // Update history
                         var userHistory = _chatHistory.GetOrAdd(userId, _ => new List<Message>());
-                        userHistory.Add(new Message { Role = "user", Content = prompt });
-                        userHistory.Add(new Message { Role = "assistant", Content = responseText });
-
-                        // Trim history
-                        if (userHistory.Count > MaxHistoryMessages)
+                        lock (userHistory)
                         {
-                            userHistory.RemoveRange(0, userHistory.Count - MaxHistoryMessages);
+                            userHistory.Add(new Message { Role = "user", Content = prompt });
+                            userHistory.Add(new Message { Role = "assistant", Content = responseText });
+
+                            // Trim history
+                            if (userHistory.Count > MaxHistoryMessages)
+                            {
+                                userHistory.RemoveRange(0, userHistory.Count - MaxHistoryMessages);
+                            }
                         }
 
                         return responseText;
@@ -116,6 +123,14 @@ public class HuggingFaceService
     }
 
     public void ClearHistory(ulong userId) => _chatHistory.TryRemove(userId, out _);
+
+    public void Dispose()
+    {
+        if (_isDisposed) return;
+        _isDisposed = true;
+        _httpClient.Dispose();
+        GC.SuppressFinalize(this);
+    }
 
     private class ChatCompletionResponse
     {

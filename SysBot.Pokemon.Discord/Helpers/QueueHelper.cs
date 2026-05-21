@@ -129,7 +129,7 @@ public static class QueueHelper<T> where T : PKM, new()
         var notifier = new DiscordTradeNotifier<T>(pk, trainer, code, trader, batchTradeNumber, totalBatchTrades,
             isMysteryEgg, lgcode: lgcode!);
 
-        int uniqueTradeID = GenerateUniqueTradeID();
+        int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
 
         var detail = new PokeTradeDetail<T>(pk, trainer, notifier, t, code, sig == RequestSignificance.Favored,
             lgcode, batchTradeNumber, totalBatchTrades, isMysteryEgg, isHiddenTrade, uniqueTradeID, ignoreAutoOT, setEdited);
@@ -312,10 +312,10 @@ public static class QueueHelper<T> where T : PKM, new()
         var trainer_info = new PokeTradeTrainerInfo(trainer, userID);
         var notifier = new DiscordTradeNotifier<T>(firstTrade, trainer_info, code, trader, 1, totalBatchTrades, false, lgcode: []);
 
-        int uniqueTradeID = GenerateUniqueTradeID();
+        int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
 
         var detail = new PokeTradeDetail<T>(firstTrade, trainer_info, notifier, PokeTradeType.Batch, code,
-            sig == RequestSignificance.Favored, null, 1, totalBatchTrades, false, isHiddenTrade, 0, ignoreAutoOT)
+            sig == RequestSignificance.Favored, null, 1, totalBatchTrades, false, isHiddenTrade, uniqueTradeID, ignoreAutoOT)
         {
             BatchTrades = allTrades
         };
@@ -485,13 +485,6 @@ public static class QueueHelper<T> where T : PKM, new()
             int tradeCount = tradeCodeStorage.GetTradeCount(trader.Id);
             _ = SendMilestoneEmbed(tradeCount, context.Channel, trader);
         }
-    }
-
-    private static int GenerateUniqueTradeID()
-    {
-        long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        int randomValue = Random.Shared.Next(1000);
-        return (int)((timestamp % int.MaxValue) * 1000 + randomValue);
     }
 
     private static string GetImageFolderPath()

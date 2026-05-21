@@ -130,8 +130,9 @@ public class YouTubeBot<T> : IDisposable where T : PKM, new()
 
     private string HandleCommand(LiveChatMessage m, string cmd, string args)
     {
-        if (!m.AuthorDetails.IsChatOwner.Equals(true) && Settings.IsSudo(m.AuthorDetails.DisplayName))
-            return string.Empty; // sudo only commands
+        bool isSudo = m.AuthorDetails.IsChatOwner.Equals(true) || Settings.IsSudo(m.AuthorDetails.DisplayName);
+        if (!isSudo)
+            return string.Empty; // sudo only commands for now
 
         if (args.Length > 0)
             return "Commands don't use arguments. Try again with just the command code.";

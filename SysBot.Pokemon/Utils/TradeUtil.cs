@@ -14,6 +14,13 @@ public static class TradeUtil
         return code % 10;
     }
 
+    public static int GenerateUniqueTradeID()
+    {
+        long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        int randomValue = Random.Shared.Next(1000);
+        return (int)((timestamp % int.MaxValue) * 1000 + randomValue);
+    }
+
     public static IEnumerable<SwitchButton> GetPresses(int code)
     {
         var end = 1;

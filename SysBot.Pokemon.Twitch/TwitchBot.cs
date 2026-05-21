@@ -21,6 +21,7 @@ namespace SysBot.Pokemon.Twitch
         private readonly string Channel;
 
         private readonly TwitchClient client;
+        private readonly WebSocketClient? _webSocketClient;
 
         private readonly TwitchSettings Settings;
         private readonly Action<string> _echoForwarder;
@@ -47,8 +48,8 @@ namespace SysBot.Pokemon.Twitch
             };
 
             Channel = settings.Channel;
-            WebSocketClient customClient = new(clientOptions);
-            client = new TwitchClient(customClient);
+            _webSocketClient = new WebSocketClient(clientOptions);
+            client = new TwitchClient(_webSocketClient);
 
             var cmd = settings.CommandPrefix;
             client.Initialize(credentials, Channel, cmd, cmd);
@@ -124,6 +125,7 @@ namespace SysBot.Pokemon.Twitch
             try
             {
                 client.Disconnect();
+                _webSocketClient?.Dispose();
             }
             catch { }
         }
@@ -154,13 +156,6 @@ namespace SysBot.Pokemon.Twitch
             }, _cts.Token);
         }
 
-        private static int GenerateUniqueTradeID()
-        {
-            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            int randomValue = new Random().Next(1000);
-            return ((int)(timestamp % int.MaxValue) * 1000) + randomValue;
-        }
-
         private bool AddToTradeQueue(T pk, int code, OnWhisperReceivedArgs e, RequestSignificance sig, PokeRoutineType type, out string msg)
         {
             // var user = e.WhisperMessage.UserId;
@@ -170,8 +165,8 @@ namespace SysBot.Pokemon.Twitch
             var trainer = new PokeTradeTrainerInfo(name, ulong.Parse(e.WhisperMessage.UserId));
             var notifier = new TwitchTradeNotifier<T>(pk, trainer, code, e.WhisperMessage.Username, client, Channel, Hub.Config.Twitch);
             var tt = type == PokeRoutineType.SeedCheck ? PokeTradeType.Seed : PokeTradeType.Specific;
-            var detail = new PokeTradeDetail<T>(pk, trainer, notifier, tt, code, sig == RequestSignificance.Favored);
-            var uniqueTradeID = GenerateUniqueTradeID();
+            var uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
+            var detail = new PokeTradeDetail<T>(pk, trainer, notifier, tt, code, sig == RequestSignificance.Favored, uniqueTradeID: uniqueTradeID);
             var trade = new TradeEntry<T>(detail, userID, type, name, uniqueTradeID);
 
             var added = Info.AddToTradeQueue(trade, userID, sig == RequestSignificance.Owner);

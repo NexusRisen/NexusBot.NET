@@ -21,7 +21,7 @@ namespace SysBot.Base
 
         public string LastLogged { get; private set; } = "Not Started";
 
-        public DateTime LastTime { get; private set; } = DateTime.Now;
+        public DateTime LastTime { get; private set; } = DateTime.UtcNow;
 
         public abstract string GetSummary();
 
@@ -33,7 +33,7 @@ namespace SysBot.Base
         {
             Connection.Log(message);
             LastLogged = message;
-            LastTime = DateTime.Now;
+            LastTime = DateTime.UtcNow;
         }
 
         public abstract Task MainLoop(CancellationToken token);
@@ -54,7 +54,7 @@ namespace SysBot.Base
             }
         }
 
-        public void ReportStatus() => LastTime = DateTime.Now;
+        public void ReportStatus() => LastTime = DateTime.UtcNow;
 
         /// <summary>
         /// Connects to the console, then runs the bot.

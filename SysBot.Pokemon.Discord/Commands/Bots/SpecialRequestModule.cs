@@ -309,6 +309,10 @@ namespace SysBot.Pokemon.Discord
                     {
                         pb8.MetDate = dateOnly;
                     }
+                    else if (pkm is PA9 pa9)
+                    {
+                        pa9.MetDate = dateOnly;
+                    }
                     else
                     {
                         // For older PKM formats, use individual day/month/year properties
@@ -401,7 +405,7 @@ namespace SysBot.Pokemon.Discord
                 clone.HandlingTrainerName = pk.OriginalTrainerName;
                 clone.HandlingTrainerGender = pk.OriginalTrainerGender;
 
-                if (clone is PK8 or PA8 or PB8 or PK9)
+                if (clone is PK8 or PA8 or PB8 or PK9 or PA9)
                     ((dynamic)clone).HandlingTrainerLanguage = (byte)pk.Language;
 
                 clone.CurrentHandler = 1;

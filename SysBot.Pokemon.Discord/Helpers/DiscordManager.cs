@@ -53,7 +53,7 @@ public class DiscordManager(DiscordSettings Config)
             if (_dmChannels.TryGetValue(user.Id, out var channel))
                 return channel;
 
-            var timeSinceLastDm = DateTime.Now - _lastDmTime;
+            var timeSinceLastDm = DateTime.UtcNow - _lastDmTime;
             if (timeSinceLastDm.TotalMilliseconds < MinDmDelayMs)
             {
                 var remainingDelay = MinDmDelayMs - (int)timeSinceLastDm.TotalMilliseconds;
@@ -62,7 +62,7 @@ public class DiscordManager(DiscordSettings Config)
 
             var dm = await user.CreateDMChannelAsync().ConfigureAwait(false);
             _dmChannels[user.Id] = dm;
-            _lastDmTime = DateTime.Now;
+            _lastDmTime = DateTime.UtcNow;
             return dm;
         }
         catch (HttpException ex) when (ex.DiscordCode.HasValue && ex.DiscordCode.Value == (DiscordErrorCode)40003)
@@ -74,7 +74,7 @@ public class DiscordManager(DiscordSettings Config)
             {
                 var dm = await user.CreateDMChannelAsync().ConfigureAwait(false);
                 _dmChannels[user.Id] = dm;
-                _lastDmTime = DateTime.Now;
+                _lastDmTime = DateTime.UtcNow;
                 return dm;
             }
             catch (Exception retryEx)

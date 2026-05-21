@@ -97,7 +97,7 @@ namespace SysBot.Pokemon
             Trainer = info;
             Notifier = notifier;
             Type = type;
-            Time = DateTime.Now;
+            Time = DateTime.UtcNow;
             IsFavored = favored;
 
             // assign the passed-in LGPE trade code list (can be null)

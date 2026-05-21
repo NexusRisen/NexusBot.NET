@@ -23,7 +23,7 @@ public static class KookHelper<T> where T : PKM, new()
         
         var notifier = new KookTradeNotifier<T>(pk, trainer, code, trader, client, lgcode);
 
-        int uniqueTradeID = (int)(DateTime.UtcNow.Ticks % int.MaxValue);
+        int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
 
         var detail = new PokeTradeDetail<T>(pk, trainer, notifier, PokeTradeType.Specific, code, false,
             lgcode, 1, 1, false, false, uniqueTradeID, false, false);
@@ -58,7 +58,7 @@ public static class KookHelper<T> where T : PKM, new()
         var trainer_info = new PokeTradeTrainerInfo(trainerName, userID);
         var notifier = new KookTradeNotifier<T>(firstTrade, trainer_info, code, trader, client, null);
 
-        int uniqueTradeID = (int)(DateTime.UtcNow.Ticks % int.MaxValue);
+        int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
 
         var detail = new PokeTradeDetail<T>(firstTrade, trainer_info, notifier, PokeTradeType.Batch, code,
             false, null, 1, allTrades.Count, false, false, uniqueTradeID, false, false)
@@ -85,19 +85,8 @@ public static class KookHelper<T> where T : PKM, new()
         }
     }
 
-    public static async Task<T?> ProcessShowdownSetAsync(string content)
+    public static async Task<ProcessedPokemonResult<T>> ProcessShowdownSetAsync(string content)
     {
-        if (!ShowdownParsing.TryParseAnyLanguage(content, out ShowdownSet? set) || set == null || set.Species == 0)
-            return null;
-
-        var template = AutoLegalityWrapper.GetTemplate(set);
-        var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-        var pkm = sav.GetLegal(template, out _);
-
-        if (pkm is not T pk)
-            return null;
-
-        pk.ResetPartyStats();
-        return pk;
+        return await Task.Run(() => PokeTradeHelper<T>.ProcessShowdownSet(content, SysKook<T>.Runner.Hub)).ConfigureAwait(false);
     }
 }

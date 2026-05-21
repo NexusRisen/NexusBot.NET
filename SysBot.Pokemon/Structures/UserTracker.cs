@@ -133,6 +133,6 @@ public sealed record TrackedUser
         this.NetworkID = NetworkID;
         Name = name;
         RemoteID = remoteID;
-        Time = DateTime.Now;
+        Time = DateTime.UtcNow;
     }
 }

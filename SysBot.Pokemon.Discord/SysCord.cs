@@ -171,6 +171,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _cts.Cancel();
         _cts.Dispose();
         _dmRelay?.Dispose();
+        _aiService?.Dispose();
 
         _client.Log -= Log;
         _commands.Log -= Log;
@@ -178,6 +179,13 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _client.Disconnected -= OnDisconnected;
         _client.Ready -= LoadLoggingAndEcho;
         _client.MessageReceived -= HandleMessageAsync;
+
+        try
+        {
+            _client.StopAsync().GetAwaiter().GetResult();
+            _client.Dispose();
+        }
+        catch { }
 
         QueueMonitor<T>.OnQueueStatusChanged = null;
         _announcementMessageIds.Clear();

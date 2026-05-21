@@ -7,6 +7,7 @@ using SysBot.Base;
 using SysBot.Pokemon.Discord.Helpers;
 using SysBot.Pokemon.Helpers;
 using SysBot.Pokemon.Discord.Helpers.TradeModule;
+using SysBot.Pokemon;
 using System;
 using System.Collections.Generic;
 using System.Linq;

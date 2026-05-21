@@ -32,5 +32,14 @@ public class KookSettings
     [Category(Operation), Description("Number of seconds to wait before deleting bot error/response messages."), DisplayName("Delete Message Delay")]
     public int ErrorMessageDeleteDelaySeconds { get; set; } = 10;
 
+    [Category(Operation), Description("When enabled, the bot will announce its status (Online/Offline) in the whitelisted channels."), DisplayName("Bot Status Announcement")]
+    public bool BotStatusAnnouncement { get; set; } = true;
+
+    [Category(Operation), Description("Emoji to show when the bot is online."), DisplayName("Online Emoji")]
+    public string OnlineEmoji { get; set; } = "🟢";
+
+    [Category(Operation), Description("Emoji to show when the bot is offline."), DisplayName("Offline Emoji")]
+    public string OfflineEmoji { get; set; } = "🔴";
+
     public override string ToString() => "Kook Integration Settings";
 }

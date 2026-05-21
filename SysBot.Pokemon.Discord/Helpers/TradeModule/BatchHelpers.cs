@@ -2,6 +2,8 @@ using Discord;
 using Discord.Commands;
 using PKHeX.Core;
 using SysBot.Pokemon.Discord.Helpers;
+using SysBot.Pokemon.Helpers;
+using SysBot.Pokemon;
 using System;
 using System.Collections.Generic;
 using System.Linq;

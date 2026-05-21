@@ -372,9 +372,9 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
     {
         try
         {
-            // We use reflection to access BatchTradeTracker<T>.Instance.CanProcessBatchTrade(null)
-            // which triggers CleanupStaleEntries(). Since we don't have a direct reference to the type
-            // here in the Base project, we look it up by name.
+            // We use reflection to access BatchTradeTracker<T>.CleanupAll()
+            // Since we don't have a direct reference to the type here in the Base project,
+            // we look it up by name in the Pokemon assembly.
             var pokemonAssembly = AppDomain.CurrentDomain.GetAssemblies()
                 .FirstOrDefault(a => a.GetName().Name == "SysBot.Pokemon");
             
@@ -383,33 +383,25 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
             var trackerType = pokemonAssembly.GetType("SysBot.Pokemon.Helpers.BatchTradeTracker`1");
             if (trackerType == null) return;
 
-            // We need to find the specific generic type. Since we are in BotRecoveryService<T>,
-            // T might be what we need if it's a PKM type, but here T is IConsoleBotConfig.
-            // In practice, the app usually has T as a PKM type in the Pokemon project.
-            // Let's try to find any instantiated BatchTradeTracker.
-            
-            var genericT = pokemonAssembly.GetType("PKHeX.Core.PKM"); // Fallback or base
-            if (genericT == null) return;
+            // Find all instantiated generic types for BatchTradeTracker and call CleanupAll
+            // Actually, CleanupAll is static, so we just need to call it on the generic versions we care about
+            // or find all loaded versions.
+            var genericArguments = new[] { "PKHeX.Core.PK9", "PKHeX.Core.PK8", "PKHeX.Core.PA9", "PKHeX.Core.PA8", "PKHeX.Core.PB8", "PKHeX.Core.PB7" };
+            foreach (var argName in genericArguments)
+            {
+                var argType = pokemonAssembly.GetType(argName) ?? AppDomain.CurrentDomain.GetAssemblies()
+                    .Select(a => a.GetType(argName)).FirstOrDefault(t => t != null);
+                
+                if (argType == null) continue;
 
-            var specificTrackerType = trackerType.MakeGenericType(genericT);
-            var instanceProperty = specificTrackerType.GetProperty("Instance", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-            var instance = instanceProperty?.GetValue(null);
-            
-            if (instance == null) return;
-
-            // Calling CanProcessBatchTrade(null) triggers CleanupStaleEntries
-            var method = specificTrackerType.GetMethod("CanProcessBatchTrade");
-            method?.Invoke(instance, [null]);
+                var specificTrackerType = trackerType.MakeGenericType(argType);
+                var cleanupMethod = specificTrackerType.GetMethod("CleanupAll", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+                cleanupMethod?.Invoke(null, null);
+            }
 
             // Also trigger Hub maintenance if possible
-            var hubProperty = specificTrackerType.Assembly.GetType("SysBot.Pokemon.Discord.SysCord`1")
-                ?.GetProperty("Runner", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-                ?.GetValue(null)
-                ?.GetType().GetProperty("Hub")
-                ?.GetValue(null); // This is getting complicated via reflection
-            
             // Simpler: Try to find any active PokeTradeHub and call CleanupMaintenance
-            var runnerType = pokemonAssembly.GetType("SysBot.Pokemon.PokeBotRunner`1")?.MakeGenericType(genericT);
+            var runnerType = pokemonAssembly.GetTypes().FirstOrDefault(t => t.Name == "PokeBotRunner`1");
             if (runnerType != null)
             {
                 var activeHubProperty = runnerType.GetProperty("ActiveHub", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);

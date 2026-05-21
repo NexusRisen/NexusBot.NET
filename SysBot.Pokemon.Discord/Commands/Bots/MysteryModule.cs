@@ -259,7 +259,7 @@ namespace SysBot.Pokemon.Discord
             var trainer = new PokeTradeTrainerInfo(context.User.Username, context.User.Id);
             var notifier = new DiscordTradeNotifier<T>(firstItem, trainer, batchTradeCode, context.User, 1, totalItems, true, lgcode: []);
 
-            int uniqueTradeID = GenerateUniqueTradeID();
+            int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
 
             var detail = new PokeTradeDetail<T>(
                 firstItem,
@@ -338,13 +338,6 @@ namespace SysBot.Pokemon.Discord
                     .WithUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Extras/FromTheHeart2.png"));
 
             return embedBuilder.Build();
-        }
-
-        private static int GenerateUniqueTradeID()
-        {
-            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            int randomValue = Random.Shared.Next(1000);
-            return (int)((timestamp % int.MaxValue) * 1000 + randomValue);
         }
 
         /// <summary>

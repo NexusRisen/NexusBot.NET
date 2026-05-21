@@ -16,10 +16,14 @@ namespace SysBot.Pokemon
             {
                 var langCode = l.GetLanguageCode();
                 var strings = GameInfo.GetStrings(langCode);
+                if (strings?.Species == null)
+                    return [];
+
                 return strings.Species
                     .Select((name, index) => new { name, index })
                     .Where(x => !string.IsNullOrEmpty(x.name))
-                    .OrderByDescending(x => x.name.Length)
+                    .GroupBy(x => x.name)
+                    .Select(g => g.OrderByDescending(x => x.name.Length).First())
                     .ToDictionary(x => x.name, x => x.index);
             });
         }
@@ -30,10 +34,14 @@ namespace SysBot.Pokemon
             {
                 var langCode = l.GetLanguageCode();
                 var strings = GameInfo.GetStrings(langCode);
+                if (strings?.Move == null)
+                    return [];
+
                 return strings.Move
                     .Select((name, index) => new { name, index })
                     .Where(x => !string.IsNullOrEmpty(x.name))
-                    .OrderByDescending(x => x.name.Length)
+                    .GroupBy(x => x.name)
+                    .Select(g => g.OrderByDescending(x => x.name.Length).First())
                     .ToDictionary(x => x.name, x => x.index);
             });
         }

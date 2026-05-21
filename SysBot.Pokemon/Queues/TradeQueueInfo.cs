@@ -126,7 +126,7 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
 
                 // Use tradeEntry if available, otherwise use the one we found/created
                 var resultEntry = tradeEntry ?? entry;
-                return new QueueCheckResult<T>(true, resultEntry, actualIndex, totalInQueue, entry.Trade.BatchTradeNumber, entry.Trade.TotalBatchTrades);
+                return new QueueCheckResult<T>(true, resultEntry, actualIndex, totalInQueue, resultEntry.Trade.BatchTradeNumber, resultEntry.Trade.TotalBatchTrades);
             }
             else if (tradeEntry != null)
             {

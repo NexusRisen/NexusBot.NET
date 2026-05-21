@@ -6,9 +6,14 @@ using System.Linq;
 
 namespace SysBot.Pokemon.Helpers
 {
-    public class BatchTradeTracker<T> where T : PKM, new()
+    public interface IBatchTradeTracker
     {
-        private static readonly ConcurrentDictionary<Type, object> _instances = new();
+        void CleanupStaleEntries();
+    }
+
+    public class BatchTradeTracker<T> : IBatchTradeTracker where T : PKM, new()
+    {
+        private static readonly ConcurrentDictionary<Type, IBatchTradeTracker> _instances = new();
         private static readonly object _instanceLock = new();
 
         private readonly ConcurrentDictionary<(ulong TrainerId, int UniqueTradeID), string> _activeBatches = new();
@@ -39,6 +44,14 @@ namespace SysBot.Pokemon.Helpers
             }
         }
 
+        public static void CleanupAll()
+        {
+            foreach (var tracker in _instances.Values)
+            {
+                tracker.CleanupStaleEntries();
+            }
+        }
+
         public bool CanProcessBatchTrade(PokeTradeDetail<T> trade)
         {
             if (trade.TotalBatchTrades <= 1)
@@ -61,13 +74,13 @@ namespace SysBot.Pokemon.Helpers
 
                 if (_activeBatches.TryGetValue(key, out var existingBot))
                 {
-                    _lastTradeTime[key] = DateTime.Now;
+                    _lastTradeTime[key] = DateTime.UtcNow;
                     return botName == existingBot;
                 }
 
                 if (_activeBatches.TryAdd(key, botName))
                 {
-                    _lastTradeTime[key] = DateTime.Now;
+                    _lastTradeTime[key] = DateTime.UtcNow;
                     return true;
                 }
 
@@ -94,9 +107,9 @@ namespace SysBot.Pokemon.Helpers
             _lastTradeTime.TryRemove(key, out _);
         }
 
-        private void CleanupStaleEntries()
+        public void CleanupStaleEntries()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             var staleKeys = _lastTradeTime
                 .Where(x => now - x.Value > _tradeTimeout)
                 .Select(x => x.Key)
@@ -122,18 +135,10 @@ namespace SysBot.Pokemon.Helpers
 
         public void AddReceivedPokemon(ulong trainerId, T pokemon)
         {
-            if (!_receivedPokemon.ContainsKey(trainerId))
+            var list = _receivedPokemon.GetOrAdd(trainerId, _ => []);
+            lock (list)
             {
-                var newList = new List<T>();
-                _receivedPokemon.TryAdd(trainerId, newList);
-            }
-
-            if (_receivedPokemon.TryGetValue(trainerId, out var list))
-            {
-                lock (list)
-                {
-                    list.Add(pokemon);
-                }
+                list.Add(pokemon);
             }
         }
 

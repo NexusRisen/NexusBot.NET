@@ -212,7 +212,7 @@ namespace SysBot.Pokemon
             }
 
             // Alpha
-            if (typeof(T) == typeof(PA8) && (input.Contains("Alpha") || input.Contains("头目") || input.Contains("オヤブン") || input.Contains("Baron") || input.Contains("Elite") || input.Contains("Alpha") || input.Contains("Alfa") || input.Contains("우두머리")))
+            if ((typeof(T) == typeof(PA8) || typeof(T) == typeof(PA9)) && (input.Contains("Alpha") || input.Contains("头目") || input.Contains("オヤブン") || input.Contains("Baron") || input.Contains("Elite") || input.Contains("Alpha") || input.Contains("Alfa") || input.Contains("우두머리")))
             {
                 result += "\nAlpha: Yes";
             }
@@ -224,7 +224,7 @@ namespace SysBot.Pokemon
                 if (input.Contains(strings.balllist[i]))
                 {
                     var ballStr = stringsEn.balllist[i];
-                    if (typeof(T) == typeof(PA8) && ballStr is "Poké Ball" or "Great Ball" or "Ultra Ball") 
+                    if ((typeof(T) == typeof(PA8) || typeof(T) == typeof(PA9)) && ballStr is "Poké Ball" or "Great Ball" or "Ultra Ball") 
                         ballStr = "LA" + ballStr;
                     result += $"\nBall: {ballStr}";
                     input = input.Replace(strings.balllist[i], "");

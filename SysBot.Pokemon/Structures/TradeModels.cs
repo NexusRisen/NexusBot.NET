@@ -1,7 +1,7 @@
 using PKHeX.Core;
 using System.Collections.Generic;
 
-namespace SysBot.Pokemon.Discord;
+namespace SysBot.Pokemon;
 
 public class ProcessedPokemonResult<T> where T : PKM, new()
 {

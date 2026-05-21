@@ -106,16 +106,49 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
     private void OnBotConnectionError(object? sender, Exception ex) => Task.Run(() => HandleBotStop(ex), _cts.Token);
     private void OnBotConnectionSuccess(object? sender, EventArgs e) => Task.Run(HandleBotStart, _cts.Token);
 
-    private Task HandleBotStop(Exception ex)
+    public async Task AnnounceBotStatus(string status, bool isOnline)
     {
-        LogUtil.LogInfo("SysKook", $"Bot connection error: {ex.Message}. Notifying Kook users (TODO).");
-        return Task.CompletedTask;
+        if (!SysKookSettings.Settings.BotStatusAnnouncement)
+            return;
+
+        var botName = string.IsNullOrEmpty(Hub.Config.BotName) ? "DudeBot" : Hub.Config.BotName;
+        var emoji = isOnline ? SysKookSettings.Settings.OnlineEmoji : SysKookSettings.Settings.OfflineEmoji;
+        var fullStatusMessage = $"{emoji} **Status**: {botName} is {status}!";
+
+        // Kook uses CardMessages for richer content
+        var cardBuilder = new CardBuilder()
+            .AddModule<SectionModuleBuilder>(s => s.WithText(fullStatusMessage, true));
+
+        var card = cardBuilder.Build();
+
+        foreach (var channelId in SysKookSettings.Manager.Config.ChannelWhitelist.List.Select(c => c.ID))
+        {
+            try
+            {
+                var channel = await _client.GetChannelAsync(channelId) as IMessageChannel;
+                if (channel != null)
+                {
+                    await channel.SendCardAsync(card);
+                    LogUtil.LogInfo("SysKook", $"AnnounceBotStatus: {status} announced in channel {channelId}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogInfo("SysKook", $"AnnounceBotStatus: Exception in channel {channelId}: {ex.Message}");
+            }
+        }
     }
 
-    private Task HandleBotStart()
+    private async Task HandleBotStop(Exception ex)
     {
-        LogUtil.LogInfo("SysKook", "Bot connection success. Notifying Kook users (TODO).");
-        return Task.CompletedTask;
+        LogUtil.LogInfo("SysKook", $"Bot connection error: {ex.Message}. Notifying Kook users.");
+        await AnnounceBotStatus("Offline", false);
+    }
+
+    private async Task HandleBotStart()
+    {
+        LogUtil.LogInfo("SysKook", "Bot connection success. Notifying Kook users.");
+        await AnnounceBotStatus("Online", true);
     }
 
     public void Dispose()
@@ -397,14 +430,17 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
             return;
         }
 
-        var pk = await KookHelper<T>.ProcessShowdownSetAsync(showdownSet);
-        if (pk == null)
+        var result = await KookHelper<T>.ProcessShowdownSetAsync(showdownSet);
+        if (result.Pokemon == null)
         {
-            await message.Channel.SendTextAsync("Oops! I couldn't parse that Showdown set.");
+            var errorMsg = $"Oops! I couldn't parse that Showdown set.\nReason: {result.Error}";
+            if (!string.IsNullOrEmpty(result.LegalizationHint))
+                errorMsg += $"\nHint: {result.LegalizationHint}";
+            await message.Channel.SendTextAsync(errorMsg);
             return;
         }
 
-        await KookHelper<T>.AddToQueueAsync(message, code, message.Author.Username, pk, message.Author, _client, lgCode);
+        await KookHelper<T>.AddToQueueAsync(message, code, message.Author.Username, result.Pokemon, message.Author, _client, result.LgCode);
     }
 }
 

@@ -144,6 +144,7 @@ public static class LogLocalizer
             ["Saved file:"] = "Archivo guardado:",
             ["Required folders created."] = "Carpetas requeridas creadas.",
             ["Starting all bots..."] = "Iniciando todos los bots...",
+
             ["Restarting all the consoles..."] = "Reiniciando todas las consolas...",
         },
         ["it"] = new()

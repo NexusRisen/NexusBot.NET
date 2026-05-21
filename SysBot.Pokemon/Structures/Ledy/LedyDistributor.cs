@@ -85,12 +85,12 @@ public class LedyDistributor<T> : IDisposable where T : PKM, new()
         {
             Recipient = recipient;
             Requests.Add(first);
-            LastTradeTime = DateTime.Now;
+            LastTradeTime = DateTime.UtcNow;
         }
 
         public bool CanReceive(LedyResponse<T> response)
         {
-            LastTradeTime = DateTime.Now;
+            LastTradeTime = DateTime.UtcNow;
             var poke = response.Receive;
             var prev = Requests.Find(z => ReferenceEquals(z.Receive, poke));
             if (prev is null)
@@ -110,7 +110,7 @@ public class LedyDistributor<T> : IDisposable where T : PKM, new()
 
     public void CleanupStaleUsers(TimeSpan timeout)
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         Previous.RemoveAll(z => now - z.LastTradeTime > timeout);
     }
 }
