@@ -272,6 +272,8 @@
         "MaxMysteryEggsPerBatch": 3,
         "AllowMysteryPokemonBatchTrades": true,
         "MaxMysteryPokemonPerBatch": 3,
+        "AllowMysteryGiftBatchTrades": true,
+        "MaxMysteryGiftsPerBatch": 3,
         "MaxItemBatchAmount": 3,
         "BatchNormalizer": true
       },

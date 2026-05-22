@@ -152,6 +152,17 @@ public class TradeSettings : IBotStateSettings, ICountSettings
             set => _maxMysteryPokemonPerBatch = value;
         }
 
+        [Category("BatchTradeConfig"), Description("Toggle to allow or disallow batch trades specifically for mystery gifts."), DisplayName("Allow Mystery Gift Batch Trades")]
+        public bool AllowMysteryGiftBatchTrades { get; set; } = true;
+
+        private int _maxMysteryGiftsPerBatch = 3;
+        [Category("BatchTradeConfig"), Description("Maximum mystery gifts allowed in a single batch trade."), DisplayName("Max Mystery Gifts per Batch")]
+        public int MaxMysteryGiftsPerBatch
+        {
+            get => _maxMysteryGiftsPerBatch < 1 ? 3 : _maxMysteryGiftsPerBatch;
+            set => _maxMysteryGiftsPerBatch = value;
+        }
+
         [Category("BatchTradeConfig"), Description("Toggle to give users the option to use the BatchNormalizer, which utilizes Showdown in place of batch commands. Refer to the Wiki for details."), DisplayName("Batch Commands to Showdown")]
         public bool BatchNormalizer { get; set; } = true;
 

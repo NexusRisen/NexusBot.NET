@@ -1,27 +1,20 @@
 # Release Notes
 
-## [v6.2.9] - 2026-05-20
+## [v6.3.0] - 2026-05-22
 
 ### Added
-- **Full support for Pokémon Legends: Z-A (`PA9`)**: Added game-specific rules for trade processing, special request modules, and Showdown translation (including Alpha status and specific Poké Balls).
-- **Kook Bot Status Announcements**: Added settings for online/offline status reporting with rich Card message support.
-- **Unified Trade Helper**: Introduced a centralized `PokeTradeHelper<T>` to standardize Showdown processing, legalization, and bug workarounds across all bot platforms.
+- **Mystery Gift Batch Trades**: Users can now request multiple events from the Mystery Gift database in a single batch trade using the new `.bsrp` (Batch Special Request Pokémon) command.
+- **Customizable Batch Limits**: Added new configuration settings to allow bot administrators to enable/disable and set specific limits for Mystery Gift, Mystery Egg, and Mystery Pokémon batch trades.
+- **Pokémon Legends: Z-A (PLZA) Support**: Full integration for `PA9` format, including game-specific legality rules, Alpha status handling, and specialized Poké Ball support.
+- **Enhanced Legality Handling**: Improved automatic legalization for mystery events, including better handling of handling trainer data and memory checks.
+- **Kook Integration Upgrades**: Added rich Card message support for bot status announcements (online/offline) in the Kook integration.
 
 ### Changed
-- **System-Wide UTC Migration**: Converted all logic-critical timing (trade timeouts, queue weighting, cooldowns, rate limits) from local time to `DateTime.UtcNow` for global consistency.
-- **Unified Trade ID Generation**: Standardized trade identifier generation in `TradeUtil`, eliminating potential ID collisions across different bot integrations.
-- **Centralized Trade Models**: Relocated shared models (`ProcessedPokemonResult`, `BatchTradeResult`) to a common structure for better architectural integrity.
-- **Relocated BatchNormalizer**: Moved advanced command normalization logic to the shared Pokémon project, making it available to Discord, Kook, and Twitch bots.
+- **Standardized Trade Flow**: Centralized Showdown processing and legalization logic into `PokeTradeHelper<T>` for consistent behavior across Discord, Kook, and Twitch integrations.
+- **Global UTC Synchronization**: Migrated all time-sensitive logic (cooldowns, timeouts, and rate limits) to `DateTime.UtcNow` to ensure consistency across different time zones.
+- **Improved Trade Identifiers**: Standardized unique trade ID generation to prevent collisions in high-traffic multi-bot environments.
 
 ### Fixed
-- **Discord Queue Race Condition**: Hardened thread-safety in the trade queue to prevent users from bypassing the "already in queue" check through concurrent commands.
-- **Batch Trade ID Bug**: Fixed an issue where batch trades were incorrectly assigned an ID of `0` in certain scenarios.
-- **`BatchTradeTracker` Reliability**: Fixed a race condition in Pokémon receipt tracking and streamlined background maintenance logic.
-- **YouTube Bot Permissions**: Corrected an inverted administrative command check.
-- **Resource Management**: Fixed potential memory and socket leaks in Twitch and AI services by ensuring proper disposal of WebSocket and HTTP clients.
-- **Translation Stability**: Added null checks and duplicate key protection to the translation cache.
-
-### Technical Debt
-- Simplified reflection-based cleanup logic in `BotRecoveryService`.
-- Standardized `IDisposable` implementation across all integration modules.
-- Cleaned up redundant local methods and fragmented logic in Discord and Twitch projects.
+- **Queue Race Conditions**: Resolved a thread-safety issue in the trade queue that could occasionally allow duplicate entries.
+- **Batch Tracking Reliability**: Fixed a race condition in `BatchTradeTracker` and improved the reliability of Pokémon receipt tracking during batch operations.
+- **Resource Management**: Optimized socket and memory usage in Twitch and AI service integrations by ensuring proper disposal of long-lived connections.

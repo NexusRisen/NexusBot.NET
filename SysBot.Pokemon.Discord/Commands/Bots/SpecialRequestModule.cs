@@ -111,7 +111,7 @@ namespace SysBot.Pokemon.Discord
         {
             if (!int.TryParse(args, out int index))
             {
-                await ReplyAsync("Invalid event index. Please provide a valid event number.").ConfigureAwait(false);
+                await ListSpecialEventsAsync(generationOrGame, args).ConfigureAwait(false);
                 return;
             }
 
@@ -161,6 +161,125 @@ namespace SysBot.Pokemon.Discord
                 await CleanupUserMessageAsync().ConfigureAwait(false);
             }
         }
+
+        [Command("batchspecialrequestpokemon")]
+        [Alias("bsrp")]
+        [Summary("Requests multiple wondercard events from the specified generation/game and adds them to a batch trade queue.")]
+        [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
+        public async Task BatchSpecialEventRequestAsync(string generationOrGame, [Remainder] string args = "")
+        {
+            var batchSettings = SysCord<T>.Runner.Config.Trade.BatchSettings;
+            if (!batchSettings.AllowMysteryGiftBatchTrades)
+            {
+                await ReplyAsync("Batch Mystery Gifts are currently disabled by the bot administrator.").ConfigureAwait(false);
+                return;
+            }
+
+            var userID = Context.User.Id;
+            if (Info.IsUserInQueue(userID))
+            {
+                await ReplyAsync("You already have an existing trade in the queue. Please wait until it is processed.").ConfigureAwait(false);
+                return;
+            }
+
+            // Parse indices
+            var parts = args.Split([' ', ',', ';'], StringSplitOptions.RemoveEmptyEntries);
+            var indices = new List<int>();
+            foreach (var part in parts)
+            {
+                if (int.TryParse(part, out int idx))
+                    indices.Add(idx);
+            }
+
+            if (indices.Count == 0)
+            {
+                await ReplyAsync("Please provide at least one valid event index.").ConfigureAwait(false);
+                return;
+            }
+
+            int maxBatch = batchSettings.MaxMysteryGiftsPerBatch;
+            if (indices.Count > maxBatch)
+            {
+                await ReplyAsync($"You can only request up to {maxBatch} mystery gifts in a single batch.").ConfigureAwait(false);
+                return;
+            }
+
+            try
+            {
+                var eventData = GetEventData(generationOrGame);
+                if (eventData == null)
+                {
+                    await ReplyAsync($"Invalid generation or game: {generationOrGame}").ConfigureAwait(false);
+                    return;
+                }
+
+                var entityEvents = eventData.Where(gift => gift.IsEntity && !gift.IsItem).ToArray();
+                var pkList = new List<T>();
+                var errors = new List<string>();
+
+                foreach (var index in indices)
+                {
+                    if (index < 1 || index > entityEvents.Length)
+                    {
+                        errors.Add($"Index {index} is invalid.");
+                        continue;
+                    }
+
+                    var selectedEvent = entityEvents[index - 1];
+                    var pk = ConvertEventToPKM(selectedEvent);
+                    if (pk == null)
+                    {
+                        errors.Add($"Index {index} event data is not compatible.");
+                        continue;
+                    }
+
+                    var la = new LegalityAnalysis(pk);
+                    if (!la.Valid && la.Results.Any(m => m.Identifier is CheckIdentifier.Memory))
+                    {
+                        var clone = (T)pk.Clone();
+                        clone.HandlingTrainerName = pk.OriginalTrainerName;
+                        clone.HandlingTrainerGender = pk.OriginalTrainerGender;
+                        if (clone is PK8 or PA8 or PB8 or PK9 or PA9)
+                            ((dynamic)clone).HandlingTrainerLanguage = (byte)pk.Language;
+                        clone.CurrentHandler = 1;
+                        la = new LegalityAnalysis(clone);
+                        if (la.Valid) pk = clone;
+                    }
+
+                    if (!la.Valid)
+                    {
+                        var report = la.Report().Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "Unknown legality error";
+                        errors.Add($"Index {index} is not legal: {report}");
+                        continue;
+                    }
+
+                    pkList.Add(pk);
+                }
+
+                if (errors.Count > 0)
+                {
+                    await ReplyAsync($"Some events could not be added:\n{string.Join("\n", errors)}").ConfigureAwait(false);
+                }
+
+                if (pkList.Count == 0)
+                {
+                    await ReplyAsync("No valid events to trade.").ConfigureAwait(false);
+                    return;
+                }
+
+                var code = Info.GetRandomTradeCode(userID);
+                await BatchHelpers<T>.ProcessBatchContainer(Context, pkList, code, pkList.Count).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                await ReplyAsync($"An error occurred: {ex.Message}").ConfigureAwait(false);
+            }
+            finally
+            {
+                await CleanupUserMessageAsync().ConfigureAwait(false);
+            }
+        }
+
 
         public static MysteryGift[]? GetEventData(string generationOrGame)
         {
