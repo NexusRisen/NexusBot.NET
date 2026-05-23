@@ -1250,8 +1250,8 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 var codeLength = await GetStoredLinkTradeCodeLength(token).ConfigureAwait(false);
                 if (codeLength > 0)
                 {
-                    for (int i = 0; i < codeLength; i++)
-                        await Click(B, 0, token).ConfigureAwait(false);
+                    var buttons = Enumerable.Repeat(B, (int)codeLength);
+                    await DaisyChainCommands(100, buttons, token).ConfigureAwait(false);
                     await Task.Delay(0_500, token).ConfigureAwait(false);
                 }
 

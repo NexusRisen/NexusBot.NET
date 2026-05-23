@@ -276,14 +276,28 @@ public abstract class PokeRoutineExecutor8BS : PokeRoutineExecutor<PB8>
 
     protected virtual async Task EnterLinkCode(int code, PokeTradeHubConfig config, CancellationToken token)
     {
-        // Default implementation to just press directional arrows. Can do via Hid keys, but users are slower than bots at even the default code entry.
-        foreach (var key in TradeUtil.GetPresses(code))
+        if (config.UseKeyboard)
         {
-            int delay = config.Timings.KeypressTime;
-            await Click(key, delay, token).ConfigureAwait(false);
-        }
+            // Enter link code using keyboard
+            char[] codeChars = $"{code:00000000}".ToCharArray();
+            HidKeyboardKey[] keysToPress = new HidKeyboardKey[codeChars.Length];
+            for (int i = 0; i < codeChars.Length; ++i)
+                keysToPress[i] = (HidKeyboardKey)Enum.Parse(typeof(HidKeyboardKey), (int)codeChars[i] >= (int)'A' && (int)codeChars[i] <= (int)'Z' ? $"{codeChars[i]}" : $"D{codeChars[i]}");
 
-        // Confirm Code outside of this method (allow synchronization)
+            await Connection.SendAsync(SwitchCommand.TypeMultipleKeys(keysToPress), token).ConfigureAwait(false);
+            await Task.Delay((50 * 8) + 0_200, token).ConfigureAwait(false);
+
+            // Confirm Code outside of this method (allow synchronization)
+        }
+        else
+        {
+            // Default implementation to just press directional arrows. Can do via Hid keys, but users are slower than bots at even the default code entry.
+            foreach (var key in TradeUtil.GetPresses(code))
+            {
+                int delay = config.Timings.KeypressTime;
+                await Click(key, delay, token).ConfigureAwait(false);
+            }
+        }
     }
 
     private async Task<bool> IsSceneID(uint expected, CancellationToken token)

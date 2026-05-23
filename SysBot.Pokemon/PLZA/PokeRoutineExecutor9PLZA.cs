@@ -14,7 +14,7 @@ public abstract class PokeRoutineExecutor9PLZA(PokeBotState Config) : PokeRoutin
 {
     protected const int HidWaitTime = 46;
 
-    protected const int KeyboardPressTime = 35;
+    protected const int KeyboardPressTime = 50;
 
     protected PokeDataOffsetsPLZA Offsets { get; } = new();
 
@@ -334,10 +334,27 @@ public abstract class PokeRoutineExecutor9PLZA(PokeBotState Config) : PokeRoutin
         if (code == 0)
             return;
 
-        foreach (var key in TradeUtil.GetPresses(code))
+        if (config.UseKeyboard)
         {
-            int delay = config.Timings.KeypressTime;
-            await Click(key, delay, token).ConfigureAwait(false);
+            // Enter link code using keyboard
+            char[] codeChars = $"{code:00000000}".ToCharArray();
+            HidKeyboardKey[] keysToPress = new HidKeyboardKey[codeChars.Length];
+            for (int i = 0; i < codeChars.Length; ++i)
+                keysToPress[i] = (HidKeyboardKey)Enum.Parse(typeof(HidKeyboardKey), (int)codeChars[i] >= (int)'A' && (int)codeChars[i] <= (int)'Z' ? $"{codeChars[i]}" : $"D{codeChars[i]}");
+
+            await Connection.SendAsync(SwitchCommand.TypeMultipleKeys(keysToPress), token).ConfigureAwait(false);
+            await Task.Delay((HidWaitTime * 8) + 0_200, token).ConfigureAwait(false);
+
+            // Confirm Code outside of this method (allow synchronization)
+        }
+        else
+        {
+            // Enter link code using directional arrows
+            foreach (var key in TradeUtil.GetPresses(code))
+            {
+                int delay = config.Timings.KeypressTime;
+                await Click(key, delay, token).ConfigureAwait(false);
+            }
         }
     }
 
