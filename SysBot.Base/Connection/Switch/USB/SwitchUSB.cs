@@ -10,7 +10,7 @@ namespace SysBot.Base;
 /// <summary>
 /// Abstract class representing the communication over USB.
 /// </summary>
-public abstract class SwitchUSB : IConsoleConnection
+public abstract class SwitchUSB : IConsoleConnection, IDisposable
 {
     private static readonly UsbContext _context = new();
 
@@ -24,12 +24,16 @@ public abstract class SwitchUSB : IConsoleConnection
 
     private UsbEndpointWriter? writer;
 
-    protected readonly byte[] _sharedBuffer = new byte[0x40001];
-
     protected SwitchUSB(int port)
     {
         Port = port;
         Name = Label = $"USB-{port}";
+    }
+
+    public void Dispose()
+    {
+        Disconnect();
+        GC.SuppressFinalize(this);
     }
 
     public int BaseDelay { get; set; } = 1;
@@ -108,16 +112,6 @@ public abstract class SwitchUSB : IConsoleConnection
             return SendInternal(buffer);
     }
 
-    public void WriteSmall(ICommandBuilder b, ReadOnlySpan<byte> data, ulong offset)
-    {
-        lock (_sync)
-        {
-            var cmd = b.Poke(offset, data, false);
-            SendInternal(cmd);
-            Thread.Sleep(1);
-        }
-    }
-
     protected byte[] PixelPeekUSB()
     {
         Thread.Sleep(1);
@@ -126,16 +120,19 @@ public abstract class SwitchUSB : IConsoleConnection
             if (reader == null)
                 throw new Exception("USB device not found or not connected.");
 
-            // Use shared buffer for size header
-            reader.Read(_sharedBuffer.AsSpan(0, 4), 5000, out _);
-            int size = BitConverter.ToInt32(_sharedBuffer, 0);
+            // Use local buffer for size header
+            Span<byte> sizeHeader = stackalloc byte[4];
+            var ec = reader.Read(sizeHeader, 5000, out _);
+            if (ec != Error.Success)
+                throw new Exception(ec.ToString());
 
+            int size = BitConverter.ToInt32(sizeHeader);
             byte[] buffer = new byte[size];
             int transfSize = 0;
             while (transfSize < size)
             {
                 Thread.Sleep(1);
-                var ec = reader.Read(buffer.AsSpan(transfSize, Math.Min(4096, size - transfSize)), 5000, out int lenVal);
+                ec = reader.Read(buffer.AsSpan(transfSize, Math.Min(4096, size - transfSize)), 5000, out int lenVal);
                 if (ec != Error.Success)
                 {
                     LogError($"Error while getting screenshot: {ec}");
@@ -162,29 +159,39 @@ public abstract class SwitchUSB : IConsoleConnection
 
         lock (_sync)
         {
-            if (reader == null)
-                throw new Exception("USB device not found or not connected.");
-
-            // Let usb-botbase tell us the response size.
-            reader.Read(_sharedBuffer.AsSpan(0, 4), 5000, out _);
-
-            int size = BitConverter.ToInt32(_sharedBuffer, 0);
-            byte[] buffer = new byte[size];
-
-            // Loop until we have read everything.
-            int transfSize = 0;
-            while (transfSize < size)
+            try
             {
-                Thread.Sleep(1);
-                var ec = reader.Read(buffer.AsSpan(transfSize, Math.Min(4096, size - transfSize)), 5000, out int lenVal);
-                if (ec != Error.Success)
-                {
-                    Disconnect();
+                if (reader == null)
+                    throw new Exception("USB device not found or not connected.");
+
+                // Let usb-botbase tell us the response size.
+                Span<byte> sizeHeader = stackalloc byte[4];
+                var ec = reader.Read(sizeHeader, 5000, out int ret);
+                if (ec != Error.Success && ret == 0)
                     throw new Exception(ec.ToString());
+
+                int size = BitConverter.ToInt32(sizeHeader);
+                byte[] buffer = new byte[size];
+
+                // Loop until we have read everything.
+                int transfSize = 0;
+                while (transfSize < size)
+                {
+                    Thread.Sleep(1);
+                    ec = reader.Read(buffer.AsSpan(transfSize, Math.Min(4096, size - transfSize)), 5000, out int lenVal);
+                    if (ec != Error.Success)
+                        throw new Exception(ec.ToString());
+
+                    transfSize += lenVal;
                 }
-                transfSize += lenVal;
+                return buffer;
             }
-            return buffer;
+            catch (Exception ex)
+            {
+                // LibUsbDotNet 3.0 uses Error.Success instead of ErrorCode.None
+                Log($"{nameof(ReadBulkUSB)} failed: {ex.Message}");
+                return [0];
+            }
         }
     }
 
@@ -203,36 +210,64 @@ public abstract class SwitchUSB : IConsoleConnection
             WriteSmall(b, data, offset);
     }
 
+    public void WriteSmall(ICommandBuilder b, ReadOnlySpan<byte> data, ulong offset)
+    {
+        lock (_sync)
+        {
+            var cmd = b.Poke(offset, data, false);
+            SendInternal(cmd);
+            Thread.Sleep(1);
+        }
+    }
+
     private int ReadInternal(byte[] buffer)
     {
-        byte[] sizeOfReturn = new byte[4];
-        if (reader == null)
-            throw new Exception("USB device not found or not connected.");
+        try
+        {
+            Span<byte> sizeOfReturn = stackalloc byte[4];
+            if (reader == null)
+                throw new Exception("USB device not found or not connected.");
 
-        reader.Read(sizeOfReturn.AsSpan(), 5000, out _);
-        reader.Read(buffer.AsSpan(), 5000, out var lenVal);
-        return lenVal;
+            var ec = reader.Read(sizeOfReturn, 5000, out int ret);
+            if (ec != Error.Success && ret == 0)
+                throw new Exception(ec.ToString());
+
+            ec = reader.Read(buffer.AsSpan(), 5000, out var lenVal);
+            if (ec != Error.Success)
+                throw new Exception(ec.ToString());
+
+            return lenVal;
+        }
+        catch (Exception ex)
+        {
+            Log($"{nameof(ReadInternal)} failed: {ex.Message}");
+            return 0;
+        }
     }
 
     private int SendInternal(byte[] buffer)
     {
-        if (writer == null)
-            throw new Exception("USB device not found or not connected.");
+        try
+        {
+            if (writer == null)
+                throw new Exception("USB device not found or not connected.");
 
-        uint pack = (uint)buffer.Length + 2;
-        var ec = writer.Write(BitConverter.GetBytes(pack).AsSpan(), 2000, out _);
-        if (ec != Error.Success)
-        {
-            Disconnect();
-            throw new Exception(ec.ToString());
+            uint pack = (uint)buffer.Length + 2;
+            var ec = writer.Write(BitConverter.GetBytes(pack).AsSpan(), 2000, out int ret);
+            if (ec != Error.Success && ret == 0)
+                throw new Exception(ec.ToString());
+
+            ec = writer.Write(buffer.AsSpan(), 2000, out var l);
+            if (ec != Error.Success)
+                throw new Exception(ec.ToString());
+
+            return l;
         }
-        ec = writer.Write(buffer.AsSpan(), 2000, out var l);
-        if (ec != Error.Success)
+        catch (Exception ex)
         {
-            Disconnect();
-            throw new Exception(ec.ToString());
+            Log($"{nameof(SendInternal)} failed: {ex.Message}");
+            return 0;
         }
-        return l;
     }
 
     private IUsbDevice? TryFindUSB()

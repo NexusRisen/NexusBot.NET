@@ -15,6 +15,8 @@ namespace SysBot.Pokemon;
 /// </summary>
 public abstract class PokeRoutineExecutor8SWSH(PokeBotState Config) : PokeRoutineExecutor<PK8>(Config)
 {
+    protected const int HidWaitTime = 46;
+
     protected PokeDataOffsetsSWSH Offsets { get; } = new();
 
     public async Task<bool> CheckIfSoftBanned(CancellationToken token)

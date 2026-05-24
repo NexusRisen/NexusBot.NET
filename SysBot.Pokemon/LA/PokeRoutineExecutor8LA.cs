@@ -12,6 +12,8 @@ namespace SysBot.Pokemon;
 
 public abstract class PokeRoutineExecutor8LA : PokeRoutineExecutor<PA8>
 {
+    protected const int HidWaitTime = 46;
+
     protected PokeRoutineExecutor8LA(PokeBotState Config) : base(Config)
     {
     }

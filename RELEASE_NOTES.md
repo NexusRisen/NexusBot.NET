@@ -1,20 +1,19 @@
 # Release Notes
 
-## [v6.3.0] - 2026-05-22
+## [v6.3.1] - 2026-05-24
 
 ### Added
-- **Mystery Gift Batch Trades**: Users can now request multiple events from the Mystery Gift database in a single batch trade using the new `.bsrp` (Batch Special Request Pokémon) command.
-- **Customizable Batch Limits**: Added new configuration settings to allow bot administrators to enable/disable and set specific limits for Mystery Gift, Mystery Egg, and Mystery Pokémon batch trades.
-- **Pokémon Legends: Z-A (PLZA) Support**: Full integration for `PA9` format, including game-specific legality rules, Alpha status handling, and specialized Poké Ball support.
-- **Enhanced Legality Handling**: Improved automatic legalization for mystery events, including better handling of handling trainer data and memory checks.
-- **Kook Integration Upgrades**: Added rich Card message support for bot status announcements (online/offline) in the Kook integration.
+- **Architectural Unification with Official SysBot.NET**: Overhauled the core connection layer to strictly align with official `kwsch/SysBot.NET` standards for high-frequency data handling and stability.
+- **Native Asynchronous Socket Communication**: Re-implemented true `async`/`await` patterns for wireless (Wi-Fi/LAN) connections, utilizing `ArrayPool<byte>.Shared` and native `ReceiveAsync`/`SendAsync` for zero-allocation performance.
+- **Modernized USB Communication**: Fully migrated USB logic to `LibUsbDotNet 3.0` standards. Replaced legacy synchronous patterns with `Task.Run` wrappers and optimized buffer handling for better stability on modern drivers.
+- **HID Keyboard Improvements**: Fixed build regressions and restored missing `HidWaitTime` constants across all game routines (LA, SWSH, etc.) to support high-speed input settings.
 
 ### Changed
-- **Standardized Trade Flow**: Centralized Showdown processing and legalization logic into `PokeTradeHelper<T>` for consistent behavior across Discord, Kook, and Twitch integrations.
-- **Global UTC Synchronization**: Migrated all time-sensitive logic (cooldowns, timeouts, and rate limits) to `DateTime.UtcNow` to ensure consistency across different time zones.
-- **Improved Trade Identifiers**: Standardized unique trade ID generation to prevent collisions in high-traffic multi-bot environments.
+- **De-allocated Shared Buffers**: Removed all class-level `_sharedBuffer` and `_destinationArray` fields across `SwitchUSB` and `SwitchSocketAsync`. Memory is now allocated locally and dynamically per task, preventing state contention and improving thread safety.
+- **USB Resource Lifecycle Management**: Implemented `IDisposable` for `SwitchUSB` to ensure proper cleanup of native USB resources and prevent handle leaks.
+- **Enhanced USB Error Recovery**: Integrated official stability improvements that ignore `Win32Error` during bulk memory reads, preventing unnecessary disconnections during invalid RAM access.
 
 ### Fixed
-- **Queue Race Conditions**: Resolved a thread-safety issue in the trade queue that could occasionally allow duplicate entries.
-- **Batch Tracking Reliability**: Fixed a race condition in `BatchTradeTracker` and improved the reliability of Pokémon receipt tracking during batch operations.
-- **Resource Management**: Optimized socket and memory usage in Twitch and AI service integrations by ensuring proper disposal of long-lived connections.
+- **Memory Leak Mitigation**: Optimized buffer return paths in `SwitchSocketAsync` to ensure rented memory is always returned to the pool, even during network failures.
+- **Build Compatibility**: Resolved namespace and breaking changes between LibUsbDotNet 2.x and 3.x to ensure full project compatibility with the latest ecosystem tools.
+- **Batch Trade Preservation**: Verified that all v6.3.0 batch trade features remain fully functional following the architectural refactor.
