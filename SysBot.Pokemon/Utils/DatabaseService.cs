@@ -63,6 +63,7 @@ public static class DatabaseService
                     TrainerID BIGINT UNSIGNED PRIMARY KEY,
                     TradeCount VARCHAR(255) NOT NULL,
                     Medals VARCHAR(255) DEFAULT '0',
+                    MedalCount INT DEFAULT 0,
                     OT VARCHAR(255),
                     TID VARCHAR(255),
                     SID VARCHAR(255),
@@ -72,9 +73,10 @@ public static class DatabaseService
                 );";
             using (var cmd = new MySqlCommand(userQuery, conn)) cmd.ExecuteNonQuery();
 
-            // Independent Columns for Every Game's Trade Code
+            // Verification/Alteration logic for any missing columns
             var columnsToEnsure = new Dictionary<string, string>
             {
+                { "MedalCount", "INT DEFAULT 0 AFTER Medals" },
                 { "Code_SV", "VARCHAR(255) AFTER SID" },
                 { "Code_SWSH", "VARCHAR(255) AFTER Code_SV" },
                 { "Code_BDSP", "VARCHAR(255) AFTER Code_SWSH" },
@@ -149,6 +151,7 @@ public static class DatabaseService
                 {
                     TradeCount = int.Parse(EncryptionUtil.Decrypt(reader.GetString("TradeCount"))),
                     Medals = reader.IsDBNull(reader.GetOrdinal("Medals")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("Medals"))),
+                    MedalCount = reader.IsDBNull(reader.GetOrdinal("MedalCount")) ? 0 : reader.GetInt32("MedalCount"),
                     
                     // Independent Game Codes
                     Code_SV = reader.IsDBNull(reader.GetOrdinal("Code_SV")) ? null : EncryptionUtil.Decrypt(reader.GetString("Code_SV")),
@@ -181,15 +184,16 @@ public static class DatabaseService
             using var conn = new MySqlConnection(GetConnectionString());
             conn.Open();
             string query = @"
-                INSERT INTO Users (TrainerID, TradeCount, Medals, Code_SV, Code_SWSH, Code_BDSP, Code_LA, Code_PLZA, Code_LGPE, OT, TID, SID, Gender, Language, Quote) 
-                VALUES (@id, @count, @medals, @c_sv, @c_swsh, @c_bdsp, @c_la, @c_plza, @c_lgpe, @ot, @tid, @sid, @gender, @language, @quote)
+                INSERT INTO Users (TrainerID, TradeCount, Medals, MedalCount, Code_SV, Code_SWSH, Code_BDSP, Code_LA, Code_PLZA, Code_LGPE, OT, TID, SID, Gender, Language, Quote) 
+                VALUES (@id, @count, @medals, @mcount, @c_sv, @c_swsh, @c_bdsp, @c_la, @c_plza, @c_lgpe, @ot, @tid, @sid, @gender, @language, @quote)
                 ON DUPLICATE KEY UPDATE 
-                TradeCount=@count, Medals=@medals, Code_SV=@c_sv, Code_SWSH=@c_swsh, Code_BDSP=@c_bdsp, Code_LA=@c_la, Code_PLZA=@c_plza, Code_LGPE=@c_lgpe, OT=@ot, TID=@tid, SID=@sid, Gender=@gender, Language=@language, Quote=@quote;";
+                TradeCount=@count, Medals=@medals, MedalCount=@mcount, Code_SV=@c_sv, Code_SWSH=@c_swsh, Code_BDSP=@c_bdsp, Code_LA=@c_la, Code_PLZA=@c_plza, Code_LGPE=@c_lgpe, OT=@ot, TID=@tid, SID=@sid, Gender=@gender, Language=@language, Quote=@quote;";
             
             using var cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@id", trainerID);
             cmd.Parameters.AddWithValue("@count", EncryptionUtil.Encrypt(details.TradeCount.ToString()));
             cmd.Parameters.AddWithValue("@medals", EncryptionUtil.Encrypt(details.Medals.ToString()));
+            cmd.Parameters.AddWithValue("@mcount", details.MedalCount); // Plain INT for website sorting
             
             // Independent Game Codes
             cmd.Parameters.AddWithValue("@c_sv", details.Code_SV == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Code_SV));

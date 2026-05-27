@@ -17,7 +17,19 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
     private readonly object _sync = new();
     private readonly List<TradeEntry<T>> UsersInQueue = [];
     public readonly PokeTradeHub<T> Hub = Hub;
-    private readonly TradeCodeStorage _tradeCodeStorage = new();
+    private readonly TradeCodeStorage _tradeCodeStorage = new(GetGame());
+
+    private static string GetGame()
+    {
+        var typeName = typeof(T).Name;
+        if (typeName.Contains("PK9")) return "SV";
+        if (typeName.Contains("PA9")) return "PLZA";
+        if (typeName.Contains("PK8")) return "SWSH";
+        if (typeName.Contains("PB8")) return "BDSP";
+        if (typeName.Contains("PA8")) return "LA";
+        if (typeName.Contains("PB7")) return "LGPE";
+        return "SV";
+    }
 
     public bool IsUserInQueue(ulong userId)
     {
@@ -400,15 +412,15 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
             // Both favored and regular users get TierFree - favoritism is handled by queue positioning logic
             var priority = sudo ? PokeTradePriorities.Tier1 : PokeTradePriorities.TierFree;
 
-                var queue = Hub.Queues.GetQueue(trade.Type);
+            var queue = Hub.Queues.GetQueue(trade.Type);
 
-                queue.Enqueue(trade.Trade, priority);
-                UsersInQueue.Add(trade);
+            queue.Enqueue(trade.Trade, priority);
+            UsersInQueue.Add(trade);
 
-                trade.Trade.Notifier.OnFinish = _ => Remove(trade);
-                return QueueResultAdd.Added;
-            }
+            trade.Trade.Notifier.OnFinish = _ => Remove(trade);
+            return QueueResultAdd.Added;
         }
+    }
 
     public int GetRandomTradeCode(ulong trainerID)
     {
@@ -430,6 +442,17 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
         }
         return TradeSettings.GetRandomLGTradeCode();
     }
+
+    public bool DeleteTradeCode(ulong trainerID) => _tradeCodeStorage.DeleteTradeCode(trainerID);
+    public int GetTradeCount(ulong trainerID) => _tradeCodeStorage.GetTradeCount(trainerID);
+    public TradeCodeStorage.TradeCodeDetails? GetTradeDetails(ulong trainerID) => _tradeCodeStorage.GetTradeDetails(trainerID);
+
+    public void UpdateTradeDetails(ulong trainerID, string ot, int tid, int sid, string? quote = null, byte? gender = null, int? language = null)
+    {
+        _tradeCodeStorage.UpdateTradeDetails(trainerID, ot, tid, sid, quote, gender, language);
+    }
+
+    public bool UpdateTradeCode(ulong trainerID, int newCode) => _tradeCodeStorage.UpdateTradeCode(trainerID, newCode);
 
     public int UserCount(Func<TradeEntry<T>, bool> func)
     {

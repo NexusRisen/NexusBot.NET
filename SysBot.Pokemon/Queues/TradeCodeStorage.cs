@@ -17,9 +17,11 @@ public class TradeCodeStorage
         WriteIndented = true
     };
     private Dictionary<ulong, TradeCodeDetails>? _tradeCodeDetails;
+    private readonly string _game;
     
-    public TradeCodeStorage()
+    public TradeCodeStorage(string game = "SV")
     {
+        _game = game;
         if (!DatabaseService.UseRemoteDb)
             LoadFromFile();
     }
@@ -42,7 +44,6 @@ public class TradeCodeStorage
 
     public int GetTradeCode(ulong trainerID)
     {
-        var game = GetCurrentGame();
         if (DatabaseService.UseRemoteDb)
         {
             var user = DatabaseService.GetUser(trainerID);
@@ -50,8 +51,9 @@ public class TradeCodeStorage
             {
                 user.TradeCount++;
                 user.Medals = CalculateMedals(user.TradeCount);
+                user.MedalCount = user.Medals;
                 
-                var existingCode = GetCodeForGame(user, game);
+                var existingCode = GetCodeForGame(user, _game);
                 if (existingCode != null && int.TryParse(existingCode, out int codeInt))
                 {
                     DatabaseService.SaveUser(trainerID, user);
@@ -59,14 +61,14 @@ public class TradeCodeStorage
                 }
 
                 var newCode = GenerateRandomTradeCode();
-                SetCodeForGame(user, game, newCode.ToString());
+                SetCodeForGame(user, _game, newCode.ToString());
                 DatabaseService.SaveUser(trainerID, user);
                 return newCode;
             }
             
             var initialCode = GenerateRandomTradeCode();
-            var newUser = new TradeCodeDetails { TradeCount = 1, Medals = 1 };
-            SetCodeForGame(newUser, game, initialCode.ToString());
+            var newUser = new TradeCodeDetails { TradeCount = 1, Medals = 1, MedalCount = 1 };
+            SetCodeForGame(newUser, _game, initialCode.ToString());
             DatabaseService.SaveUser(trainerID, newUser);
             return initialCode;
         }
@@ -76,8 +78,9 @@ public class TradeCodeStorage
         {
             details.TradeCount++;
             details.Medals = CalculateMedals(details.TradeCount);
+            details.MedalCount = details.Medals;
             
-            var existingCode = GetCodeForGame(details, game);
+            var existingCode = GetCodeForGame(details, _game);
             if (existingCode != null && int.TryParse(existingCode, out int codeInt))
             {
                 SaveToFile();
@@ -85,14 +88,14 @@ public class TradeCodeStorage
             }
 
             var newCode = GenerateRandomTradeCode();
-            SetCodeForGame(details, game, newCode.ToString());
+            SetCodeForGame(details, _game, newCode.ToString());
             SaveToFile();
             return newCode;
         }
 
         var localCode = GenerateRandomTradeCode();
-        var newDetails = new TradeCodeDetails { TradeCount = 1, Medals = 1 };
-        SetCodeForGame(newDetails, game, localCode.ToString());
+        var newDetails = new TradeCodeDetails { TradeCount = 1, Medals = 1, MedalCount = 1 };
+        SetCodeForGame(newDetails, _game, localCode.ToString());
         _tradeCodeDetails![trainerID] = newDetails;
         SaveToFile();
         return localCode;
@@ -107,6 +110,7 @@ public class TradeCodeStorage
             {
                 user.TradeCount++;
                 user.Medals = CalculateMedals(user.TradeCount);
+                user.MedalCount = user.Medals;
                 
                 if (!string.IsNullOrEmpty(user.Code_LGPE))
                 {
@@ -121,7 +125,7 @@ public class TradeCodeStorage
             }
             
             var initialLg = GenerateRandomLGCode();
-            var newUser = new TradeCodeDetails { TradeCount = 1, Medals = 1, Code_LGPE = LGCodeToString(initialLg) };
+            var newUser = new TradeCodeDetails { TradeCount = 1, Medals = 1, MedalCount = 1, Code_LGPE = LGCodeToString(initialLg) };
             DatabaseService.SaveUser(trainerID, newUser);
             return initialLg;
         }
@@ -131,6 +135,7 @@ public class TradeCodeStorage
         {
             details.TradeCount++;
             details.Medals = CalculateMedals(details.TradeCount);
+            details.MedalCount = details.Medals;
             
             if (!string.IsNullOrEmpty(details.Code_LGPE))
             {
@@ -145,24 +150,10 @@ public class TradeCodeStorage
         }
 
         var localLg = GenerateRandomLGCode();
-        var newDetails = new TradeCodeDetails { TradeCount = 1, Medals = 1, Code_LGPE = LGCodeToString(localLg) };
+        var newDetails = new TradeCodeDetails { TradeCount = 1, Medals = 1, MedalCount = 1, Code_LGPE = LGCodeToString(localLg) };
         _tradeCodeDetails![trainerID] = newDetails;
         SaveToFile();
         return localLg;
-    }
-
-    private static string GetCurrentGame()
-    {
-        // Try to identify the current bot's generation/game via type inspection or system config
-        // This maps the active Bot implementation to a database column identifier
-        var typeName = typeof(PKM).AssemblyQualifiedName ?? "";
-        if (typeName.Contains("PK9")) return "SV";
-        if (typeName.Contains("PA9")) return "PLZA";
-        if (typeName.Contains("PK8")) return "SWSH";
-        if (typeName.Contains("PB8")) return "BDSP";
-        if (typeName.Contains("PA8")) return "LA";
-        if (typeName.Contains("PB7")) return "LGPE";
-        return "SV"; // Default to newest
     }
 
     private string? GetCodeForGame(TradeCodeDetails details, string game) => game switch
@@ -248,15 +239,14 @@ public class TradeCodeStorage
 
     public bool UpdateTradeCode(ulong trainerID, int newCode)
     {
-        var game = GetCurrentGame();
         if (DatabaseService.UseRemoteDb)
         {
             var user = DatabaseService.GetUser(trainerID);
-            if (user != null) { SetCodeForGame(user, game, newCode.ToString()); DatabaseService.SaveUser(trainerID, user); return true; }
+            if (user != null) { SetCodeForGame(user, _game, newCode.ToString()); DatabaseService.SaveUser(trainerID, user); return true; }
             return false;
         }
         LoadFromFile();
-        if (_tradeCodeDetails!.TryGetValue(trainerID, out var details)) { SetCodeForGame(details, game, newCode.ToString()); SaveToFile(); return true; }
+        if (_tradeCodeDetails!.TryGetValue(trainerID, out var details)) { SetCodeForGame(details, _game, newCode.ToString()); SaveToFile(); return true; }
         return false;
     }
 
@@ -299,6 +289,7 @@ public class TradeCodeStorage
         public int TID { get; set; }
         public int TradeCount { get; set; }
         public int Medals { get; set; }
+        public int MedalCount { get; set; }
         public byte? Gender { get; set; }
         public int? Language { get; set; }
         public string? Quote { get; set; }
