@@ -47,6 +47,24 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
     }
 
+    [Command("leaderboard")]
+    [Alias("lb", "halloffame", "hof")]
+    [Summary("View the global community Hall of Fame rankings")]
+    public async Task ShowLeaderboardCommand()
+    {
+        var embed = new EmbedBuilder()
+            .WithTitle("🏆 GLOBAL MEDALS LEADERBOARD")
+            .WithDescription("Check out the top trainers and the community Hall of Fame on our official website!")
+            .AddField("🌐 Official Hall of Fame", "https://dudebot.org/leaderboard/")
+            .AddField("⚡ Real-Time Stats", "Rankings are updated globally across all bot hosters.")
+            .WithColor(Color.Blue)
+            .WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/1000.png")
+            .WithFooter("DudeBot.NET v6.3.2 | Synchronized via SQL")
+            .Build();
+
+        await ReplyAsync(embed: embed).ConfigureAwait(false);
+    }
+
     #endregion
     #region Trade Commands
 

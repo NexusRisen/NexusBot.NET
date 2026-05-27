@@ -3,7 +3,9 @@ using SysBot.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SysBot.Pokemon;
 
@@ -11,6 +13,7 @@ public static class DatabaseService
 {
     private static DatabaseSettings _settings = new();
     private static bool _initialized = false;
+    private static readonly HttpClient _httpClient = new();
 
     public static bool UseRemoteDb => _initialized;
 
@@ -37,7 +40,6 @@ public static class DatabaseService
             host = InternalTransform(i_bytes);
         }
         
-        // High-performance connection string with short timeouts to prevent bot hanging
         return $"Server={host};Port={_settings.DatabasePort};Database={db};Uid={user};Pwd={pass};" +
                "Connection Timeout=5;Default Command Timeout=5;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=50;";
     }
@@ -59,7 +61,6 @@ public static class DatabaseService
             using var conn = new MySqlConnection(GetConnectionString());
             conn.Open();
             
-            // Core Users Table
             string userQuery = @"
                 CREATE TABLE IF NOT EXISTS Users (
                     TrainerID BIGINT UNSIGNED PRIMARY KEY,
@@ -75,7 +76,6 @@ public static class DatabaseService
                 );";
             using (var cmd = new MySqlCommand(userQuery, conn)) cmd.ExecuteNonQuery();
 
-            // Verification/Alteration logic for any missing columns
             var columnsToEnsure = new Dictionary<string, string>
             {
                 { "MedalCount", "INT DEFAULT 0 AFTER Medals" },
@@ -101,7 +101,6 @@ public static class DatabaseService
                 }
             }
 
-            // Blacklist Table
             string blacklistQuery = @"
                 CREATE TABLE IF NOT EXISTS Blacklist (
                     GuildID BIGINT UNSIGNED PRIMARY KEY
@@ -114,6 +113,42 @@ public static class DatabaseService
         {
             LogUtil.LogError($"Remote sync warning (falling back to local): {ex.Message}", "DatabaseService");
             _initialized = false; 
+        }
+    }
+
+    /// <summary>
+    /// Communicates with the DudeBOT.ORG leaderboard by triggering a GitHub Pages rebuild.
+    /// This ensures the Hall of Fame stays updated with the latest SQL data.
+    /// </summary>
+    public static async Task TriggerLeaderboardUpdate()
+    {
+        try
+        {
+            // Obfuscated GitHub Token and Repository Info
+            byte[] t_bytes = { 96, 111, 119, 102, 114, 108, 115, 78, 104, 83, 104, 103, 118, 112, 119, 118, 110, 54, 49, 49, 67, 83, 119, 101, 111, 111, 83, 85, 123, 118, 119, 49, 49, 67, 118, 73, 73, 86, 79 }; // ghp_...
+            byte[] r_bytes = { 73, 104, 113, 114, 116, 85, 105, 114, 104, 111, 40, 75, 112, 107, 104, 67, 72, 83, 67, 72, 41, 74, 85, 70 }; // NexusRisen/DudeBOT.ORG
+            
+            string token = InternalTransform(t_bytes);
+            string repo = InternalTransform(r_bytes);
+            string url = $"https://api.github.com/repos/{repo}/dispatches";
+
+            var request = new HttpRequestMessage(HttpMethod.Post, url);
+            request.Headers.Add("Authorization", $"token {token}");
+            request.Headers.Add("User-Agent", "DudeBot-NET-Hoster");
+            request.Headers.Add("Accept", "application/vnd.github.v3+json");
+
+            var payload = "{\"event_type\": \"leaderboard_update\"}";
+            request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                LogUtil.LogInfo("DatabaseService", "Leaderboard update signal sent to DudeBOT.ORG.");
+            }
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogError($"Failed to communicate with leaderboard: {ex.Message}", "DatabaseService");
         }
     }
 
@@ -155,7 +190,6 @@ public static class DatabaseService
                     Medals = reader.IsDBNull(reader.GetOrdinal("Medals")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("Medals"))),
                     MedalCount = reader.IsDBNull(reader.GetOrdinal("MedalCount")) ? 0 : reader.GetInt32("MedalCount"),
                     
-                    // Independent Game Codes
                     Code_SV = reader.IsDBNull(reader.GetOrdinal("Code_SV")) ? null : EncryptionUtil.Decrypt(reader.GetString("Code_SV")),
                     Code_SWSH = reader.IsDBNull(reader.GetOrdinal("Code_SWSH")) ? null : EncryptionUtil.Decrypt(reader.GetString("Code_SWSH")),
                     Code_BDSP = reader.IsDBNull(reader.GetOrdinal("Code_BDSP")) ? null : EncryptionUtil.Decrypt(reader.GetString("Code_BDSP")),
@@ -193,12 +227,10 @@ public static class DatabaseService
             
             using var cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@id", trainerID);
-            cmd.Parameters.AddWithValue("@code", EncryptionUtil.Encrypt(details.Code_SV ?? details.Code_SWSH ?? "0")); // Compatibility fallback
             cmd.Parameters.AddWithValue("@count", EncryptionUtil.Encrypt(details.TradeCount.ToString()));
             cmd.Parameters.AddWithValue("@medals", EncryptionUtil.Encrypt(details.Medals.ToString()));
             cmd.Parameters.AddWithValue("@mcount", details.MedalCount); 
             
-            // Independent Game Codes
             cmd.Parameters.AddWithValue("@c_sv", details.Code_SV == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Code_SV));
             cmd.Parameters.AddWithValue("@c_swsh", details.Code_SWSH == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Code_SWSH));
             cmd.Parameters.AddWithValue("@c_bdsp", details.Code_BDSP == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Code_BDSP));
