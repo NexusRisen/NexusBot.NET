@@ -1883,17 +1883,9 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
             // Wait for the user to show us a Pokemon - needs to be different from the previous one
             var pk = await ReadUntilPresentPointer(Offsets.LinkTradePartnerPokemonPointer, 3_000, 0_050, BoxFormatSlotSize, token).ConfigureAwait(false);
-            if (pk == null || pk.Species == 0 || !pk.ChecksumValid)
+            if (pk == null || pk.Species == 0 || !pk.ChecksumValid || SearchUtil.HashByDetails(pk) == SearchUtil.HashByDetails(pkprev))
             {
                 await Task.Delay(0_050, token).ConfigureAwait(false);
-                continue;
-            }
-
-            // Check if this is the same Pokemon as before
-            if (SearchUtil.HashByDetails(pk) == SearchUtil.HashByDetails(pkprev))
-            {
-                Log($"User is showing the same Pokémon as before. Waiting for a different one...");
-                await Task.Delay(0_500, token).ConfigureAwait(false);
                 continue;
             }
 
@@ -1931,13 +1923,6 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
             // Send the Pokemon file back to the user via Discord
             detail.SendNotification(this, pk, msg);
-
-            // Tell user their progress
-            var remaining = maxDumps - ctr;
-            if (remaining > 0)
-                detail.SendNotification(this, $"Received! You can show me {remaining} more. Show a different Pokémon to continue, or press B to exit.");
-            else
-                detail.SendNotification(this, "That's the maximum! Press B to exit the trade.");
         }
 
         var timeElapsed = DateTime.Now - start;
@@ -1948,7 +1933,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
         TradeSettings.CountStatsSettings.AddCompletedDumps();
         detail.Notifier.SendNotification(this, detail, $"Dumped {ctr} Pokémon.");
-        detail.Notifier.TradeFinished(this, detail, pkprev); // Send last dumped Pokemon
+        detail.Notifier.TradeFinished(this, detail, detail.TradeData); // Send blank Pokémon to signal finish
         return PokeTradeResult.Success;
     }
 

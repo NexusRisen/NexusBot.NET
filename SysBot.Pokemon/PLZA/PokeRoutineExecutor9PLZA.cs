@@ -184,6 +184,8 @@ public abstract class PokeRoutineExecutor9PLZA(PokeBotState Config) : PokeRoutin
     public override Task<PA9> ReadBoxPokemon(int box, int slot, CancellationToken token)
     {
         var jumps = Offsets.BoxStartPokemonPointer.ToArray();
+        // PLZA uses 344 bytes + 64 bytes padding (0x198 total) per box slot
+        jumps[^1] += (long)(0x198 * ((30 * box) + slot));
         return ReadPokemonPointer(jumps, BoxFormatSlotSize, token);
     }
 

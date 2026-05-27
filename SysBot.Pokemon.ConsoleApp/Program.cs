@@ -27,6 +27,7 @@ public static class Program
     private static void Main(string[] args)
     {
         LogUtil.LogInfo("SysBot", "Starting up...");
+
         if (args.Length > 1)
             LogUtil.LogInfo("SysBot", "This program does not support command line arguments.");
 

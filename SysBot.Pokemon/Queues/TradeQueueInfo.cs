@@ -422,15 +422,13 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
         }
     }
 
-    public List<Pictocodes> GetRandomLGTradeCode()
+    public List<Pictocodes> GetRandomLGTradeCode(ulong trainerID)
     {
-        var code = new List<Pictocodes>();
-        for (int i = 0; i <= 2; i++)
+        if (Hub.Config.Trade.TradeConfiguration.StoreTradeCodes)
         {
-            code.Add((Pictocodes)Util.Rand.Next(10));
-            code.Add(Pictocodes.Pikachu);
+            return _tradeCodeStorage.GetLGTradeCode(trainerID);
         }
-        return code;
+        return TradeSettings.GetRandomLGTradeCode();
     }
 
     public int UserCount(Func<TradeEntry<T>, bool> func)

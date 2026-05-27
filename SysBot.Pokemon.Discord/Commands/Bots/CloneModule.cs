@@ -32,7 +32,7 @@ public class CloneModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         }
 
         var sig = Context.User.GetFavor();
-        var lgcode = Info.GetRandomLGTradeCode();
+        var lgcode = Info.GetRandomLGTradeCode(userID);
 
         // Add to queue asynchronously
         _ = QueueHelper<T>.AddToQueueAsync(Context, code, Context.User.Username, sig, new T(), PokeRoutineType.Clone, PokeTradeType.Clone, Context.User, false, 1, 1, false, false, lgcode: lgcode);
@@ -74,7 +74,7 @@ public class CloneModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
         int tradeCode = Util.ToInt32(code);
         var sig = Context.User.GetFavor();
-        var lgcode = Info.GetRandomLGTradeCode();
+        var lgcode = Info.GetRandomLGTradeCode(userID);
 
         // Add to queue asynchronously
         _ = QueueHelper<T>.AddToQueueAsync(Context, tradeCode == 0 ? Info.GetRandomTradeCode(userID) : tradeCode, Context.User.Username, sig, new T(), PokeRoutineType.Clone, PokeTradeType.Clone, Context.User, false, 1, 1, false, false, lgcode: lgcode);

@@ -161,7 +161,7 @@ namespace SysBot.Pokemon.Discord.Modules
                 }
 
                 var code = SysCord<T>.Runner.Hub.Queues.Info.GetRandomTradeCode(userID);
-                var lgcode = SysCord<T>.Runner.Hub.Queues.Info.GetRandomLGTradeCode();
+                var lgcode = SysCord<T>.Runner.Hub.Queues.Info.GetRandomLGTradeCode(userID);
                 var sig = Context.User.GetFavor();
 
                 await ReplyAsync($"**HOME-Ready Pokémon added to the queue.**").ConfigureAwait(false);
@@ -178,7 +178,7 @@ namespace SysBot.Pokemon.Discord.Modules
                     totalBatchTrades: 1,
                     isHiddenTrade: false,
                     isMysteryEgg: false,
-                    lgcode: lgcode ?? SysCord<T>.Runner.Hub.Queues.Info.GetRandomLGTradeCode(),
+                    lgcode: lgcode ?? SysCord<T>.Runner.Hub.Queues.Info.GetRandomLGTradeCode(userID),
                     tradeType: PokeTradeType.Specific,
                     ignoreAutoOT: false,
                     setEdited: false,

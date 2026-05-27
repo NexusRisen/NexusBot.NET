@@ -410,6 +410,16 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         // Subscribe a handler to see if a message invokes a command.
         _client.Ready += LoadLoggingAndEcho;
         _client.MessageReceived += HandleMessageAsync;
+        _client.JoinedGuild += HandleJoinedGuild;
+    }
+
+    private async Task HandleJoinedGuild(SocketGuild guild)
+    {
+        if (Manager.BlacklistedServers.Contains(guild.Id) || DatabaseService.IsGuildBlacklisted(guild.Id))
+        {
+            LogUtil.LogInfo("SysCord", $"Leaving blacklisted server on join: {guild.Name} ({guild.Id})");
+            await guild.LeaveAsync().ConfigureAwait(false);
+        }
     }
 
     public async Task MainAsync(string apiToken, CancellationToken token)
@@ -541,7 +551,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
             if (msg.Channel is SocketGuildChannel guildChannel)
             {
-                if (Manager.BlacklistedServers.Contains(guildChannel.Guild.Id))
+                if (Manager.BlacklistedServers.Contains(guildChannel.Guild.Id) || DatabaseService.IsGuildBlacklisted(guildChannel.Guild.Id))
                 {
                     await guildChannel.Guild.LeaveAsync();
                     return;
@@ -637,6 +647,16 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         var game = Hub.Config.Discord.BotGameStatus;
         if (!string.IsNullOrWhiteSpace(game))
             await _client.SetGameAsync(game).ConfigureAwait(false);
+
+        // Global Blacklist Sweep on startup
+        foreach (var guild in _client.Guilds)
+        {
+            if (Manager.BlacklistedServers.Contains(guild.Id) || DatabaseService.IsGuildBlacklisted(guild.Id))
+            {
+                LogUtil.LogInfo("SysCord", $"Leaving blacklisted server on startup: {guild.Name} ({guild.Id})");
+                await guild.LeaveAsync().ConfigureAwait(false);
+            }
+        }
     }
 
     private async Task MonitorStatusAsync(CancellationToken token)

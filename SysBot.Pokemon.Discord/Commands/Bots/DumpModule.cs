@@ -22,8 +22,9 @@ public class DumpModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
 
         // PA9 (Legends Z-A) dump trades are now enabled
 
+        var userID = Context.User.Id;
         var sig = Context.User.GetFavor();
-        var lgcode = Info.GetRandomLGTradeCode();
+        var lgcode = Info.GetRandomLGTradeCode(userID);
         await QueueHelper<T>.AddToQueueAsync(
             Context,
             code,

@@ -372,9 +372,10 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     private async Task ProcessFixOTAsync(int code)
     {
+        var userID = Context.User.Id;
         var trainerName = Context.User.Username;
         var sig = Context.User.GetFavor();
-        var lgcode = Info.GetRandomLGTradeCode();
+        var lgcode = Info.GetRandomLGTradeCode(userID);
 
         await QueueHelper<T>.AddToQueueAsync(Context, code, trainerName, sig, new T(),
             PokeRoutineType.FixOT, PokeTradeType.FixOT, Context.User, false, 1, 1, false, false, lgcode: lgcode).ConfigureAwait(false);

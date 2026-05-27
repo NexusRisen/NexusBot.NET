@@ -576,7 +576,7 @@ namespace SysBot.Pokemon.Discord
             await QueueHelper<T>.AddToQueueAsync(
                 Context, code, Context.User.Username, sig, mysteryEgg,
                 PokeRoutineType.LinkTrade, PokeTradeType.Specific, Context.User,
-                isMysteryEgg: true, lgcode: GenerateRandomPictocodes(3)
+                isMysteryEgg: true, lgcode: Info.GetRandomLGTradeCode(Context.User.Id)
             ).ConfigureAwait(false);
 
             if (Context.Message is IUserMessage userMessage)
@@ -596,7 +596,7 @@ namespace SysBot.Pokemon.Discord
             await QueueHelper<T>.AddToQueueAsync(
                 Context, code, Context.User.Username, sig, mysteryPk,
                 PokeRoutineType.LinkTrade, PokeTradeType.Specific, Context.User,
-                lgcode: GenerateRandomPictocodes(3)
+                lgcode: Info.GetRandomLGTradeCode(Context.User.Id)
             ).ConfigureAwait(false);
 
             if (Context.Message is IUserMessage userMessage)

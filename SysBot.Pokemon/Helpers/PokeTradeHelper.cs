@@ -12,7 +12,7 @@ namespace SysBot.Pokemon;
 
 public static class PokeTradeHelper<T> where T : PKM, new()
 {
-    public static ProcessedPokemonResult<T> ProcessShowdownSet(string content, PokeTradeHub<T> hub, bool ignoreAutoOT = false)
+    public static ProcessedPokemonResult<T> ProcessShowdownSet(string content, PokeTradeHub<T> hub, bool ignoreAutoOT = false, ulong userID = 0)
     {
         content = BatchNormalizer.NormalizeBatchCommands(content);
         bool isEgg = TradeExtensions<T>.IsEggCheck(content);
@@ -121,7 +121,7 @@ public static class PokeTradeHelper<T> where T : PKM, new()
         List<Pictocodes>? lgcode = null;
         if (pkm is PB7)
         {
-            lgcode = GenerateRandomPictocodes(3);
+            lgcode = userID != 0 ? hub.Queues.Info.GetRandomLGTradeCode(userID) : GenerateRandomPictocodes(3);
             if (pkm.Species == (int)Species.Mew && pkm.IsShiny)
             {
                 return new ProcessedPokemonResult<T>

@@ -139,7 +139,7 @@ public static class ListHelpers<T> where T : PKM, new()
             }
 
             var code = Info.GetRandomTradeCode(userID);
-            var lgcode = Info.GetRandomLGTradeCode();
+            var lgcode = Info.GetRandomLGTradeCode(userID);
             var sig = context.User.GetFavor();
 
             await context.Channel.SendMessageAsync($"{char.ToUpper(itemType[0]) + itemType[1..]} request added to queue.").ConfigureAwait(false);

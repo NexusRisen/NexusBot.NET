@@ -147,7 +147,7 @@ namespace SysBot.Pokemon.Discord
                 }
 
                 var code = Info.GetRandomTradeCode(userID);
-                var lgcode = Info.GetRandomLGTradeCode();
+                var lgcode = Info.GetRandomLGTradeCode(userID);
                 var sig = Context.User.GetFavor();
 
                 await AddTradeToQueueAsync(code, Context.User.Username, pk, sig, Context.User, lgcode: lgcode).ConfigureAwait(false);
@@ -506,7 +506,7 @@ namespace SysBot.Pokemon.Discord
 
         private async Task AddTradeToQueueAsync(int code, string trainerName, T pk, RequestSignificance sig, SocketUser usr, bool isBatchTrade = false, int batchTradeNumber = 1, int totalBatchTrades = 1, bool isMysteryEgg = false, List<Pictocodes>? lgcode = null, PokeTradeType tradeType = PokeTradeType.Specific, bool ignoreAutoOT = false, bool isHiddenTrade = false)
         {
-            lgcode ??= Helpers<T>.GenerateRandomPictocodes(3);
+            lgcode ??= Info.GetRandomLGTradeCode(usr.Id);
             var la = new LegalityAnalysis(pk);
             if (!la.Valid)
             {

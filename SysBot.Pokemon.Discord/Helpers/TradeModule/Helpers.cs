@@ -123,9 +123,9 @@ public static class Helpers<T> where T : PKM, new()
         }
     }
 
-    public static Task<ProcessedPokemonResult<T>> ProcessShowdownSetAsync(string content, bool ignoreAutoOT = false)
+    public static Task<ProcessedPokemonResult<T>> ProcessShowdownSetAsync(string content, bool ignoreAutoOT = false, ulong userID = 0)
     {
-        return Task.Run(() => PokeTradeHelper<T>.ProcessShowdownSet(content, Info.Hub, ignoreAutoOT));
+        return Task.Run(() => PokeTradeHelper<T>.ProcessShowdownSet(content, Info.Hub, ignoreAutoOT, userID));
     }
 
     public static void ApplyStandardItemLogic(PKM pkm) => PokeTradeHelper<T>.ApplyStandardItemLogic(pkm, Info.Hub.Config);

@@ -25,6 +25,7 @@ public class PokeTradeHub<T> : IDisposable where T : PKM, new()
     public PokeTradeHub(PokeTradeHubConfig config)
     {
         Config = config;
+        DatabaseService.Initialize(config.Database);
         var pool = new PokemonPool<T>(config);
         Ledy = new LedyDistributor<T>(pool);
         BotSync = new BotSynchronizer(config.Distribution);
