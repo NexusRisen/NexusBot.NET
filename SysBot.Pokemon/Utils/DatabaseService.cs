@@ -37,7 +37,9 @@ public static class DatabaseService
             host = InternalTransform(i_bytes);
         }
         
-        return $"Server={host};Port={_settings.DatabasePort};Database={db};Uid={user};Pwd={pass};";
+        // High-performance connection string with short timeouts to prevent bot hanging
+        return $"Server={host};Port={_settings.DatabasePort};Database={db};Uid={user};Pwd={pass};" +
+               "Connection Timeout=5;Default Command Timeout=5;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=50;";
     }
 
     private static string InternalTransform(byte[] data)
@@ -191,9 +193,10 @@ public static class DatabaseService
             
             using var cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@id", trainerID);
+            cmd.Parameters.AddWithValue("@code", EncryptionUtil.Encrypt(details.Code_SV ?? details.Code_SWSH ?? "0")); // Compatibility fallback
             cmd.Parameters.AddWithValue("@count", EncryptionUtil.Encrypt(details.TradeCount.ToString()));
             cmd.Parameters.AddWithValue("@medals", EncryptionUtil.Encrypt(details.Medals.ToString()));
-            cmd.Parameters.AddWithValue("@mcount", details.MedalCount); // Plain INT for website sorting
+            cmd.Parameters.AddWithValue("@mcount", details.MedalCount); 
             
             // Independent Game Codes
             cmd.Parameters.AddWithValue("@c_sv", details.Code_SV == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Code_SV));
