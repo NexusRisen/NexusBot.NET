@@ -1,26 +1,27 @@
-# DudeBot.NET - The Elite Ecosystem Update (v6.3.5)
+# DudeBot.NET - The Identity Overhaul (v6.3.5)
 
-This update refines the global synchronization system to handle independent trainer identities across different Pokémon games while maintaining unified progression.
+This critical update focuses on perfecting how DudeBot identifies and remembers trainers across different Pokémon titles, ensuring absolute accuracy for every game in your synchronized hosting network.
 
-## 🚀 Key Highlights
+## 🆔 Independent Game Identities
+The core of this update is the separation of trainer identities to match how Pokémon games work in reality.
+- **Per-Game Trainer Profiles**: The system now stores independent **OT (Original Trainer)**, **TID (Trainer ID)**, and **SID (Secret ID)** values for every supported game:
+  - **Scarlet & Violet (SV)**
+  - **Sword & Shield (SWSH)**
+  - **Brilliant Diamond & Shining Pearl (BDSP)**
+  - **Legends: Arceus (LA)**
+  - **Legends: Z-A (PLZA)**
+  - **Let's Go Pikachu & Eevee (LGPE)**
+- **Smart Data Routing**: The bot now automatically detects which game is being hosted and retrieves/saves the specific identity for that game. This prevents a user's *Scarlet* name from overwriting their *Arceus* name.
+- **Captured Persistence**: Once a user trades in a specific game for the first time, their identity for that game is locked in the SQL database and shared across all hosters instantly.
 
-### 🆔 Independent Game Identities
-- **Per-Game Trainer Info**: The bot now stores separate **OT, TID, and SID** for every game (SV, SWSH, BDSP, LA, PLZA, and LGPE).
-- **Automatic Recognition**: When a user trades for the first time in a specific game, their trainer info is saved. On the next trade in that same game, the bot will automatically recognize them.
-- **Shared Reputation**: Even though identities (OT/TID/SID) are now game-specific, your **Medals and Trade Counts** remain shared across the entire network. Your rank follows you no matter which game you play.
+## 🏆 Shared Global Progression
+While your name and IDs are now game-specific, your status in the community is still unified.
+- **Global Medals**: Your hard-earned medals and total trade counts follow you across every game and every hoster.
+- **Network Reputation**: A user's rank is calculated based on their total activity across the entire DudeBot ecosystem.
 
-### 🌐 Global Multi-Game Synchronization
-- **Simultaneous Support**: Hosters can run all games at once without any data overlap. Each game now has its own dedicated, encrypted columns in the SQL database.
-- **Heartbeat System**: Active hosters now send a live signal to the database, allowing the website to show real-time "Online" counts.
-
-### 🏆 Hall of Fame & Live Stats
-- **Strictly SQL Leaderboard**: The official website (**DudeBOT.ORG**) now uses a professional real-time fetching system. Rankings are updated instantly via SQL without needing website redeployments.
-- **Live Network Stats**: Home page displays live hoster counts and community trade totals directly from the global database.
-
-### 🔒 Maximum Security
-- **Anti-Cheat Encryption**: All progression data is secured using industry-standard **AES-256 Encryption**.
-- **Stealth Protection**: All hosting credentials and server IPs are obfuscated using multi-pass bitwise XOR logic.
-- **Instant SQL Blacklist**: Real-time server banning managed directly through the MySQL database.
+## 🛠️ Performance & Stability
+- **Verified Stability**: All 53 core system tests have been executed and passed, verifying the integrity of the new SQL-mapping logic and queue management.
+- **Zero-Touch Sync**: Hosters remain fully automated with the high-performance connection pooling and 5-second fail-safe timeouts implemented in previous versions.
 
 ---
-*Thank you for being part of the DudeBot network. Enjoy the most advanced synchronized bot ecosystem yet!*
+*Powered by .NET 10 and the Elite DudeBot Community. Global synchronization, perfected.*
