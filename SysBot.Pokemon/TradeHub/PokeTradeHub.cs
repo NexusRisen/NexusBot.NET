@@ -2,6 +2,7 @@ using PKHeX.Core;
 using SysBot.Base;
 using System;
 using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace SysBot.Pokemon;
 
