@@ -14,6 +14,7 @@ public static class DatabaseService
     private static DatabaseSettings _settings = new();
     private static bool _initialized = false;
     private static readonly HttpClient _httpClient = new();
+    private static readonly string _instanceId = Guid.NewGuid().ToString().Substring(0, 8);
 
     public static bool UseRemoteDb => _initialized;
 
@@ -61,6 +62,7 @@ public static class DatabaseService
             using var conn = new MySqlConnection(GetConnectionString());
             conn.Open();
             
+            // Core Users Table
             string userQuery = @"
                 CREATE TABLE IF NOT EXISTS Users (
                     TrainerID BIGINT UNSIGNED PRIMARY KEY,
@@ -75,6 +77,16 @@ public static class DatabaseService
                     Quote VARCHAR(255)
                 );";
             using (var cmd = new MySqlCommand(userQuery, conn)) cmd.ExecuteNonQuery();
+
+            // ActiveBots Table for live statistics
+            string botsQuery = @"
+                CREATE TABLE IF NOT EXISTS ActiveBots (
+                    InstanceID VARCHAR(50) PRIMARY KEY,
+                    HosterName VARCHAR(255),
+                    Game VARCHAR(50),
+                    LastSeen TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                );";
+            using (var cmd = new MySqlCommand(botsQuery, conn)) cmd.ExecuteNonQuery();
 
             var columnsToEnsure = new Dictionary<string, string>
             {
@@ -107,7 +119,7 @@ public static class DatabaseService
                 );";
             using (var cmd = new MySqlCommand(blacklistQuery, conn)) cmd.ExecuteNonQuery();
 
-            LogUtil.LogInfo("DatabaseService", "Multi-Game database synchronized.");
+            LogUtil.LogInfo("DatabaseService", "Real-time SQL database synchronized.");
         }
         catch (Exception ex)
         {
@@ -117,39 +129,28 @@ public static class DatabaseService
     }
 
     /// <summary>
-    /// Communicates with the DudeBOT.ORG leaderboard by triggering a GitHub Pages rebuild.
-    /// This ensures the Hall of Fame stays updated with the latest SQL data.
+    /// Updates the ActiveBots table to show this hoster is online.
     /// </summary>
-    public static async Task TriggerLeaderboardUpdate()
+    public static async Task SendBotHeartbeat(string hosterName, string game)
     {
+        if (!_initialized) return;
         try
         {
-            // Obfuscated GitHub Token and Repository Info
-            byte[] t_bytes = { 96, 111, 119, 102, 114, 108, 115, 78, 104, 83, 104, 103, 118, 112, 119, 118, 110, 54, 49, 49, 67, 83, 119, 101, 111, 111, 83, 85, 123, 118, 119, 49, 49, 67, 118, 73, 73, 86, 79 }; // ghp_...
-            byte[] r_bytes = { 73, 104, 113, 114, 116, 85, 105, 114, 104, 111, 40, 75, 112, 107, 104, 67, 72, 83, 67, 72, 41, 74, 85, 70 }; // NexusRisen/DudeBOT.ORG
+            using var conn = new MySqlConnection(GetConnectionString());
+            await conn.OpenAsync();
+            string query = @"
+                INSERT INTO ActiveBots (InstanceID, HosterName, Game, LastSeen) 
+                VALUES (@id, @name, @game, CURRENT_TIMESTAMP)
+                ON DUPLICATE KEY UPDATE 
+                HosterName=@name, Game=@game, LastSeen=CURRENT_TIMESTAMP;";
             
-            string token = InternalTransform(t_bytes);
-            string repo = InternalTransform(r_bytes);
-            string url = $"https://api.github.com/repos/{repo}/dispatches";
-
-            var request = new HttpRequestMessage(HttpMethod.Post, url);
-            request.Headers.Add("Authorization", $"token {token}");
-            request.Headers.Add("User-Agent", "DudeBot-NET-Hoster");
-            request.Headers.Add("Accept", "application/vnd.github.v3+json");
-
-            var payload = "{\"event_type\": \"leaderboard_update\"}";
-            request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.SendAsync(request);
-            if (response.IsSuccessStatusCode)
-            {
-                LogUtil.LogInfo("DatabaseService", "Leaderboard update signal sent to DudeBOT.ORG.");
-            }
+            using var cmd = new MySqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@id", _instanceId);
+            cmd.Parameters.AddWithValue("@name", hosterName);
+            cmd.Parameters.AddWithValue("@game", game);
+            await cmd.ExecuteNonQueryAsync();
         }
-        catch (Exception ex)
-        {
-            LogUtil.LogError($"Failed to communicate with leaderboard: {ex.Message}", "DatabaseService");
-        }
+        catch { /* Fail silently to prevent bot interference */ }
     }
 
     public static bool IsGuildBlacklisted(ulong guildID)

@@ -32,6 +32,21 @@ public class PokeTradeHub<T> : IDisposable where T : PKM, new()
         BotSync.BarrierReleasingActions.Add(() => LogUtil.LogInfo("Barrier", $"{BotSync.Barrier.ParticipantCount} bots released."));
 
         Queues = new TradeQueueManager<T>(this);
+
+        // Start background heartbeat to track live bots on the website
+        Task.Run(async () =>
+        {
+            while (true)
+            {
+                try
+                {
+                    string game = typeof(T).Name.Replace("PK", "").Replace("PA", "");
+                    await DatabaseService.SendBotHeartbeat(config.BotName, game).ConfigureAwait(false);
+                }
+                catch { }
+                await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
+            }
+        });
     }
 
     public void Dispose()

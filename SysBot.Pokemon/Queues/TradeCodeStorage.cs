@@ -51,14 +51,9 @@ public class TradeCodeStorage
             if (user != null)
             {
                 user.TradeCount++;
-                int oldMedals = user.Medals;
                 user.Medals = CalculateMedals(user.TradeCount);
                 user.MedalCount = user.Medals; 
                 
-                // If a new medal milestone is reached, notify the website to rebuild
-                if (user.Medals > oldMedals)
-                    _ = Task.Run(() => DatabaseService.TriggerLeaderboardUpdate());
-
                 var existingCode = GetCodeForGame(user, _game);
                 if (existingCode != null && int.TryParse(existingCode, out int codeInt))
                 {
@@ -76,7 +71,6 @@ public class TradeCodeStorage
             var newUser = new TradeCodeDetails { TradeCount = 1, Medals = 1, MedalCount = 1 };
             SetCodeForGame(newUser, _game, initialCode.ToString());
             DatabaseService.SaveUser(trainerID, newUser);
-            _ = Task.Run(() => DatabaseService.TriggerLeaderboardUpdate()); // First medal
             return initialCode;
         }
 
@@ -116,13 +110,9 @@ public class TradeCodeStorage
             if (user != null)
             {
                 user.TradeCount++;
-                int oldMedals = user.Medals;
                 user.Medals = CalculateMedals(user.TradeCount);
                 user.MedalCount = user.Medals;
                 
-                if (user.Medals > oldMedals)
-                    _ = Task.Run(() => DatabaseService.TriggerLeaderboardUpdate());
-
                 if (!string.IsNullOrEmpty(user.Code_LGPE))
                 {
                     DatabaseService.SaveUser(trainerID, user);
@@ -138,7 +128,6 @@ public class TradeCodeStorage
             var initialLg = GenerateRandomLGCode();
             var newUser = new TradeCodeDetails { TradeCount = 1, Medals = 1, MedalCount = 1, Code_LGPE = LGCodeToString(initialLg) };
             DatabaseService.SaveUser(trainerID, newUser);
-            _ = Task.Run(() => DatabaseService.TriggerLeaderboardUpdate());
             return initialLg;
         }
 
@@ -211,6 +200,30 @@ public class TradeCodeStorage
         if (DatabaseService.UseRemoteDb) return DatabaseService.GetUser(trainerID);
         LoadFromFile();
         return _tradeCodeDetails!.TryGetValue(trainerID, out var details) ? details : null;
+    }
+
+    public void UpdateTradeDetails(ulong trainerID, string ot, int tid, int sid)
+    {
+        if (DatabaseService.UseRemoteDb)
+        {
+            var user = DatabaseService.GetUser(trainerID);
+            if (user != null) { user.OT = ot; user.TID = tid; user.SID = sid; DatabaseService.SaveUser(trainerID, user); }
+            return;
+        }
+        LoadFromFile();
+        if (_tradeCodeDetails!.TryGetValue(trainerID, out var details)) { details.OT = ot; details.TID = tid; details.SID = sid; SaveToFile(); }
+    }
+
+    public void UpdateTradeDetails(ulong trainerID, string ot, int tid, int sid, byte? gender = null, int? language = null)
+    {
+        if (DatabaseService.UseRemoteDb)
+        {
+            var user = DatabaseService.GetUser(trainerID);
+            if (user != null) { user.OT = ot; user.TID = tid; user.SID = sid; if (gender.HasValue) user.Gender = gender; if (language.HasValue) user.Language = language; DatabaseService.SaveUser(trainerID, user); }
+            return;
+        }
+        LoadFromFile();
+        if (_tradeCodeDetails!.TryGetValue(trainerID, out var details)) { details.OT = ot; details.TID = tid; details.SID = sid; if (gender.HasValue) details.Gender = gender; if (language.HasValue) details.Language = language; SaveToFile(); }
     }
 
     public void UpdateTradeDetails(ulong trainerID, string ot, int tid, int sid, string? quote = null, byte? gender = null, int? language = null)
