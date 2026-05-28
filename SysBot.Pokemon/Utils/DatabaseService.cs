@@ -96,7 +96,15 @@ public static class DatabaseService
                 { "Code_BDSP", "VARCHAR(255) AFTER Code_SWSH" },
                 { "Code_LA", "VARCHAR(255) AFTER Code_BDSP" },
                 { "Code_PLZA", "VARCHAR(255) AFTER Code_LA" },
-                { "Code_LGPE", "VARCHAR(255) AFTER Code_PLZA" }
+                { "Code_LGPE", "VARCHAR(255) AFTER Code_PLZA" },
+                
+                // Game Specific Trainer Info
+                { "OT_SV", "VARCHAR(255) AFTER Code_LGPE" }, { "TID_SV", "VARCHAR(255) AFTER OT_SV" }, { "SID_SV", "VARCHAR(255) AFTER TID_SV" },
+                { "OT_SWSH", "VARCHAR(255) AFTER SID_SV" }, { "TID_SWSH", "VARCHAR(255) AFTER OT_SWSH" }, { "SID_SWSH", "VARCHAR(255) AFTER TID_SWSH" },
+                { "OT_BDSP", "VARCHAR(255) AFTER SID_SWSH" }, { "TID_BDSP", "VARCHAR(255) AFTER OT_BDSP" }, { "SID_BDSP", "VARCHAR(255) AFTER TID_BDSP" },
+                { "OT_LA", "VARCHAR(255) AFTER SID_BDSP" }, { "TID_LA", "VARCHAR(255) AFTER OT_LA" }, { "SID_LA", "VARCHAR(255) AFTER TID_LA" },
+                { "OT_PLZA", "VARCHAR(255) AFTER SID_LA" }, { "TID_PLZA", "VARCHAR(255) AFTER OT_PLZA" }, { "SID_PLZA", "VARCHAR(255) AFTER TID_PLZA" },
+                { "OT_LGPE", "VARCHAR(255) AFTER SID_PLZA" }, { "TID_LGPE", "VARCHAR(255) AFTER OT_LGPE" }, { "SID_LGPE", "VARCHAR(255) AFTER TID_LGPE" }
             };
 
             foreach (var col in columnsToEnsure)
@@ -128,9 +136,6 @@ public static class DatabaseService
         }
     }
 
-    /// <summary>
-    /// Updates the ActiveBots table to show this hoster is online.
-    /// </summary>
     public static async Task SendBotHeartbeat(string hosterName, string game)
     {
         if (!_initialized) return;
@@ -150,7 +155,7 @@ public static class DatabaseService
             cmd.Parameters.AddWithValue("@game", game);
             await cmd.ExecuteNonQueryAsync();
         }
-        catch { /* Fail silently to prevent bot interference */ }
+        catch { }
     }
 
     public static bool IsGuildBlacklisted(ulong guildID)
@@ -185,7 +190,7 @@ public static class DatabaseService
             using var reader = cmd.ExecuteReader();
             if (reader.Read())
             {
-                return new TradeCodeStorage.TradeCodeDetails
+                var d = new TradeCodeStorage.TradeCodeDetails
                 {
                     TradeCount = int.Parse(EncryptionUtil.Decrypt(reader.GetString("TradeCount"))),
                     Medals = reader.IsDBNull(reader.GetOrdinal("Medals")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("Medals"))),
@@ -198,13 +203,35 @@ public static class DatabaseService
                     Code_PLZA = reader.IsDBNull(reader.GetOrdinal("Code_PLZA")) ? null : EncryptionUtil.Decrypt(reader.GetString("Code_PLZA")),
                     Code_LGPE = reader.IsDBNull(reader.GetOrdinal("Code_LGPE")) ? null : EncryptionUtil.Decrypt(reader.GetString("Code_LGPE")),
 
-                    OT = reader.IsDBNull(reader.GetOrdinal("OT")) ? null : EncryptionUtil.Decrypt(reader.GetString("OT")),
-                    TID = reader.IsDBNull(reader.GetOrdinal("TID")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("TID"))),
-                    SID = reader.IsDBNull(reader.GetOrdinal("SID")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("SID"))),
+                    OT_SV = reader.IsDBNull(reader.GetOrdinal("OT_SV")) ? null : EncryptionUtil.Decrypt(reader.GetString("OT_SV")),
+                    TID_SV = reader.IsDBNull(reader.GetOrdinal("TID_SV")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("TID_SV"))),
+                    SID_SV = reader.IsDBNull(reader.GetOrdinal("SID_SV")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("SID_SV"))),
+
+                    OT_SWSH = reader.IsDBNull(reader.GetOrdinal("OT_SWSH")) ? null : EncryptionUtil.Decrypt(reader.GetString("OT_SWSH")),
+                    TID_SWSH = reader.IsDBNull(reader.GetOrdinal("TID_SWSH")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("TID_SWSH"))),
+                    SID_SWSH = reader.IsDBNull(reader.GetOrdinal("SID_SWSH")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("SID_SWSH"))),
+
+                    OT_BDSP = reader.IsDBNull(reader.GetOrdinal("OT_BDSP")) ? null : EncryptionUtil.Decrypt(reader.GetString("OT_BDSP")),
+                    TID_BDSP = reader.IsDBNull(reader.GetOrdinal("TID_BDSP")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("TID_BDSP"))),
+                    SID_BDSP = reader.IsDBNull(reader.GetOrdinal("SID_BDSP")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("SID_BDSP"))),
+
+                    OT_LA = reader.IsDBNull(reader.GetOrdinal("OT_LA")) ? null : EncryptionUtil.Decrypt(reader.GetString("OT_LA")),
+                    TID_LA = reader.IsDBNull(reader.GetOrdinal("TID_LA")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("TID_LA"))),
+                    SID_LA = reader.IsDBNull(reader.GetOrdinal("SID_LA")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("SID_LA"))),
+
+                    OT_PLZA = reader.IsDBNull(reader.GetOrdinal("OT_PLZA")) ? null : EncryptionUtil.Decrypt(reader.GetString("OT_PLZA")),
+                    TID_PLZA = reader.IsDBNull(reader.GetOrdinal("TID_PLZA")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("TID_PLZA"))),
+                    SID_PLZA = reader.IsDBNull(reader.GetOrdinal("SID_PLZA")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("SID_PLZA"))),
+
+                    OT_LGPE = reader.IsDBNull(reader.GetOrdinal("OT_LGPE")) ? null : EncryptionUtil.Decrypt(reader.GetString("OT_LGPE")),
+                    TID_LGPE = reader.IsDBNull(reader.GetOrdinal("TID_LGPE")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("TID_LGPE"))),
+                    SID_LGPE = reader.IsDBNull(reader.GetOrdinal("SID_LGPE")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("SID_LGPE"))),
+
                     Gender = reader.IsDBNull(reader.GetOrdinal("Gender")) ? null : byte.Parse(EncryptionUtil.Decrypt(reader.GetString("Gender"))),
                     Language = reader.IsDBNull(reader.GetOrdinal("Language")) ? null : int.Parse(EncryptionUtil.Decrypt(reader.GetString("Language"))),
                     Quote = reader.IsDBNull(reader.GetOrdinal("Quote")) ? null : EncryptionUtil.Decrypt(reader.GetString("Quote"))
                 };
+                return d;
             }
         }
         catch (Exception ex)
@@ -221,10 +248,22 @@ public static class DatabaseService
             using var conn = new MySqlConnection(GetConnectionString());
             conn.Open();
             string query = @"
-                INSERT INTO Users (TrainerID, TradeCount, Medals, MedalCount, Code_SV, Code_SWSH, Code_BDSP, Code_LA, Code_PLZA, Code_LGPE, OT, TID, SID, Gender, Language, Quote) 
-                VALUES (@id, @count, @medals, @mcount, @c_sv, @c_swsh, @c_bdsp, @c_la, @c_plza, @c_lgpe, @ot, @tid, @sid, @gender, @language, @quote)
+                INSERT INTO Users (TrainerID, TradeCount, Medals, MedalCount, 
+                Code_SV, Code_SWSH, Code_BDSP, Code_LA, Code_PLZA, Code_LGPE, 
+                OT_SV, TID_SV, SID_SV, OT_SWSH, TID_SWSH, SID_SWSH, OT_BDSP, TID_BDSP, SID_BDSP,
+                OT_LA, TID_LA, SID_LA, OT_PLZA, TID_PLZA, SID_PLZA, OT_LGPE, TID_LGPE, SID_LGPE,
+                Gender, Language, Quote) 
+                VALUES (@id, @count, @medals, @mcount, 
+                @c_sv, @c_swsh, @c_bdsp, @c_la, @c_plza, @c_lgpe, 
+                @ot_sv, @tid_sv, @sid_sv, @ot_swsh, @tid_swsh, @sid_swsh, @ot_bdsp, @tid_bdsp, @sid_bdsp,
+                @ot_la, @tid_la, @sid_la, @ot_plza, @tid_plza, @sid_plza, @ot_lgpe, @tid_lgpe, @sid_lgpe,
+                @gender, @language, @quote)
                 ON DUPLICATE KEY UPDATE 
-                TradeCount=@count, Medals=@medals, MedalCount=@mcount, Code_SV=@c_sv, Code_SWSH=@c_swsh, Code_BDSP=@c_bdsp, Code_LA=@c_la, Code_PLZA=@c_plza, Code_LGPE=@c_lgpe, OT=@ot, TID=@tid, SID=@sid, Gender=@gender, Language=@language, Quote=@quote;";
+                TradeCount=@count, Medals=@medals, MedalCount=@mcount, 
+                Code_SV=@c_sv, Code_SWSH=@c_swsh, Code_BDSP=@c_bdsp, Code_LA=@c_la, Code_PLZA=@c_plza, Code_LGPE=@c_lgpe, 
+                OT_SV=@ot_sv, TID_SV=@tid_sv, SID_SV=@sid_sv, OT_SWSH=@ot_swsh, TID_SWSH=@tid_swsh, SID_SWSH=@sid_swsh, OT_BDSP=@ot_bdsp, TID_BDSP=@tid_bdsp, SID_BDSP=@sid_bdsp,
+                OT_LA=@ot_la, TID_LA=@tid_la, SID_LA=@sid_la, OT_PLZA=@ot_plza, TID_PLZA=@tid_plza, SID_PLZA=@sid_plza, OT_LGPE=@ot_lgpe, TID_LGPE=@tid_lgpe, SID_LGPE=@sid_lgpe,
+                Gender=@gender, Language=@language, Quote=@quote;";
             
             using var cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@id", trainerID);
@@ -239,9 +278,30 @@ public static class DatabaseService
             cmd.Parameters.AddWithValue("@c_plza", details.Code_PLZA == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Code_PLZA));
             cmd.Parameters.AddWithValue("@c_lgpe", details.Code_LGPE == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Code_LGPE));
 
-            cmd.Parameters.AddWithValue("@ot", details.OT == null ? DBNull.Value : EncryptionUtil.Encrypt(details.OT));
-            cmd.Parameters.AddWithValue("@tid", EncryptionUtil.Encrypt(details.TID.ToString()));
-            cmd.Parameters.AddWithValue("@sid", EncryptionUtil.Encrypt(details.SID.ToString()));
+            cmd.Parameters.AddWithValue("@ot_sv", details.OT_SV == null ? DBNull.Value : EncryptionUtil.Encrypt(details.OT_SV));
+            cmd.Parameters.AddWithValue("@tid_sv", EncryptionUtil.Encrypt(details.TID_SV.ToString()));
+            cmd.Parameters.AddWithValue("@sid_sv", EncryptionUtil.Encrypt(details.SID_SV.ToString()));
+
+            cmd.Parameters.AddWithValue("@ot_swsh", details.OT_SWSH == null ? DBNull.Value : EncryptionUtil.Encrypt(details.OT_SWSH));
+            cmd.Parameters.AddWithValue("@tid_swsh", EncryptionUtil.Encrypt(details.TID_SWSH.ToString()));
+            cmd.Parameters.AddWithValue("@sid_swsh", EncryptionUtil.Encrypt(details.SID_SWSH.ToString()));
+
+            cmd.Parameters.AddWithValue("@ot_bdsp", details.OT_BDSP == null ? DBNull.Value : EncryptionUtil.Encrypt(details.OT_BDSP));
+            cmd.Parameters.AddWithValue("@tid_bdsp", EncryptionUtil.Encrypt(details.TID_BDSP.ToString()));
+            cmd.Parameters.AddWithValue("@sid_bdsp", EncryptionUtil.Encrypt(details.SID_BDSP.ToString()));
+
+            cmd.Parameters.AddWithValue("@ot_la", details.OT_LA == null ? DBNull.Value : EncryptionUtil.Encrypt(details.OT_LA));
+            cmd.Parameters.AddWithValue("@tid_la", EncryptionUtil.Encrypt(details.TID_LA.ToString()));
+            cmd.Parameters.AddWithValue("@sid_la", EncryptionUtil.Encrypt(details.SID_LA.ToString()));
+
+            cmd.Parameters.AddWithValue("@ot_plza", details.OT_PLZA == null ? DBNull.Value : EncryptionUtil.Encrypt(details.OT_PLZA));
+            cmd.Parameters.AddWithValue("@tid_plza", EncryptionUtil.Encrypt(details.TID_PLZA.ToString()));
+            cmd.Parameters.AddWithValue("@sid_plza", EncryptionUtil.Encrypt(details.SID_PLZA.ToString()));
+
+            cmd.Parameters.AddWithValue("@ot_lgpe", details.OT_LGPE == null ? DBNull.Value : EncryptionUtil.Encrypt(details.OT_LGPE));
+            cmd.Parameters.AddWithValue("@tid_lgpe", EncryptionUtil.Encrypt(details.TID_LGPE.ToString()));
+            cmd.Parameters.AddWithValue("@sid_lgpe", EncryptionUtil.Encrypt(details.SID_LGPE.ToString()));
+
             cmd.Parameters.AddWithValue("@gender", details.Gender == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Gender.ToString()!));
             cmd.Parameters.AddWithValue("@language", details.Language == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Language.ToString()!));
             cmd.Parameters.AddWithValue("@quote", details.Quote == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Quote));
