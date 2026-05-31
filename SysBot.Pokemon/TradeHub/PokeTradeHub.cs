@@ -23,6 +23,8 @@ public class PokeTradeHub<T> : IDisposable where T : PKM, new()
 
     public readonly TradeQueueManager<T> Queues;
 
+    private readonly string _instanceId = Guid.NewGuid().ToString().Substring(0, 8);
+
     public PokeTradeHub(PokeTradeHubConfig config)
     {
         Config = config;
@@ -42,7 +44,7 @@ public class PokeTradeHub<T> : IDisposable where T : PKM, new()
                 try
                 {
                     string game = typeof(T).Name.Replace("PK", "").Replace("PA", "");
-                    await DatabaseService.SendBotHeartbeat(config.BotName, game).ConfigureAwait(false);
+                    await DatabaseService.SendBotHeartbeat(_instanceId, config.BotName, game).ConfigureAwait(false);
                 }
                 catch { }
                 await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);

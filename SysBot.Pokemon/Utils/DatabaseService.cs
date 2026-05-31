@@ -14,7 +14,6 @@ public static class DatabaseService
     private static DatabaseSettings _settings = new();
     private static bool _initialized = false;
     private static readonly HttpClient _httpClient = new();
-    private static readonly string _instanceId = Guid.NewGuid().ToString().Substring(0, 8);
 
     public static bool UseRemoteDb => _initialized;
 
@@ -62,19 +61,19 @@ public static class DatabaseService
             using var conn = new MySqlConnection(GetConnectionString());
             conn.Open();
             
-            // Core Users Table
+            // Core Users Table (Using TEXT for encrypted strings to avoid row size limits)
             string userQuery = @"
                 CREATE TABLE IF NOT EXISTS Users (
                     TrainerID BIGINT UNSIGNED PRIMARY KEY,
-                    TradeCount VARCHAR(255) NOT NULL,
-                    Medals VARCHAR(255) DEFAULT '0',
+                    TradeCount TEXT NOT NULL,
+                    Medals TEXT NOT NULL,
                     MedalCount INT DEFAULT 0,
-                    OT VARCHAR(255),
-                    TID VARCHAR(255),
-                    SID VARCHAR(255),
-                    Gender VARCHAR(255),
-                    Language VARCHAR(255),
-                    Quote VARCHAR(255)
+                    OT TEXT,
+                    TID TEXT,
+                    SID TEXT,
+                    Gender TEXT,
+                    Language TEXT,
+                    Quote TEXT
                 );";
             using (var cmd = new MySqlCommand(userQuery, conn)) cmd.ExecuteNonQuery();
 
@@ -88,23 +87,18 @@ public static class DatabaseService
                 );";
             using (var cmd = new MySqlCommand(botsQuery, conn)) cmd.ExecuteNonQuery();
 
+            // Independent Columns for Every Game
             var columnsToEnsure = new Dictionary<string, string>
             {
                 { "MedalCount", "INT DEFAULT 0 AFTER Medals" },
-                { "Code_SV", "VARCHAR(255) AFTER SID" },
-                { "Code_SWSH", "VARCHAR(255) AFTER Code_SV" },
-                { "Code_BDSP", "VARCHAR(255) AFTER Code_SWSH" },
-                { "Code_LA", "VARCHAR(255) AFTER Code_BDSP" },
-                { "Code_PLZA", "VARCHAR(255) AFTER Code_LA" },
-                { "Code_LGPE", "VARCHAR(255) AFTER Code_PLZA" },
-                
-                // Game Specific Trainer Info
-                { "OT_SV", "VARCHAR(255) AFTER Code_LGPE" }, { "TID_SV", "VARCHAR(255) AFTER OT_SV" }, { "SID_SV", "VARCHAR(255) AFTER TID_SV" },
-                { "OT_SWSH", "VARCHAR(255) AFTER SID_SV" }, { "TID_SWSH", "VARCHAR(255) AFTER OT_SWSH" }, { "SID_SWSH", "VARCHAR(255) AFTER TID_SWSH" },
-                { "OT_BDSP", "VARCHAR(255) AFTER SID_SWSH" }, { "TID_BDSP", "VARCHAR(255) AFTER OT_BDSP" }, { "SID_BDSP", "VARCHAR(255) AFTER TID_BDSP" },
-                { "OT_LA", "VARCHAR(255) AFTER SID_BDSP" }, { "TID_LA", "VARCHAR(255) AFTER OT_LA" }, { "SID_LA", "VARCHAR(255) AFTER TID_LA" },
-                { "OT_PLZA", "VARCHAR(255) AFTER SID_LA" }, { "TID_PLZA", "VARCHAR(255) AFTER OT_PLZA" }, { "SID_PLZA", "VARCHAR(255) AFTER TID_PLZA" },
-                { "OT_LGPE", "VARCHAR(255) AFTER SID_PLZA" }, { "TID_LGPE", "VARCHAR(255) AFTER OT_LGPE" }, { "SID_LGPE", "VARCHAR(255) AFTER TID_LGPE" }
+                { "Code_SV", "TEXT AFTER SID" }, { "Code_SWSH", "TEXT AFTER Code_SV" }, { "Code_BDSP", "TEXT AFTER Code_SWSH" },
+                { "Code_LA", "TEXT AFTER Code_BDSP" }, { "Code_PLZA", "TEXT AFTER Code_LA" }, { "Code_LGPE", "TEXT AFTER Code_PLZA" },
+                { "OT_SV", "TEXT AFTER Code_LGPE" }, { "TID_SV", "TEXT AFTER OT_SV" }, { "SID_SV", "TEXT AFTER TID_SV" },
+                { "OT_SWSH", "TEXT AFTER SID_SV" }, { "TID_SWSH", "TEXT AFTER OT_SWSH" }, { "SID_SWSH", "TEXT AFTER TID_SWSH" },
+                { "OT_BDSP", "TEXT AFTER SID_SWSH" }, { "TID_BDSP", "TEXT AFTER OT_BDSP" }, { "SID_BDSP", "TEXT AFTER TID_BDSP" },
+                { "OT_LA", "TEXT AFTER SID_BDSP" }, { "TID_LA", "TEXT AFTER OT_LA" }, { "SID_LA", "TEXT AFTER TID_LA" },
+                { "OT_PLZA", "TEXT AFTER SID_LA" }, { "TID_PLZA", "TEXT AFTER OT_PLZA" }, { "SID_PLZA", "TEXT AFTER TID_PLZA" },
+                { "OT_LGPE", "TEXT AFTER SID_PLZA" }, { "TID_LGPE", "TEXT AFTER OT_LGPE" }, { "SID_LGPE", "TEXT AFTER TID_LGPE" }
             };
 
             foreach (var col in columnsToEnsure)
@@ -127,16 +121,19 @@ public static class DatabaseService
                 );";
             using (var cmd = new MySqlCommand(blacklistQuery, conn)) cmd.ExecuteNonQuery();
 
-            LogUtil.LogInfo("DatabaseService", "Real-time SQL database synchronized.");
+            LogUtil.LogInfo("DatabaseService", "Global database ready.");
         }
         catch (Exception ex)
         {
-            LogUtil.LogError($"Remote sync warning (falling back to local): {ex.Message}", "DatabaseService");
+            LogUtil.LogError($"Remote sync warning: {ex.Message}", "DatabaseService");
             _initialized = false; 
         }
     }
 
-    public static async Task SendBotHeartbeat(string hosterName, string game)
+    /// <summary>
+    /// Updates the ActiveBots table to show this instance is online.
+    /// </summary>
+    public static async Task SendBotHeartbeat(string instanceId, string hosterName, string game)
     {
         if (!_initialized) return;
         try
@@ -150,12 +147,16 @@ public static class DatabaseService
                 HosterName=@name, Game=@game, LastSeen=CURRENT_TIMESTAMP;";
             
             using var cmd = new MySqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@id", _instanceId);
-            cmd.Parameters.AddWithValue("@name", hosterName);
+            cmd.Parameters.AddWithValue("@id", instanceId);
+            cmd.Parameters.AddWithValue("@name", string.IsNullOrWhiteSpace(hosterName) ? "Anonymous Hoster" : hosterName);
             cmd.Parameters.AddWithValue("@game", game);
             await cmd.ExecuteNonQueryAsync();
+            LogUtil.LogInfo("SQL Sync", $"Heartbeat sent for {game} instance.");
         }
-        catch { }
+        catch (Exception ex)
+        {
+            LogUtil.LogError($"Heartbeat failed: {ex.Message}", "SQL Sync");
+        }
     }
 
     public static bool IsGuildBlacklisted(ulong guildID)
