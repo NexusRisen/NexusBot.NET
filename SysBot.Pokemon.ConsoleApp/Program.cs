@@ -28,6 +28,12 @@ public static class Program
     {
         LogUtil.LogInfo("SysBot", "Starting up...");
 
+        if (args.Length > 0 && args[0].ToLower() == "setup")
+        {
+            DbSetupTool.Run();
+            return;
+        }
+
         if (args.Length > 1)
             LogUtil.LogInfo("SysBot", "This program does not support command line arguments.");
 

@@ -51,6 +51,7 @@ public class TradeCodeStorage
             if (user != null)
             {
                 user.TradeCount++;
+                user.TotalTrades++; // Sync plain numeric column
                 user.Medals = CalculateMedals(user.TradeCount);
                 user.MedalCount = user.Medals; 
                 
@@ -70,7 +71,7 @@ public class TradeCodeStorage
             }
             
             var initialCode = GenerateRandomTradeCode();
-            var newUser = new TradeCodeDetails { TradeCount = 1, Medals = 1, MedalCount = 1 };
+            var newUser = new TradeCodeDetails { TradeCount = 1, TotalTrades = 1, Medals = 1, MedalCount = 1 };
             SetCodeForGame(newUser, _game, initialCode.ToString());
             SyncGenericFields(newUser, true);
             DatabaseService.SaveUser(trainerID, newUser);
@@ -81,6 +82,7 @@ public class TradeCodeStorage
         if (_tradeCodeDetails!.TryGetValue(trainerID, out var details))
         {
             details.TradeCount++;
+            details.TotalTrades++;
             details.Medals = CalculateMedals(details.TradeCount);
             details.MedalCount = details.Medals;
             
@@ -100,7 +102,7 @@ public class TradeCodeStorage
         }
 
         var localCode = GenerateRandomTradeCode();
-        var newDetails = new TradeCodeDetails { TradeCount = 1, Medals = 1, MedalCount = 1 };
+        var newDetails = new TradeCodeDetails { TradeCount = 1, TotalTrades = 1, Medals = 1, MedalCount = 1 };
         SetCodeForGame(newDetails, _game, localCode.ToString());
         SyncGenericFields(newDetails, true);
         _tradeCodeDetails![trainerID] = newDetails;
@@ -116,6 +118,7 @@ public class TradeCodeStorage
             if (user != null)
             {
                 user.TradeCount++;
+                user.TotalTrades++;
                 user.Medals = CalculateMedals(user.TradeCount);
                 user.MedalCount = user.Medals;
                 
@@ -134,7 +137,7 @@ public class TradeCodeStorage
             }
             
             var initialLg = GenerateRandomLGCode();
-            var newUser = new TradeCodeDetails { TradeCount = 1, Medals = 1, MedalCount = 1, Code_LGPE = LGCodeToString(initialLg) };
+            var newUser = new TradeCodeDetails { TradeCount = 1, TotalTrades = 1, Medals = 1, MedalCount = 1, Code_LGPE = LGCodeToString(initialLg) };
             SyncGenericFields(newUser, true);
             DatabaseService.SaveUser(trainerID, newUser);
             return initialLg;
@@ -144,6 +147,7 @@ public class TradeCodeStorage
         if (_tradeCodeDetails!.TryGetValue(trainerID, out var details))
         {
             details.TradeCount++;
+            details.TotalTrades++;
             details.Medals = CalculateMedals(details.TradeCount);
             details.MedalCount = details.Medals;
             
@@ -162,7 +166,7 @@ public class TradeCodeStorage
         }
 
         var localLg = GenerateRandomLGCode();
-        var newDetails = new TradeCodeDetails { TradeCount = 1, Medals = 1, MedalCount = 1, Code_LGPE = LGCodeToString(localLg) };
+        var newDetails = new TradeCodeDetails { TradeCount = 1, TotalTrades = 1, Medals = 1, MedalCount = 1, Code_LGPE = LGCodeToString(localLg) };
         SyncGenericFields(newDetails, true);
         _tradeCodeDetails![trainerID] = newDetails;
         SaveToFile();
@@ -362,6 +366,7 @@ public class TradeCodeStorage
         public int TradeCount { get; set; }
         public int Medals { get; set; }
         public int MedalCount { get; set; }
+        public int TotalTrades { get; set; }
         
         // Optional Shared Profile Data
         public string? Quote { get; set; }
