@@ -34,20 +34,17 @@ public static class AutoLegalityExtensionsDiscord
 
             PKM pkm;
             string result;
+            var template = new RegenTemplate(set);
 
             if (isEggRequest)
             {
-                // Wrap the ShowdownSet directly in a RegenTemplate
-                var regenTemplate = new RegenTemplate(set);
-
                 // Generate egg using ALM
-                pkm = sav.GenerateEgg(regenTemplate, out var eggResult);
+                pkm = sav.GenerateEgg(template, out var eggResult);
                 result = eggResult.ToString();
             }
             else
             {
                 // Generate normally
-                var template = AutoLegalityWrapper.GetTemplate(set);
                 pkm = sav.GetLegal(template, out result);
 
                 if (pkm == null)
@@ -80,30 +77,36 @@ public static class AutoLegalityExtensionsDiscord
                         NatureEnforcer.ForceNature(pkm, set.Nature, set.Shiny);
                     }
                 }
-
-                var la = new LegalityAnalysis(pkm);
-                var spec = GameInfo.Strings.Species[set.Species];
-
-                if (!la.Valid)
-                {
-                    var reason = result switch
-                    {
-                        "Timeout" => $"That {spec} set took too long to generate.",
-                        "VersionMismatch" => "Request refused: PKHeX and Auto-Legality Mod version mismatch.",
-                        _ => $"I wasn't able to create a {spec} from that set."
-                    };
-
-                    var imsg = $"Oops! {reason}";
-                    if (result == "Failed")
-                        imsg += $"\n{AutoLegalityWrapper.GetLegalizationHint(set, sav, pkm)}";
-
-                    await channel.SendMessageAsync(imsg).ConfigureAwait(false);
-                    return;
-                }
-
-                var msg = $"Here's your ({result}) legalized PKM & Showdown Set for {spec} ({la.EncounterOriginal.Name})!";
-                await channel.SendPKMAsync(pkm, msg + $"\n{ReusableActions.GetFormattedShowdownText(pkm)}").ConfigureAwait(false);
             }
+
+            if (pkm == null)
+            {
+                await channel.SendMessageAsync("Failed to generate Pokémon from your set.").ConfigureAwait(false);
+                return;
+            }
+
+            var la = new LegalityAnalysis(pkm);
+            var spec = GameInfo.Strings.Species[set.Species];
+
+            if (!la.Valid)
+            {
+                var reason = result switch
+                {
+                    "Timeout" => $"That {spec} set took too long to generate.",
+                    "VersionMismatch" => "Request refused: PKHeX and Auto-Legality Mod version mismatch.",
+                    _ => $"I wasn't able to create a {spec} from that set."
+                };
+
+                var imsg = $"Oops! {reason}";
+                if (result == "Failed")
+                    imsg += $"\n{AutoLegalityWrapper.GetLegalizationHint(set, sav, pkm)}";
+
+                await channel.SendMessageAsync(imsg).ConfigureAwait(false);
+                return;
+            }
+
+            var msg = $"Here's your ({result}) legalized PKM & Showdown Set for {spec} ({la.EncounterOriginal.Name})!";
+            await channel.SendPKMAsync(pkm, msg + $"\n{ReusableActions.GetFormattedShowdownText(pkm)}").ConfigureAwait(false);
         }
         catch (Exception ex)
         {
