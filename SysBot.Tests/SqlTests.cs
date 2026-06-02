@@ -1,5 +1,7 @@
 using FluentAssertions;
 using SysBot.Pokemon;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace SysBot.Tests;
@@ -93,5 +95,20 @@ public class SqlTests
 
         DatabaseService.DeleteUser(testId).Should().BeTrue();
         DatabaseService.GetUser(testId).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task TestBotHeartbeat()
+    {
+        var settings = new DatabaseSettings();
+        DatabaseService.Initialize(settings);
+        if (!DatabaseService.UseRemoteDb) return;
+
+        string instanceId = "TestInstance_" + Guid.NewGuid().ToString().Substring(0, 8);
+        string botName = "TestBot";
+        string game = "SV";
+
+        await DatabaseService.SendBotHeartbeat(instanceId, botName, game);
+        // We can't easily verify this without a "GetBot" method, but we can check if it throws
     }
 }
