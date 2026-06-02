@@ -1,6 +1,7 @@
 using FluentAssertions;
 using SysBot.Pokemon;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -98,18 +99,21 @@ public class SqlTests
     }
 
     [Fact]
-    public async Task TestBotHeartbeat()
+    public async Task TestBotHeartbeatAndStats()
     {
         var settings = new DatabaseSettings();
         DatabaseService.Initialize(settings);
         if (!DatabaseService.UseRemoteDb) return;
 
         string instanceId = "TestInstance_" + Guid.NewGuid().ToString().Substring(0, 8);
-        string botName = "TestBot";
+        string botName = "TestBot_Verification";
         string game = "SV";
 
         await DatabaseService.SendBotHeartbeat(instanceId, botName, game);
-        // We can't easily verify this without a "GetBot" method, but we can check if it throws
+        
+        var stats = await DatabaseService.GetBotStats();
+        stats.Should().NotBeEmpty();
+        stats.Any(s => s.InstanceID == instanceId && s.HosterName == botName).Should().BeTrue();
     }
 
     [Fact]

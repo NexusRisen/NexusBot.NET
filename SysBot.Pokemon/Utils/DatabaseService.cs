@@ -156,6 +156,36 @@ public static class DatabaseService
         catch { }
     }
 
+    public record BotStat(string InstanceID, string HosterName, string Game, DateTime LastSeen);
+
+    public static async Task<List<BotStat>> GetBotStats()
+    {
+        var stats = new List<BotStat>();
+        if (!_initialized) return stats;
+        try
+        {
+            using var conn = new MySqlConnection(GetConnectionString());
+            await conn.OpenAsync();
+            string query = "SELECT * FROM ActiveBots WHERE LastSeen > DATE_SUB(NOW(), INTERVAL 5 MINUTE)";
+            using var cmd = new MySqlCommand(query, conn);
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                stats.Add(new BotStat(
+                    reader.GetString("InstanceID"),
+                    reader.GetString("HosterName"),
+                    reader.GetString("Game"),
+                    reader.GetDateTime("LastSeen")
+                ));
+            }
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogError($"Error reading bot stats: {ex.Message}", "DatabaseService");
+        }
+        return stats;
+    }
+
     public static bool IsGuildBlacklisted(ulong guildID)
     {
         if (!_initialized) return false;
