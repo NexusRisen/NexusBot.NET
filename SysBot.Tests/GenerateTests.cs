@@ -120,4 +120,47 @@ Quiet Nature
             pk!.AbilityNumber.Should().Be(abilNumber);
         }
     }
+
+    [Theory]
+    [InlineData("Pikachu", "Static")]
+    public void CanGenerateGen7(string species, string ability)
+    {
+        var sav = AutoLegalityWrapper.GetTrainerInfo<PB7>();
+        var set = new ShowdownSet($@"{species}
+Ability: {ability}
+Level: 10
+Nature: Adamant");
+        var template = AutoLegalityWrapper.GetTemplate(set);
+        var pk = sav.GetLegal(template, out _);
+        pk.Should().NotBeNull();
+        pk.Should().BeOfType<PB7>();
+    }
+
+    [Theory]
+    [InlineData("Arceus", "Multitype")]
+    public void CanGenerateLA(string species, string ability)
+    {
+        var sav = AutoLegalityWrapper.GetTrainerInfo<PA8>();
+        var set = new ShowdownSet($@"{species}
+Ability: {ability}
+Level: 100");
+        var template = AutoLegalityWrapper.GetTemplate(set);
+        var pk = sav.GetLegal(template, out _);
+        pk.Should().NotBeNull();
+        pk.Should().BeOfType<PA8>();
+    }
+
+    [Theory]
+    [InlineData("Xerneas", "Fairy Aura")]
+    public void CanGenerateZA(string species, string ability)
+    {
+        var sav = AutoLegalityWrapper.GetTrainerInfo<PA9>();
+        var set = new ShowdownSet($@"{species}
+Ability: {ability}
+Level: 100");
+        var template = AutoLegalityWrapper.GetTemplate(set);
+        var pk = sav.GetLegal(template, out _);
+        pk.Should().NotBeNull();
+        pk.Should().BeOfType<PA9>();
+    }
 }
