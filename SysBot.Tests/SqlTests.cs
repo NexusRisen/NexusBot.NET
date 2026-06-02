@@ -111,4 +111,40 @@ public class SqlTests
         await DatabaseService.SendBotHeartbeat(instanceId, botName, game);
         // We can't easily verify this without a "GetBot" method, but we can check if it throws
     }
+
+    [Fact]
+    public void TestTotalTradesAndLeaderboard()
+    {
+        var settings = new DatabaseSettings();
+        DatabaseService.Initialize(settings);
+        if (!DatabaseService.UseRemoteDb) return;
+
+        ulong userA = 1111111111111111111;
+        ulong userB = 2222222222222222222;
+
+        var detailsA = new TradeCodeStorage.TradeCodeDetails { TradeCount = 10, TotalTrades = 10, OT_SV = "UserA" };
+        var detailsB = new TradeCodeStorage.TradeCodeDetails { TradeCount = 20, TotalTrades = 20, OT_SV = "UserB" };
+
+        DatabaseService.SaveUser(userA, detailsA);
+        DatabaseService.SaveUser(userB, detailsB);
+
+        var leaderboard = DatabaseService.GetLeaderboard(5);
+        leaderboard.Should().NotBeEmpty();
+        
+        // Verify UserB is above UserA in leaderboard
+        var indexA = leaderboard.FindIndex(u => u.OT_SV == "UserA");
+        var indexB = leaderboard.FindIndex(u => u.OT_SV == "UserB");
+
+        if (indexA != -1 && indexB != -1)
+        {
+            indexB.Should().BeLessThan(indexA);
+        }
+
+        // Verify TotalTrades retrieval
+        var retrievedA = DatabaseService.GetUser(userA);
+        retrievedA!.TotalTrades.Should().Be(10);
+
+        DatabaseService.DeleteUser(userA);
+        DatabaseService.DeleteUser(userB);
+    }
 }

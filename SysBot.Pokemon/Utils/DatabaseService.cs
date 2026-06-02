@@ -332,4 +332,35 @@ public static class DatabaseService
             return false;
         }
     }
+
+    public static List<TradeCodeStorage.TradeCodeDetails> GetLeaderboard(int limit = 10)
+    {
+        var leaderboard = new List<TradeCodeStorage.TradeCodeDetails>();
+        try
+        {
+            using var conn = new MySqlConnection(GetConnectionString());
+            conn.Open();
+            string query = "SELECT * FROM Users ORDER BY TotalTrades DESC LIMIT @limit";
+            using var cmd = new MySqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@limit", limit);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                var d = new TradeCodeStorage.TradeCodeDetails
+                {
+                    TradeCount = int.Parse(EncryptionUtil.Decrypt(reader.GetString("TradeCount"))),
+                    TotalTrades = reader.IsDBNull(reader.GetOrdinal("TotalTrades")) ? 0 : reader.GetInt32("TotalTrades"),
+                    OT_SV = reader.IsDBNull(reader.GetOrdinal("OT_SV")) ? null : EncryptionUtil.Decrypt(reader.GetString("OT_SV")),
+                    // Add other fields as needed for the leaderboard display
+                };
+                leaderboard.Add(d);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogError($"Error reading leaderboard: {ex.Message}", "DatabaseService");
+        }
+        return leaderboard;
+    }
 }
