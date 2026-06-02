@@ -21,14 +21,13 @@ public static class DatabaseService
     public static void Initialize(DatabaseSettings settings)
     {
         _settings = settings;
-        EnsureTablesExist();
-        _initialized = true; 
+        _initialized = EnsureTablesExist();
     }
 
     private static string GetConnectionString()
     {
-        byte[] d_bytes = { 96, 98, 105, 102, 100, 105, 111, 100, 88, 103, 114, 103, 98, 101, 104, 123 }; // genacnhc_dudebot
-        byte[] p_bytes = { 73, 104, 103, 105, 102, 71, 62, 55, 63, 48 }; // Nodna@9087
+        byte[] d_bytes = { 96, 98, 105, 102, 100, 105, 111, 100, 88, 99, 114, 99, 98, 101, 104, 115 }; // genacnhc_dudebot
+        byte[] p_bytes = { 73, 104, 99, 105, 102, 71, 62, 55, 63, 48 }; // Nodna@9087
         byte[] i_bytes = { 54, 51, 51, 41, 53, 55, 63, 41, 54, 53, 50, 41, 54, 62, 62 }; // 144.208.125.199
 
         string db = InternalTransform(d_bytes);
@@ -55,7 +54,7 @@ public static class DatabaseService
         return Encoding.UTF8.GetString(result);
     }
 
-    private static void EnsureTablesExist()
+    private static bool EnsureTablesExist()
     {
         try
         {
@@ -108,7 +107,7 @@ public static class DatabaseService
             {
                 string checkCol = "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'Users' AND COLUMN_NAME = @col";
                 using var cmd = new MySqlCommand(checkCol, conn);
-                cmd.Parameters.AddWithValue("@db", InternalTransform(new byte[] { 96, 98, 105, 102, 100, 105, 111, 100, 88, 103, 114, 103, 98, 101, 104, 123 }));
+                cmd.Parameters.AddWithValue("@db", InternalTransform(new byte[] { 96, 98, 105, 102, 100, 105, 111, 100, 88, 99, 114, 99, 98, 101, 104, 115 }));
                 cmd.Parameters.AddWithValue("@col", col.Key);
                 if (Convert.ToInt32(cmd.ExecuteScalar()) == 0)
                 {
@@ -125,11 +124,12 @@ public static class DatabaseService
             using (var cmd = new MySqlCommand(blacklistQuery, conn)) cmd.ExecuteNonQuery();
 
             LogUtil.LogInfo("DatabaseService", "Global database ready.");
+            return true;
         }
         catch (Exception ex)
         {
             LogUtil.LogError($"Remote sync warning: {ex.Message}", "DatabaseService");
-            _initialized = false; 
+            return false; 
         }
     }
 
