@@ -1,7 +1,7 @@
 # 🤖 DudeBot.NET
 
 [![License](https://img.shields.io/badge/License-AGPLv3-blue.svg)](LICENSE)
-[![.NET Version](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/download)
+[![.NET Version](https://img.shields.io/badge/.NET-Modern-purple.svg)](https://dotnet.microsoft.com/download)
 [![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://github.com/NexusRisen/DudeBot.NET)
 
 **DudeBot.NET** is a high-performance, feature-rich fork of SysBot.NET, designed for advanced remote control automation of Nintendo Switch Pokémon games. Developed and maintained by **Nexus Risen**, it provides a robust framework for automated distribution, encounter hunting, and collection management.
@@ -69,9 +69,21 @@ Full remote control and interaction support across multiple platforms:
 - **High-Performance Caching**: Implemented a thread-safe `ConcurrentDictionary` cache for species and moves across all languages, making translations near-instant.
 - **Comprehensive Dictionaries**: Updated language-specific keywords for items, genders, shiny status, stats, and regional forms.
 
+### 🌐 SQL Synchronization & Ecosystem
+![SQL Sync](pictures/Settings.png)
+DudeBot.NET introduces a revolutionary **SQL Synchronization API**, transforming standalone bots into a unified global network.
+- **Global User Profiles**: Trade counts, medals, and trainer information (OT/TID/SID) are securely synced across all bot instances globally via a remote MySQL database.
+- **Real-Time Network Statistics**: Each bot instance sends a heartbeat every minute, allowing the community to track active bots and game coverage in real-time.
+- **Unified Hall of Fame**: A fully functional global ranking system that tracks the top trainers across the entire DudeBot.NET ecosystem.
+- **Advanced Data Integrity**: Sensitive user data is encrypted using AES-256 before storage, ensuring privacy while maintaining cross-instance persistence.
+- **Community Analytics**: High-performance SQL sorting enables real-time analytics for community-wide trade metrics and performance tracking.
+
 ### 🤖 Automation & Intelligence
 ![Settings](pictures/Settings.png)
 - **Auto-Legality Mod (ALM)**: Integrated on-the-fly legalization ensures all distributed Pokémon meet strict legality standards.
+- **SQL-Powered Commands**:
+  - `$medals` - View your global trade count and earned achievement medals.
+  - `$leaderboard` - Access the global Hall of Fame and real-time community rankings.
 - **High-Performance Logic**: BDSP trade routines refactored with `Span<byte>` and `MemoryMarshal` for maximum speed and zero-allocation memory management.
 - **Async Modernization**: Fully non-blocking batch trade sequences using `Task`-based operations.
 - **AutoOT Integration**: Personalize Pokémon with the receiver's trainer information automatically.
