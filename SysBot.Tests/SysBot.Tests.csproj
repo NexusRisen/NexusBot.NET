@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="8.9.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
+    <PackageReference Include="PKHeX.Core" Version="26.5.5" />
     <PackageReference Include="xunit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>
@@ -23,9 +24,6 @@
     <ProjectReference Include="..\SysBot.Pokemon.Discord\SysBot.Pokemon.Discord.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="PKHeX.Core">
-      <HintPath>..\SysBot.Pokemon\deps\PKHeX.Core.dll</HintPath>
-    </Reference>
     <Reference Include="PKHeX.Core.AutoMod">
       <HintPath>..\SysBot.Pokemon\deps\PKHeX.Core.AutoMod.dll</HintPath>
     </Reference>

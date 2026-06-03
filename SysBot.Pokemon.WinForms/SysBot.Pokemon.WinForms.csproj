@@ -57,4 +57,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="PKHeX.Core" Version="26.5.5" />
+  </ItemGroup>
 </Project>

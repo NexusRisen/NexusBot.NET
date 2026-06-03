@@ -46,7 +46,7 @@ public static class AutoLegalityWrapper
         Legalizer.EnableEasterEggs = cfg.EnableEasterEggs;
         APILegality.AllowTrainerOverride = cfg.AllowTrainerDataOverride;
         APILegality.AllowBatchCommands = cfg.AllowBatchCommands;
-        APILegality.GameVersionPriority = cfg.GameVersionPriority;
+        APILegality.GameVersionPriority =  (PKHeX.Core.AutoMod.GameVersionPriorityType)cfg.GameVersionPriority ;
         cfg.PriorityOrder = APILegality.PriorityOrder = SanitizePriorityOrder(cfg.PriorityOrder);
 
         APILegality.SetBattleVersion = cfg.SetBattleVersion;
@@ -94,16 +94,31 @@ public static class AutoLegalityWrapper
         var fallback = GetDefaultTrainer(cfg);
         for (byte generation = 1; generation <= 9; generation++)
         {
-            var versions = GameUtil.GetVersionsInGeneration(generation, GameVersion.Any);
+            var versions = generation switch
+            {
+                1 => GameUtil.GetVersionsInGeneration(EntityContext.Gen1, GameVersion.Any),
+                2 => GameUtil.GetVersionsInGeneration(EntityContext.Gen2, GameVersion.Any),
+                3 => GameUtil.GetVersionsInGeneration(EntityContext.Gen3, GameVersion.Any),
+                4 => GameUtil.GetVersionsInGeneration(EntityContext.Gen4, GameVersion.Any),
+                5 => GameUtil.GetVersionsInGeneration(EntityContext.Gen5, GameVersion.Any),
+                6 => GameUtil.GetVersionsInGeneration(EntityContext.Gen6, GameVersion.Any),
+                7 => GameUtil.GetVersionsInGeneration(EntityContext.Gen7, GameVersion.Any),
+                8 => GameUtil.GetVersionsInGeneration(EntityContext.Gen8, GameVersion.Any),
+                9 => GameUtil.GetVersionsInGeneration(EntityContext.Gen9, GameVersion.Any),
+                _ => []
+            };
+
             foreach (var version in versions)
             {
                 var context = GetContextSafe(version);
-                RegisterIfNoneExist(fallback, generation, version, context);
+                if (context == EntityContext.None)
+                    continue;
+                RegisterIfNoneExist(fallback, context, version, generation);
             }
         }
         // Manually register for LGP/E since Gen7 above will only register the 3DS versions.  
-        RegisterIfNoneExist(fallback, 7, GameVersion.GP, EntityContext.Gen7);
-        RegisterIfNoneExist(fallback, 7, GameVersion.GE, EntityContext.Gen7);
+        RegisterIfNoneExist(fallback, EntityContext.Gen7, GameVersion.GP, 7);
+        RegisterIfNoneExist(fallback, EntityContext.Gen7, GameVersion.GE, 7);
     }
 
     private static EntityContext GetContextSafe(GameVersion v) => v switch
@@ -128,11 +143,10 @@ public static class AutoLegalityWrapper
             TID16 = cfg.GenerateTID16,
             SID16 = cfg.GenerateSID16,
             OT = ot,
-            Generation = 0,
         };
     }
 
-    private static void RegisterIfNoneExist(SimpleTrainerInfo fallback, byte generation, GameVersion version, EntityContext context)
+    private static void RegisterIfNoneExist(SimpleTrainerInfo fallback, EntityContext context, GameVersion version, byte generation)
     {
         if (context == EntityContext.None)
             return;
@@ -147,7 +161,7 @@ public static class AutoLegalityWrapper
         };
 
         // Pass the version as the second argument and the fallback as the third to match the overload
-        var exist = TrainerSettings.GetSavedTrainerData(context, version, info);
+        var exist = TrainerSettings.GetSavedTrainerData(context, version);
         if (exist is SimpleTrainerInfo) // not anything from files; this assumes ALM returns SimpleTrainerInfo for non-user-provided fake templates.
             TrainerSettings.Register(info);
     }
@@ -208,7 +222,19 @@ public static class AutoLegalityWrapper
     public static ITrainerInfo GetTrainerInfo(byte gen)
     {
         // Convert the numeric generation into a representative GameVersion, then to an EntityContext
-        var representativeVersion = GameUtil.GetVersion(gen);
+        var representativeVersion = gen switch
+        {
+            1 => GameVersion.RBY,
+            2 => GameVersion.GSC,
+            3 => GameVersion.RSE,
+            4 => GameVersion.DPPt,
+            5 => GameVersion.B2W2,
+            6 => GameVersion.ORAS,
+            7 => GameVersion.USUM,
+            8 => GameVersion.SWSH,
+            9 => GameVersion.SV,
+            _ => GameVersion.Any
+        };
         var context = GetContextSafe(representativeVersion);
         return TrainerSettings.GetSavedTrainerData(context);
     }

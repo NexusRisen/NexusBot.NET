@@ -1,15 +1,23 @@
-# DudeBot.NET - The Ultimate Synchronized Intelligence (v6.3.9)
+# DudeBot.NET Release Notes (v6.4.0)
 
-## Overview
-Release v6.3.9 introduces a significant expansion of the SQL Synchronization API, enabling real-time network statistics and a fully functional global ranking system. This update solidifies DudeBot.NET as a truly unified ecosystem.
+## Major Infrastructure Update
 
-## ✨ New Features & Enhancements
-- **Global Ranking System:** Full implementation of the Leaderboard API, allowing instances to query and display the top community trainers globally.
-- **Bot Network Intelligence:** Introduced the `GetBotStats` API, providing a real-time view of active bot instances and hoster activity across the network.
-- **Total Trades Analytics:** Enhanced tracking of plain-text trade metrics for high-performance SQL sorting and community-wide analytics.
-- **Advanced Verification Suite:** Added a comprehensive SQL API test suite covering Heartbeats, Leaderboards, and Data Integrity.
+This release marks a significant milestone in the DudeBot.NET ecosystem, focusing on modernization and infrastructure reliability.
 
-## 🛠️ Critical Fixes
-- **API Robustness:** Refactored database initialization to ensure accurate health reporting.
-- **Data Security:** Optimized encryption/decryption cycles for user profile data synchronization.
-- **Performance:** Improved asynchronous heartbeat delivery to minimize latency during high-traffic trade windows.
+### 🔄 Core Engine Migration
+- **PKHeX.Core NuGet Migration:** Successfully transitioned the entire project to use the official **PKHeX.Core** NuGet package (v26.5.5). This provides a more stable foundation and streamlines future dependency management.
+- **Custom ALM Integration:** Integrated a specialized fork of **PKHeX-Plugins** (santacrab2/cherrytree) to ensure seamless compatibility with the latest Core library.
+- **API Modernization:** Refactored multiple systems to align with the latest PKHeX 2026 standards, including `EntityContext` handling and unified `PKM` data structures.
+
+### 🧪 Enhanced Testing Suite
+- **Logic Verification:** Added a new suite of independent command logic tests in `SysBot.Tests`.
+- **Independent Validation:** Verified `$convert`, `$legalize`, and `$lc` core logic in a headless environment, ensuring reliability independent of the Discord infrastructure.
+- **Stability:** Executed the full 66-test battery with 100% success rate across all Pokémon generations.
+
+### 🛠️ Bug Fixes & Refinement
+- **VC Legality Patch:** Restored legacy support for Generation 1/2 Virtual Console transfers by re-implementing nature-experience correlation logic manually.
+- **Inventory System:** Updated SWSH fossil and treasure pouch constructors to match updated Core signatures.
+- **Metadata Reliability:** Resolved `GameVersionPriorityType` serialization warnings to ensure cleaner logs and more reliable configuration handling.
+
+---
+*DudeBot.NET v6.4.0 | Synchronized Intelligence*
