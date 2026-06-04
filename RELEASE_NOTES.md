@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **Automated Testing Suite Expansion**:
   - **AutoOT Validation**: Added tests to verify Original Trainer (OT) name sanitation across different languages (Asian vs. Latin) and ensure Pokémon legality is maintained after applying AutoOT data.
-  - **Batch Trade Processing**: Added comprehensive tests for `BatchNormalizer` to validate command conversion (Scale, Met Date, Egg Date) and automatic Alcremie topping injection logic.
+  - **Batch Trade Processing**: Added comprehensive tests for `BatchNormalizer` to validate command conversion (Scale, Met Date, Egg Date), automatic Alcremie topping injection logic, and **full multi-Pokémon batch generation pipeline verification**.
   - **Parsing Robustness**: Added tests for `TradeModuleHelpers` to ensure correct splitting of multi-set batch trade content using various delimiters.
 
 ## [v6.4.1] - 2026-06-02
