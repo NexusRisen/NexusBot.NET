@@ -83,7 +83,8 @@ Level: 100
             if (setStr.Contains("Pikachu"))
             {
                 // Verify Met Date was applied correctly (normalized to .MetDate=20240101)
-                var date = (DateOnly)pk.MetDate;
+                pk.MetDate.Should().NotBeNull();
+                var date = pk.MetDate!.Value;
                 int dateValue = date.Year * 10000 + date.Month * 100 + date.Day;
                 dateValue.Should().Be(20240101);
             }
