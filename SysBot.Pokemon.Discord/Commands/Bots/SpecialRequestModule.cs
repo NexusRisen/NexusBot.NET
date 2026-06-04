@@ -82,7 +82,7 @@ namespace SysBot.Pokemon.Discord
                 speciesName = part;
             }
 
-            var eventData = GetEventData(generationOrGame);
+            var eventData = TradeModuleHelpers.GetEventData(generationOrGame);
             if (eventData == null)
             {
                 await ReplyAsync($"Invalid generation or game: {generationOrGame}").ConfigureAwait(false);
@@ -124,7 +124,7 @@ namespace SysBot.Pokemon.Discord
 
             try
             {
-                var eventData = GetEventData(generationOrGame);
+                var eventData = TradeModuleHelpers.GetEventData(generationOrGame);
                 if (eventData == null)
                 {
                     await ReplyAsync($"Invalid generation or game: {generationOrGame}").ConfigureAwait(false);
@@ -139,7 +139,7 @@ namespace SysBot.Pokemon.Discord
                 }
 
                 var selectedEvent = entityEvents[index - 1];
-                var pk = ConvertEventToPKM(selectedEvent);
+                var pk = TradeModuleHelpers.ConvertEventToPKM<T>(selectedEvent);
                 if (pk == null)
                 {
                     await ReplyAsync("Wondercard data provided is not compatible with this module!").ConfigureAwait(false);
@@ -206,7 +206,7 @@ namespace SysBot.Pokemon.Discord
 
             try
             {
-                var eventData = GetEventData(generationOrGame);
+                var eventData = TradeModuleHelpers.GetEventData(generationOrGame);
                 if (eventData == null)
                 {
                     await ReplyAsync($"Invalid generation or game: {generationOrGame}").ConfigureAwait(false);
@@ -226,7 +226,7 @@ namespace SysBot.Pokemon.Discord
                     }
 
                     var selectedEvent = entityEvents[index - 1];
-                    var pk = ConvertEventToPKM(selectedEvent);
+                    var pk = TradeModuleHelpers.ConvertEventToPKM<T>(selectedEvent);
                     if (pk == null)
                     {
                         errors.Add($"Index {index} event data is not compatible.");
@@ -280,23 +280,56 @@ namespace SysBot.Pokemon.Discord
             }
         }
 
-
-        public static MysteryGift[]? GetEventData(string generationOrGame)
+        public async Task GetEventPokemonAsync(string generationOrGame, int eventIndex, byte? language = null)
         {
-            return generationOrGame.ToLowerInvariant() switch
+            try
             {
-                "4" or "gen4" => EncounterEvent.MGDB_G4,
-                "5" or "gen5" => EncounterEvent.MGDB_G5,
-                "6" or "gen6" => EncounterEvent.MGDB_G6,
-                "7" or "gen7" => EncounterEvent.MGDB_G7,
-                "gg" or "lgpe" => EncounterEvent.MGDB_G7GG,
-                "swsh" => EncounterEvent.MGDB_G8,
-                "pla" or "la" => EncounterEvent.MGDB_G8A,
-                "bdsp" => EncounterEvent.MGDB_G8B,
-                "9" or "gen9" => EncounterEvent.MGDB_G9,
-                "plza" or "9a" or "gen9a" => EncounterEvent.MGDB_G9A,
-                _ => null,
-            };
+                var eventData = TradeModuleHelpers.GetEventData(generationOrGame);
+                if (eventData == null)
+                {
+                    await ReplyAsync($"Invalid generation or game: {generationOrGame}").ConfigureAwait(false);
+                    return;
+                }
+
+                var entityEvents = eventData.Where(gift => gift.IsEntity && !gift.IsItem).ToArray();
+                if (eventIndex < 1 || eventIndex > entityEvents.Length)
+                {
+                    await ReplyAsync($"Invalid event index. Please use a valid event number from the `{SysCord<T>.Runner.Config.Discord.CommandPrefix}gep {generationOrGame}` command.").ConfigureAwait(false);
+                    return;
+                }
+
+                var selectedEvent = entityEvents[eventIndex - 1];
+                var pk = TradeModuleHelpers.ConvertEventToPKM<T>(selectedEvent);
+                if (pk == null)
+                {
+                    await ReplyAsync("Wondercard data provided is not compatible with this module!").ConfigureAwait(false);
+                    return;
+                }
+
+                // If language is provided, set pk.Language
+                if (language.HasValue)
+                {
+                    pk.Language = language.Value;
+                }
+
+                try
+                {
+                    await Context.User.SendPKMAsync(pk);
+                    await ReplyAsync($"{Context.User.Mention}, I've sent you the PK file via DM.");
+                }
+                catch (HttpException ex) when (ex.HttpCode == HttpStatusCode.Forbidden)
+                {
+                    await ReplyAsync($"{Context.User.Mention}, I'm unable to send you a DM. Please check your **Server Privacy Settings**.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await ReplyAsync($"An error occurred: {ex.Message}").ConfigureAwait(false);
+            }
+            finally
+            {
+                await CleanupUserMessageAsync().ConfigureAwait(false);
+            }
         }
 
         private static IEnumerable<(int Index, string EventInfo)> GetFilteredEvents(MysteryGift[] eventData, string speciesName = "")
@@ -368,140 +401,6 @@ namespace SysBot.Pokemon.Discord
         {
             if (Context.Message is IUserMessage userMessage)
                 await userMessage.DeleteAsync().ConfigureAwait(false);
-        }
-
-        public static T? ConvertEventToPKM(MysteryGift selectedEvent, byte? requestedLanguage = null, string? metDate = null)
-        {
-            // Create a SimpleTrainerInfo instance with just version and language
-            var trainer = new SimpleTrainerInfo(selectedEvent.Version)
-            {
-                Language = requestedLanguage ?? (byte)LanguageID.English,
-            };
-
-            // Let the original implementation handle everything including special cases
-            PKM? pkm = selectedEvent.ConvertToPKM(trainer, EncounterCriteria.Unrestricted);
-
-            if (pkm is null)
-                return null;
-
-            // DO NOT apply custom met date for Mystery Gift eggs
-            // PKHeX already handles dates correctly for Mystery Gifts including special cases like:
-            // - BDSP eggs where MetLocation=65535 requires date fields to be 0
-            // - SV eggs where MetLocation=0 requires date fields to be 0
-            // Only apply custom dates for non-Mystery Gift scenarios
-            // Note: For now, we skip date setting for all eggs to avoid conflicts
-            if (!string.IsNullOrEmpty(metDate) && !pkm.IsEgg)
-            {
-                bool dateParseSuccess = false;
-
-                // Try to parse YYYYMMDD format first (expected from PKHeX)
-                if (metDate.Length == 8 && DateTime.TryParseExact(metDate, "yyyyMMdd", 
-                    System.Globalization.CultureInfo.InvariantCulture, 
-                    System.Globalization.DateTimeStyles.None, out DateTime parsedDate))
-                {
-                    dateParseSuccess = true;
-                }
-                // Fallback to general DateTime parsing for other formats
-                else if (DateTime.TryParse(metDate, out parsedDate))
-                {
-                    dateParseSuccess = true;
-                }
-                
-                if (dateParseSuccess)
-                {
-                    var dateOnly = new DateOnly(parsedDate.Year, parsedDate.Month, parsedDate.Day);
-                    
-                    // Set MetDate for non-eggs
-                    if (pkm is PK9 pk9)
-                    {
-                        pk9.MetDate = dateOnly;
-                    }
-                    else if (pkm is PK8 pk8)
-                    {
-                        pk8.MetDate = dateOnly;
-                    }
-                    else if (pkm is PA8 pa8)
-                    {
-                        pa8.MetDate = dateOnly;
-                    }
-                    else if (pkm is PB8 pb8)
-                    {
-                        pb8.MetDate = dateOnly;
-                    }
-                    else if (pkm is PA9 pa9)
-                    {
-                        pa9.MetDate = dateOnly;
-                    }
-                    else
-                    {
-                        // For older PKM formats, use individual day/month/year properties
-                        pkm.MetDay = (byte)parsedDate.Day;
-                        pkm.MetMonth = (byte)parsedDate.Month;
-                        pkm.MetYear = (byte)(parsedDate.Year - 2000); // PKHeX stores only the last two digits of the year
-                    }
-                }
-            }
-
-            // Convert to the correct type if necessary
-            if (pkm is T pk)
-                return pk;
-
-            return EntityConverter.ConvertToType(pkm, typeof(T), out _) as T;
-        }
-
-        [Command("geteventpokemon")]
-        [Alias("gep")]
-        [Summary("Downloads the requested event as a pk file and sends it to the user. Optionally, specify the language.")]
-        public async Task GetEventPokemonAsync(string generationOrGame, int eventIndex, byte? language = null)
-        {
-            try
-            {
-                var eventData = GetEventData(generationOrGame);
-                if (eventData == null)
-                {
-                    await ReplyAsync($"Invalid generation or game: {generationOrGame}").ConfigureAwait(false);
-                    return;
-                }
-
-                var entityEvents = eventData.Where(gift => gift.IsEntity && !gift.IsItem).ToArray();
-                if (eventIndex < 1 || eventIndex > entityEvents.Length)
-                {
-                    await ReplyAsync($"Invalid event index. Please use a valid event number from the `{SysCord<T>.Runner.Config.Discord.CommandPrefix}gep {generationOrGame}` command.").ConfigureAwait(false);
-                    return;
-                }
-
-                var selectedEvent = entityEvents[eventIndex - 1];
-                var pk = ConvertEventToPKM(selectedEvent);
-                if (pk == null)
-                {
-                    await ReplyAsync("Wondercard data provided is not compatible with this module!").ConfigureAwait(false);
-                    return;
-                }
-
-                // If language is provided, set pk.Language
-                if (language.HasValue)
-                {
-                    pk.Language = language.Value;
-                }
-
-                try
-                {
-                    await Context.User.SendPKMAsync(pk);
-                    await ReplyAsync($"{Context.User.Mention}, I've sent you the PK file via DM.");
-                }
-                catch (HttpException ex) when (ex.HttpCode == HttpStatusCode.Forbidden)
-                {
-                    await ReplyAsync($"{Context.User.Mention}, I'm unable to send you a DM. Please check your **Server Privacy Settings**.");
-                }
-            }
-            catch (Exception ex)
-            {
-                await ReplyAsync($"An error occurred: {ex.Message}").ConfigureAwait(false);
-            }
-            finally
-            {
-                await CleanupUserMessageAsync().ConfigureAwait(false);
-            }
         }
 
         private async Task AddTradeToQueueAsync(int code, string trainerName, T pk, RequestSignificance sig, SocketUser usr, bool isBatchTrade = false, int batchTradeNumber = 1, int totalBatchTrades = 1, bool isMysteryEgg = false, List<Pictocodes>? lgcode = null, PokeTradeType tradeType = PokeTradeType.Specific, bool ignoreAutoOT = false, bool isHiddenTrade = false)

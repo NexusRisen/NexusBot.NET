@@ -256,7 +256,7 @@ public class TradeStartModule<T> : ModuleBase<SocketCommandContext> where T : PK
     {
         if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
         {
-            using var response = await NetUtil.HttpClient.GetAsync(imagePath);
+            using var response = await DiscordNetUtil.HttpClient.GetAsync(imagePath);
             await using var stream = await response.Content.ReadAsStreamAsync();
 #pragma warning disable CA1416 // Validate platform compatibility
             return new Bitmap(stream);

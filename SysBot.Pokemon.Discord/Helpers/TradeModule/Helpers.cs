@@ -195,7 +195,7 @@ public static class Helpers<T> where T : PKM, new()
             return null;
         }
 
-        var att = await NetUtil.DownloadPKMAsync(attachment).ConfigureAwait(false);
+        var att = await DiscordNetUtil.DownloadPKMAsync(attachment).ConfigureAwait(false);
         var pk = GetRequest(att);
 
         if (pk == null)

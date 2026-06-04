@@ -681,7 +681,7 @@ public static class QueueHelper<T> where T : PKM, new()
     {
         try
         {
-            using HttpResponseMessage response = await NetUtil.HttpClient.GetAsync(url);
+            using HttpResponseMessage response = await DiscordNetUtil.HttpClient.GetAsync(url);
             if (!response.IsSuccessStatusCode)
             {
                 Console.WriteLine($"Failed to load image from {url}. Status code: {response.StatusCode}");
@@ -801,7 +801,7 @@ public static class QueueHelper<T> where T : PKM, new()
     {
         if (imagePath.StartsWith("http", StringComparison.OrdinalIgnoreCase))
         {
-            using var response = await NetUtil.HttpClient.GetAsync(imagePath);
+            using var response = await DiscordNetUtil.HttpClient.GetAsync(imagePath);
             await using var stream = await response.Content.ReadAsStreamAsync();
 #pragma warning disable CA1416 // Validate platform compatibility
             return new Bitmap(stream);

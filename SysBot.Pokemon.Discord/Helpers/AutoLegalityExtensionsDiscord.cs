@@ -136,7 +136,7 @@ public static class AutoLegalityExtensionsDiscord
 
     public static async Task ReplyWithLegalizedSetAsync(this ISocketMessageChannel channel, IAttachment att)
     {
-        var download = await NetUtil.DownloadPKMAsync(att).ConfigureAwait(false);
+        var download = await DiscordNetUtil.DownloadPKMAsync(att).ConfigureAwait(false);
         if (!download.Success)
         {
             await channel.SendMessageAsync(download.ErrorMessage).ConfigureAwait(false);

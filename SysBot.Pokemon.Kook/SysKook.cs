@@ -547,7 +547,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
 
     private async Task HandleQueueStatusCommandAsync(SocketMessage message)
     {
-        var pos = Hub.Queues.Info.CheckPosition(message.Author.Id);
+        var pos = Hub.Queues.Info.CheckPosition(message.Author.Id, 0);
         if (pos.Position == -1)
             await message.Channel.SendTextAsync($"{message.Author.Username}, you are not in the queue.");
         else
@@ -556,7 +556,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
 
     private async Task HandleQueueClearCommandAsync(SocketMessage message)
     {
-        if (Hub.Queues.Info.RemoveFromQueue(message.Author.Id))
+        if (Hub.Queues.Info.ClearTrade(message.Author.Id) != QueueResultRemove.NotInQueue)
             await message.Channel.SendTextAsync($"{message.Author.Username}, removed from queue.");
         else
             await message.Channel.SendTextAsync($"{message.Author.Username}, not in queue.");
@@ -585,7 +585,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
     private async Task HandleMysteryEggCommandAsync(SocketMessage message)
     {
         if (Hub.Queues.Info.IsUserInQueue(message.Author.Id)) return;
-        var egg = MysteryModule<T>.GenerateLegalMysteryEgg();
+        var egg = TradeModuleHelpers.GenerateLegalMysteryEgg<T>();
         if (egg != null)
             await KookHelper<T>.AddToQueueAsync(message, Hub.Queues.Info.GetRandomTradeCode(message.Author.Id), message.Author.Username, egg, message.Author, _client);
     }
@@ -593,8 +593,8 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
     private async Task HandleBatchTradeCommandAsync(SocketMessage message, List<string> args)
     {
         if (args.Count == 0 || Hub.Queues.Info.IsUserInQueue(message.Author.Id)) return;
-        var sets = BatchHelpers<T>.ParseBatchTradeContent(BatchNormalizer.NormalizeBatchCommands(string.Join(" ", args)));
-        if (sets.Count > Hub.Config.Trade.BatchSettings.MaxBatchAmount) return;
+        var sets = TradeModuleHelpers.ParseBatchTradeContent(BatchNormalizer.NormalizeBatchCommands(string.Join(" ", args)));
+        if (sets.Count > Hub.Config.Trade.BatchSettings.MaxPkmsPerTrade) return;
 
         var pkmList = new List<T>();
         foreach (var s in sets)
@@ -612,7 +612,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         if (args.Count == 0) return;
         try
         {
-            var sets = ParseShowdownSets(await NetUtil.HttpClient.GetStringAsync(args[0]));
+            var sets = ParseShowdownSets(await SysBot.Pokemon.Helpers.NetUtil.HttpClient.GetStringAsync(args[0]));
             if (sets.Count == 0) return;
             await message.Channel.SendTextAsync($"Found {sets.Count} Pokémon. Processing...");
             _ = Task.Run(async () => {
@@ -635,7 +635,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
     private async Task HandleSpecialRequestPokemonCommandAsync(SocketMessage message, List<string> args)
     {
         if (args.Count == 0) return;
-        var eventData = SpecialRequestModule<T>.GetEventData(args[0]);
+        var eventData = TradeModuleHelpers.GetEventData(args[0]);
         if (eventData == null) return;
 
         if (args.Count > 1 && int.TryParse(args[1], out int index))
@@ -643,7 +643,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
             if (Hub.Queues.Info.IsUserInQueue(message.Author.Id)) return;
             var entityEvents = eventData.Where(gift => gift.IsEntity && !gift.IsItem).ToArray();
             if (index < 1 || index > entityEvents.Length) return;
-            var pk = SpecialRequestModule<T>.ConvertEventToPKM(entityEvents[index - 1]);
+            var pk = TradeModuleHelpers.ConvertEventToPKM<T>(entityEvents[index - 1]);
             if (pk != null)
                 await KookHelper<T>.AddToQueueAsync(message, Hub.Queues.Info.GetRandomTradeCode(message.Author.Id), message.Author.Username, pk, message.Author, _client);
         }

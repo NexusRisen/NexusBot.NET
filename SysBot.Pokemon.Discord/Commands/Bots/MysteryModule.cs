@@ -101,7 +101,7 @@ namespace SysBot.Pokemon.Discord
                     // Generate all mystery eggs
                     for (int i = 0; i < count; i++)
                     {
-                        var egg = GenerateLegalMysteryEgg();
+                        var egg = TradeModuleHelpers.GenerateLegalMysteryEgg<T>();
                         if (egg != null)
                         {
                             batchEggList.Add(egg);
@@ -210,7 +210,7 @@ namespace SysBot.Pokemon.Discord
                     // Generate all mystery pokemon
                     for (int i = 0; i < count; i++)
                     {
-                        var pk = GenerateLegalMysteryPokemon();
+                        var pk = TradeModuleHelpers.GenerateLegalMysteryPokemon<T>();
                         if (pk != null)
                         {
                             batchList.Add(pk);
@@ -340,232 +340,9 @@ namespace SysBot.Pokemon.Discord
             return embedBuilder.Build();
         }
 
-        /// <summary>
-        /// Generates a legal mystery egg with shiny status, perfect IVs, and hidden ability if available.
-        /// </summary>
-        public static T? GenerateLegalMysteryEgg(int maxAttempts = DefaultMaxGenerationAttempts)
-        {
-            var context = GetContext();
-            if (context == EntityContext.None)
-                return null;
-
-            var breedableSpecies = GetBreedableSpecies(context);
-            if (breedableSpecies.Count == 0)
-                return null;
-
-            var random = new Random();
-            var shuffled = breedableSpecies.OrderBy(_ => random.Next()).Take(maxAttempts).ToList();
-
-            var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-            var originalPriority = APILegality.PriorityOrder?.ToList() ?? [];
-            APILegality.PriorityOrder = GetPriorityOrder();
-
-            try
-            {
-                foreach (var species in shuffled)
-                {
-                    var set = CreateEggShowdownSet(species, context);
-                    var template = AutoLegalityWrapper.GetTemplate(set);
-                    var pk = sav.GenerateEgg(template, out var result);
-
-                    if (pk == null || result != LegalizationResult.Regenerated)
-                        continue;
-
-                    pk = EntityConverter.ConvertToType(pk, typeof(T), out _) ?? pk;
-                    if (pk is not T validPk)
-                        continue;
-
-                    var la = new LegalityAnalysis(validPk);
-                    if (la.Valid)
-                        return validPk;
-                }
-            }
-            finally
-            {
-                APILegality.PriorityOrder = originalPriority;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Generates a legal random Pokémon with shiny status, perfect IVs, and hidden ability if available.
-        /// </summary>
-        public static T? GenerateLegalMysteryPokemon(int maxAttempts = DefaultMaxGenerationAttempts)
-        {
-            var context = GetContext();
-            if (context == EntityContext.None)
-                return null;
-
-            var speciesList = GetLegalSpecies(context);
-            if (speciesList.Count == 0)
-                return null;
-
-            var random = new Random();
-            var shuffled = speciesList.OrderBy(_ => random.Next()).Take(maxAttempts).ToList();
-
-            var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-            var originalPriority = APILegality.PriorityOrder?.ToList() ?? [];
-            APILegality.PriorityOrder = GetPriorityOrder();
-
-            try
-            {
-                foreach (var species in shuffled)
-                {
-                    var speciesName = GameInfo.Strings.Species[species];
-                    var setString = $"{speciesName}\nShiny: Yes\nIVs: 31/31/31/31/31/31";
-                    
-                    var hiddenAbilityName = GetHiddenAbilityName(species, context);
-                    if (!string.IsNullOrEmpty(hiddenAbilityName))
-                        setString += $"\nAbility: {hiddenAbilityName}";
-
-                    var set = new ShowdownSet(setString);
-                    var template = AutoLegalityWrapper.GetTemplate(set);
-                    var pk = sav.GetLegal(template, out var result);
-
-                    if (pk == null)
-                        continue;
-
-                    pk = EntityConverter.ConvertToType(pk, typeof(T), out _) ?? pk;
-                    if (pk is not T validPk)
-                        continue;
-
-                    var la = new LegalityAnalysis(validPk);
-                    if (la.Valid)
-                        return validPk;
-                }
-            }
-            finally
-            {
-                APILegality.PriorityOrder = originalPriority;
-            }
-
-            return null;
-        }
-
-        private static ShowdownSet CreateEggShowdownSet(ushort species, EntityContext context)
-        {
-            var speciesName = GameInfo.Strings.Species[species];
-            var setString = $"{speciesName}\nShiny: Yes\nIVs: 31/31/31/31/31/31";
-
-            // Try to add hidden ability if available
-            var hiddenAbilityName = GetHiddenAbilityName(species, context);
-            if (!string.IsNullOrEmpty(hiddenAbilityName))
-                setString += $"\nAbility: {hiddenAbilityName}";
-
-            return new ShowdownSet(setString);
-        }
-
-        private static string? GetHiddenAbilityName(ushort species, EntityContext context)
-        {
-            var personalTable = GetPersonalTable(context);
-            if (personalTable == null)
-                return null;
-
-            try
-            {
-                var pi = personalTable.GetFormEntry(species, 0);
-                if (pi is IPersonalAbility12H piH)
-                {
-                    var hiddenAbilityID = piH.AbilityH;
-                    if (hiddenAbilityID > 0 && hiddenAbilityID < GameInfo.Strings.Ability.Count)
-                        return GameInfo.Strings.Ability[hiddenAbilityID];
-                }
-            }
-            catch (Exception ex)
-            {
-                LogUtil.LogSafe(ex, $"Failed to get hidden ability for species {species}");
-            }
-
-            return null;
-        }
-
-        private static List<ushort> GetBreedableSpecies(EntityContext context)
-        {
-            lock (BreedableSpeciesCache)
-            {
-                if (BreedableSpeciesCache.TryGetValue(context, out var cached))
-                    return cached;
-            }
-
-            var personalTable = GetPersonalTable(context);
-            if (personalTable == null)
-                return [];
-
-            var breedable = new List<ushort>();
-            for (ushort species = 1; species <= personalTable.MaxSpeciesID; species++)
-            {
-                if (!Breeding.CanHatchAsEgg(species))
-                    continue;
-
-                if (!personalTable.IsSpeciesInGame(species))
-                    continue;
-
-                breedable.Add(species);
-            }
-
-            lock (BreedableSpeciesCache)
-            {
-                BreedableSpeciesCache[context] = breedable;
-            }
-
-            return breedable;
-        }
-
-        private static List<ushort> GetLegalSpecies(EntityContext context)
-        {
-            lock (LegalSpeciesCache)
-            {
-                if (LegalSpeciesCache.TryGetValue(context, out var cached))
-                    return cached;
-            }
-
-            var personalTable = GetPersonalTable(context);
-            if (personalTable == null)
-                return [];
-
-            var legal = new List<ushort>();
-            for (ushort species = 1; species <= personalTable.MaxSpeciesID; species++)
-            {
-                if (personalTable.IsSpeciesInGame(species))
-                    legal.Add(species);
-            }
-
-            lock (LegalSpeciesCache)
-            {
-                LegalSpeciesCache[context] = legal;
-            }
-
-            return legal;
-        }
-
-        private static EntityContext GetContext() => typeof(T).Name switch
-        {
-            "PB8" => EntityContext.Gen8b,
-            "PK8" => EntityContext.Gen8,
-            "PK9" => EntityContext.Gen9,
-            _ => EntityContext.None
-        };
-
-        private static List<GameVersion> GetPriorityOrder() => GetContext() switch
-        {
-            EntityContext.Gen8b => [GameVersion.BD, GameVersion.SP],
-            EntityContext.Gen8 => [GameVersion.SW, GameVersion.SH],
-            EntityContext.Gen9 => [GameVersion.SL, GameVersion.VL],
-            _ => []
-        };
-
-        private static IPersonalTable? GetPersonalTable(EntityContext context) => context switch
-        {
-            EntityContext.Gen8b => PersonalTable.BDSP,
-            EntityContext.Gen8 => PersonalTable.SWSH,
-            EntityContext.Gen9 => PersonalTable.SV,
-            _ => null
-        };
-
         private async Task ProcessMysteryEggTradeAsync(int code)
         {
-            var mysteryEgg = GenerateLegalMysteryEgg();
+            var mysteryEgg = TradeModuleHelpers.GenerateLegalMysteryEgg<T>();
             if (mysteryEgg == null)
             {
                 await ReplyAsync("Failed to generate a legal mystery egg. Please try again later.").ConfigureAwait(false);
@@ -585,7 +362,7 @@ namespace SysBot.Pokemon.Discord
 
         private async Task ProcessMysteryPokemonTradeAsync(int code)
         {
-            var mysteryPk = GenerateLegalMysteryPokemon();
+            var mysteryPk = TradeModuleHelpers.GenerateLegalMysteryPokemon<T>();
             if (mysteryPk == null)
             {
                 await ReplyAsync("Failed to generate a legal mystery Pokémon. Please try again later.").ConfigureAwait(false);
@@ -618,5 +395,13 @@ namespace SysBot.Pokemon.Discord
                 result.Add(values[random.Next(values.Length)]);
             return result;
         }
+
+        private static EntityContext GetContext() => typeof(T).Name switch
+        {
+            "PB8" => EntityContext.Gen8b,
+            "PK8" => EntityContext.Gen8,
+            "PK9" => EntityContext.Gen9,
+            _ => EntityContext.None
+        };
     }
 }

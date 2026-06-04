@@ -157,7 +157,7 @@ public static class ReusableActions
     {
         if (!EntityDetection.IsSizePlausible(att.Size))
             return;
-        var result = await NetUtil.DownloadPKMAsync(att).ConfigureAwait(false);
+        var result = await DiscordNetUtil.DownloadPKMAsync(att).ConfigureAwait(false);
         if (!result.Success)
             return;
 

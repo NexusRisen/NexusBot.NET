@@ -25,7 +25,7 @@ public class LegalityCheckModule : ModuleBase<SocketCommandContext>
 
     private async Task LegalityCheck(IAttachment att, bool verbose)
     {
-        var download = await NetUtil.DownloadPKMAsync(att).ConfigureAwait(false);
+        var download = await DiscordNetUtil.DownloadPKMAsync(att).ConfigureAwait(false);
         if (!download.Success)
         {
             await ReplyAsync(download.ErrorMessage).ConfigureAwait(false);

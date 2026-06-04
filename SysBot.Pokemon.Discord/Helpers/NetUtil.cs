@@ -3,19 +3,14 @@ using PKHeX.Core;
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using SysBot.Pokemon.Helpers;
 
 namespace SysBot.Pokemon.Discord;
 
-public static class NetUtil
+public static class DiscordNetUtil
 {
-    public static readonly HttpClient HttpClient = new();
+    public static HttpClient HttpClient => SysBot.Pokemon.Helpers.NetUtil.HttpClient;
 
-    public static async Task<byte[]> DownloadFromUrlAsync(string url)
-    {
-        return await HttpClient.GetByteArrayAsync(url).ConfigureAwait(false);
-    }
-
-    // Existing Discord attachment method
     public static async Task<Download<PKM>> DownloadPKMAsync(IAttachment att, SimpleTrainerInfo? defTrainer = null)
     {
         var result = new Download<PKM> { SanitizedFileName = Format.Sanitize(att.Filename) };
@@ -28,7 +23,7 @@ public static class NetUtil
         }
         string url = att.Url;
         // Download the resource and load the bytes into a buffer.
-        var buffer = await DownloadFromUrlAsync(url).ConfigureAwait(false);
+        var buffer = await SysBot.Pokemon.Helpers.NetUtil.DownloadFromUrlAsync(url).ConfigureAwait(false);
         PKM? pkm = null;
         try
         {
@@ -66,7 +61,7 @@ public static class NetUtil
         try
         {
             // Download the resource
-            var buffer = await DownloadFromUrlAsync(url).ConfigureAwait(false);
+            var buffer = await SysBot.Pokemon.Helpers.NetUtil.DownloadFromUrlAsync(url).ConfigureAwait(false);
 
             var extension = System.IO.Path.GetExtension(result.SanitizedFileName);
             var isMyg = MysteryGift.IsMysteryGift(buffer.Length) && extension != ".pb7";

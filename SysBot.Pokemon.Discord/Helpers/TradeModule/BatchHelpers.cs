@@ -16,8 +16,7 @@ public static class BatchHelpers<T> where T : PKM, new()
 {
     public static List<string> ParseBatchTradeContent(string content)
     {
-        var delimiters = new[] { "---", "—-" };
-        return [.. content.Split(delimiters, StringSplitOptions.RemoveEmptyEntries).Select(trade => trade.Trim())];
+        return TradeModuleHelpers.ParseBatchTradeContent(content);
     }
 
     public static async Task<(T? Pokemon, string? Error, ShowdownSet? Set, string? LegalizationHint)> ProcessSingleTradeForBatch(string tradeContent)
@@ -89,7 +88,7 @@ public static class BatchHelpers<T> where T : PKM, new()
                 }
                 else
                 {
-                    var att = await NetUtil.DownloadPKMAsync(attachment).ConfigureAwait(false);
+                    var att = await DiscordNetUtil.DownloadPKMAsync(attachment).ConfigureAwait(false);
                     var pk = Helpers<T>.GetRequest(att);
 
                     if (pk != null)

@@ -420,7 +420,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
             {
                 foreach (var attachment in attachments)
                 {
-                    using var stream = await NetUtil.HttpClient.GetStreamAsync(attachment.Url).ConfigureAwait(false);
+                    using var stream = await DiscordNetUtil.HttpClient.GetStreamAsync(attachment.Url).ConfigureAwait(false);
                     var file = new FileAttachment(stream, attachment.Filename);
                     await dmChannel.SendFileAsync(file, embed: embed.Build()).ConfigureAwait(false);
                 }
@@ -479,7 +479,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
         {
             foreach (var attachment in attachments)
             {
-                using var stream = await NetUtil.HttpClient.GetStreamAsync(attachment.Url).ConfigureAwait(false);
+                using var stream = await DiscordNetUtil.HttpClient.GetStreamAsync(attachment.Url).ConfigureAwait(false);
                 var file = new FileAttachment(stream, attachment.Filename);
                 await messageChannel.SendFileAsync(file, actualMessage).ConfigureAwait(false);
             }
