@@ -59,7 +59,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             .AddField("⚡ Real-Time Stats", "Rankings are updated globally across all bot hosters.")
             .WithColor(Color.Blue)
             .WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/1000.png")
-            .WithFooter("DudeBot.NET v6.4.0 | Synchronized via SQL")
+            .WithFooter("DudeBot.NET v6.4.1 | Synchronized via SQL")
             .Build();
 
         await ReplyAsync(embed: embed).ConfigureAwait(false);

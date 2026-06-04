@@ -10,6 +10,8 @@ public class KookSettings
 
     private const string Operation = nameof(Operation);
 
+    private const string Roles = nameof(Roles);
+
     private const string Startup = nameof(Startup);
 
     private const string Users = nameof(Users);
@@ -40,6 +42,24 @@ public class KookSettings
 
     [Category(Operation), Description("Emoji to show when the bot is offline."), DisplayName("Offline Emoji")]
     public string OfflineEmoji { get; set; } = "🔴";
+
+    [Category(Roles), Description("Users with this role are allowed to enter the Clone queue."), DisplayName("Role can Clone")]
+    public RemoteControlAccessList RoleCanClone { get; set; } = new() { AllowIfEmpty = true };
+
+    [Category(Roles), Description("Users with this role are allowed to enter the FixOT queue."), DisplayName("Role can FixOT")]
+    public RemoteControlAccessList RoleCanFixOT { get; set; } = new() { AllowIfEmpty = true };
+
+    [Category(Roles), Description("Users with this role are allowed to enter the Trade queue."), DisplayName("Role can Trade")]
+    public RemoteControlAccessList RoleCanTrade { get; set; } = new() { AllowIfEmpty = true };
+
+    [Category(Roles), Description("Users with this role are allowed to join the queue with a better position."), DisplayName("Favored Roles")]
+    public RemoteControlAccessList RoleFavored { get; set; } = new() { AllowIfEmpty = false };
+
+    [Category(Roles), Description("Users with this role are allowed to bypass command restrictions."), DisplayName("Allowed Sudo Roles")]
+    public RemoteControlAccessList RoleSudo { get; set; } = new() { AllowIfEmpty = false };
+
+    [Category(Users), Description("Users with these user IDs cannot use the bot."), DisplayName("User Blacklist")]
+    public RemoteControlAccessList UserBlacklist { get; set; } = new();
 
     public override string ToString() => "Kook Integration Settings";
 }

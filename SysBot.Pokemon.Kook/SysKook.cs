@@ -2,7 +2,9 @@ using Kook;
 using Kook.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 using SysBot.Base;
+using SysBot.Pokemon.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,9 +29,6 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
     private readonly PokeBotRunner<T> _runner;
     private readonly ProgramConfig _config;
     private readonly KookSocketClient _client;
-    // Kook.Net doesn't have a direct CommandService like Discord.Net yet in some versions, 
-    // but we can implement a simple one or use Kook.Net.Commands if available.
-    // For now, let's keep it simple.
 
     private readonly HashSet<string> _validCommands = new HashSet<string>
     {
@@ -115,7 +114,6 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         var emoji = isOnline ? SysKookSettings.Settings.OnlineEmoji : SysKookSettings.Settings.OfflineEmoji;
         var fullStatusMessage = $"{emoji} **Status**: {botName} is {status}!";
 
-        // Kook uses CardMessages for richer content
         var cardBuilder = new CardBuilder()
             .AddModule<SectionModuleBuilder>(s => s.WithText(fullStatusMessage, true));
 
@@ -174,7 +172,6 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
             }
         }
         
-        // Clear static reference to prevent memory leaks when reloading environment
         if (ReferenceEquals(Runner, _runner))
             Runner = null!;
 
@@ -241,13 +238,10 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
     private async Task HandleMessageAsync(SocketMessage message)
     {
         if (message.Author.IsBot ?? false) return;
-        
-        // 1. Channel Whitelist Check
         if (!Manager.CanUseCommandChannel(message.Channel.Id)) return;
 
         var content = message.Content;
         var prefix = Hub.Config.Kook.CommandPrefix;
-        
         if (!content.StartsWith(prefix)) return;
         
         var parts = content.Substring(prefix.Length).Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -256,10 +250,9 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         var cmd = parts[0].ToLower();
         if (!_validCommands.Contains(cmd)) return;
 
-        // 2. Global Sudo Check (Example)
-        bool isSudo = Hub.Config.Kook.GlobalSudoList.Contains(message.Author.Id);
-        
-        LogUtil.LogText($"Kook Command received: {cmd} from {message.Author.Username} (Sudo: {isSudo})");
+        if (Hub.Config.Kook.UserBlacklist.Contains(message.Author.Id)) return;
+
+        LogUtil.LogText($"Kook Command received: {cmd} from {message.Author.Username}");
         
         if (cmd == "ts")
         {
@@ -269,12 +262,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
                 _ = Task.Run(async () =>
                 {
                     await Task.Delay(Hub.Config.Kook.ErrorMessageDeleteDelaySeconds * 1000);
-                    try 
-                    { 
-                        var msg = await response.DownloadAsync();
-                        if (msg != null) await msg.DeleteAsync(); 
-                    } 
-                    catch { }
+                    try { var msg = await response.DownloadAsync(); if (msg != null) await msg.DeleteAsync(); } catch { }
                 });
             }
             return;
@@ -282,110 +270,90 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
 
         if (cmd == "trade" || cmd == "t")
         {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
             await HandleTradeCommandAsync(message, parts.Skip(1).ToList());
         }
         else if (cmd == "itemtrade" || cmd == "item" || cmd == "it")
         {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
             await HandleItemTradeCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "clone" || cmd == "c")
+        {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanClone)) return;
+            await HandleCloneCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "fixot" || cmd == "fix" || cmd == "f")
+        {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanFixOT)) return;
+            await HandleFixOTCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "dittotrade" || cmd == "ditto" || cmd == "dt")
+        {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
+            await HandleDittoTradeCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "queuestatus" || cmd == "qs")
+        {
+            await HandleQueueStatusCommandAsync(message);
+        }
+        else if (cmd == "queueclear" || cmd == "qc" || cmd == "tc")
+        {
+            await HandleQueueClearCommandAsync(message);
+        }
+        else if (cmd == "egg")
+        {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
+            await HandleEggCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "mysteryegg" || cmd == "me")
+        {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
+            await HandleMysteryEggCommandAsync(message);
+        }
+        else if (cmd == "batchtrade" || cmd == "bt")
+        {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
+            await HandleBatchTradeCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "pokepaste" || cmd == "pp")
+        {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
+            await HandlePokepasteCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "specialrequestpokemon" || cmd == "srp")
+        {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
+            await HandleSpecialRequestPokemonCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "deletetradecode" || cmd == "dtc")
+        {
+            await HandleDeleteTradeCodeCommandAsync(message);
         }
     }
 
-    private async Task HandleItemTradeCommandAsync(SocketMessage message, List<string> args)
+    private async Task<bool> CheckPermissions(SocketMessage message, RemoteControlAccessList allowedRoles, bool sudoOnly = false)
     {
-        if (args.Count == 0)
+        if (Hub.Config.Kook.GlobalSudoList.Contains(message.Author.Id)) return true;
+        if (sudoOnly) 
         {
-            await message.Channel.SendTextAsync("Please provide at least one item name.");
-            return;
+            await message.Channel.SendTextAsync("This command is restricted to bot administrators.");
+            return false;
         }
 
-        var itemInput = string.Join(" ", args);
-        var itemNames = itemInput.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        
-        if (typeof(T) == typeof(PB7) && itemNames.Length > 1)
+        if (allowedRoles.AllowIfEmpty && allowedRoles.List.Count == 0) return true;
+
+        if (message.Author is IGuildUser guildUser)
         {
-            await message.Channel.SendTextAsync("Batch trades are not supported in Let's Go Pikachu/Eevee. You can only request one item at a time.");
-            return;
-        }
-
-        var batchSettings = Hub.Config.Trade.BatchSettings;
-        var maxItemBatch = batchSettings.MaxItemBatchAmount;
-
-        if (itemNames.Length > 1 && !batchSettings.AllowBatchTrades)
-        {
-            await message.Channel.SendTextAsync("Batch trades are currently disabled. You can only request one item at a time.");
-            return;
-        }
-
-        if (itemNames.Length > maxItemBatch)
-        {
-            await message.Channel.SendTextAsync($"You can only request up to {maxItemBatch} items at a time.");
-            return;
-        }
-
-        var pkmList = new List<T>();
-        var errors = new List<string>();
-
-        var tradeConfig = Hub.Config.Trade.TradeConfiguration;
-        Species species = tradeConfig.ItemTradeSpecies == Species.None ? Species.Pikachu : tradeConfig.ItemTradeSpecies;
-        var baseSpeciesName = SpeciesName.GetSpeciesNameGeneration((ushort)species, 2, 8);
-
-        for (int i = 0; i < itemNames.Length; i++)
-        {
-            var itemName = itemNames[i];
-            var set = new ShowdownSet($"{baseSpeciesName} @ {itemName}");
-            var template = AutoLegalityWrapper.GetTemplate(set);
-            var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
-            var pkm = sav.GetLegal(template, out _);
-
-            if (pkm == null)
+            foreach (var roleId in guildUser.RoleIds)
             {
-                errors.Add($"Item '{itemName}': Failed to legalize.");
-                continue;
+                if (allowedRoles.Contains(roleId)) return true;
+                if (Hub.Config.Kook.RoleSudo.Contains(roleId)) return true;
             }
-
-            pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
-
-            if (pkm.HeldItem == 0)
-            {
-                errors.Add($"Item '{itemName}': Unrecognized item.");
-                continue;
-            }
-
-            if (TradeRestrictions.IsUntradableHeld(pkm.Context, pkm.HeldItem))
-            {
-                errors.Add($"Item '{itemName}': Untradable item.");
-                continue;
-            }
-
-            var la = new LegalityAnalysis(pkm);
-            if (pkm is not T pk || !la.Valid)
-            {
-                errors.Add($"Item '{itemName}': Invalid Pokémon generated.");
-                continue;
-            }
-
-            pk.ResetPartyStats();
-            pkmList.Add(pk);
         }
 
-        if (errors.Count > 0)
-        {
-            await message.Channel.SendTextAsync("Errors occurred:\n" + string.Join("\n", errors));
-            return;
-        }
-
-        if (pkmList.Count == 0) return;
-
-        var code = Hub.Queues.Info.GetRandomTradeCode(message.Author.Id);
-
-        if (pkmList.Count == 1)
-        {
-            await KookHelper<T>.AddToQueueAsync(message, code, message.Author.Username, pkmList[0], message.Author, _client);
-        }
-        else
-        {
-            await KookHelper<T>.AddBatchContainerToQueueAsync(message, code, message.Author.Username, pkmList[0], pkmList, message.Author, _client);
-        }
+        await message.Channel.SendTextAsync("You do not have the required roles to use this command.");
+        return false;
     }
 
     private async Task HandleTradeCommandAsync(SocketMessage message, List<string> args)
@@ -396,7 +364,6 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
             return;
         }
 
-        // Detect LGPE Picto Codes
         List<Pictocodes>? lgCode = null;
         int code = 0;
         string showdownSet = string.Empty;
@@ -414,9 +381,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         if (lgCode == null)
         {
             if (int.TryParse(args[0], out code))
-            {
                 showdownSet = string.Join("\n", args.Skip(1));
-            }
             else
             {
                 code = Hub.Queues.Info.GetRandomTradeCode(message.Author.Id);
@@ -442,15 +407,252 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
 
         await KookHelper<T>.AddToQueueAsync(message, code, message.Author.Username, result.Pokemon, message.Author, _client, result.LgCode);
     }
+
+    private async Task HandleItemTradeCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (args.Count == 0)
+        {
+            await message.Channel.SendTextAsync("Please provide at least one item name.");
+            return;
+        }
+
+        var itemInput = string.Join(" ", args);
+        var itemNames = itemInput.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        
+        if (typeof(T) == typeof(PB7) && itemNames.Length > 1)
+        {
+            await message.Channel.SendTextAsync("Batch trades are not supported in Let's Go Pikachu/Eevee.");
+            return;
+        }
+
+        var batchSettings = Hub.Config.Trade.BatchSettings;
+        if (itemNames.Length > 1 && (!batchSettings.AllowBatchTrades || itemNames.Length > batchSettings.MaxItemBatchAmount))
+        {
+            await message.Channel.SendTextAsync($"Batch trades are limited to {batchSettings.MaxItemBatchAmount} items.");
+            return;
+        }
+
+        var pkmList = new List<T>();
+        var tradeConfig = Hub.Config.Trade.TradeConfiguration;
+        Species species = tradeConfig.ItemTradeSpecies == Species.None ? Species.Pikachu : tradeConfig.ItemTradeSpecies;
+        var baseName = SpeciesName.GetSpeciesNameGeneration((ushort)species, 2, 8);
+
+        foreach (var itemName in itemNames)
+        {
+            var set = new ShowdownSet($"{baseName} @ {itemName}");
+            var template = AutoLegalityWrapper.GetTemplate(set);
+            var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
+            var pkm = sav.GetLegal(template, out _);
+
+            if (pkm != null)
+            {
+                pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
+                if (pkm.HeldItem != 0 && !TradeRestrictions.IsUntradableHeld(pkm.Context, pkm.HeldItem) && pkm is T pk && new LegalityAnalysis(pk).Valid)
+                {
+                    pk.ResetPartyStats();
+                    pkmList.Add(pk);
+                }
+            }
+        }
+
+        if (pkmList.Count == 0)
+        {
+            await message.Channel.SendTextAsync("No valid items could be processed.");
+            return;
+        }
+
+        int code = Hub.Queues.Info.GetRandomTradeCode(message.Author.Id);
+        if (pkmList.Count == 1)
+            await KookHelper<T>.AddToQueueAsync(message, code, message.Author.Username, pkmList[0], message.Author, _client);
+        else
+            await KookHelper<T>.AddBatchContainerToQueueAsync(message, code, message.Author.Username, pkmList[0], pkmList, message.Author, _client);
+    }
+
+    private async Task HandleCloneCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (typeof(T) == typeof(PB8))
+        {
+            await message.Channel.SendTextAsync("Cloning in BDSP is disabled.");
+            return;
+        }
+
+        if (Hub.Queues.Info.IsUserInQueue(message.Author.Id))
+        {
+            await message.Channel.SendTextAsync("You are already in the queue.");
+            return;
+        }
+
+        int code = args.Count > 0 && int.TryParse(args[0], out var c) ? c : Hub.Queues.Info.GetRandomTradeCode(message.Author.Id);
+        var lgcode = Hub.Queues.Info.GetRandomLGTradeCode(message.Author.Id);
+        var notifier = new KookTradeNotifier<T>(new T(), new PokeTradeTrainerInfo(message.Author.Username, message.Author.Id), code, message.Author, _client, lgcode);
+        int uniqueID = TradeUtil.GenerateUniqueTradeID();
+        var detail = new PokeTradeDetail<T>(new T(), new PokeTradeTrainerInfo(message.Author.Username, message.Author.Id), notifier, PokeTradeType.Clone, code, false, lgcode, 1, 1, false, false, uniqueID);
+        var trade = new TradeEntry<T>(detail, message.Author.Id, PokeRoutineType.Clone, message.Author.Username, uniqueID);
+        
+        if (Hub.Queues.Info.AddToTradeQueue(trade, message.Author.Id, false, Hub.Config.Kook.GlobalSudoList.Contains(message.Author.Id)) == QueueResultAdd.Added)
+        {
+            await message.Channel.SendTextAsync($"Processing clone request... Code: {code:D8}");
+            await notifier.SendInitialQueueUpdate();
+        }
+    }
+
+    private async Task HandleFixOTCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (Hub.Queues.Info.IsUserInQueue(message.Author.Id))
+        {
+            await message.Channel.SendTextAsync("You are already in the queue.");
+            return;
+        }
+
+        int code = args.Count > 0 && int.TryParse(args[0], out var c) ? c : Hub.Queues.Info.GetRandomTradeCode(message.Author.Id);
+        var lgcode = Hub.Queues.Info.GetRandomLGTradeCode(message.Author.Id);
+        var notifier = new KookTradeNotifier<T>(new T(), new PokeTradeTrainerInfo(message.Author.Username, message.Author.Id), code, message.Author, _client, lgcode);
+        int uniqueID = TradeUtil.GenerateUniqueTradeID();
+        var detail = new PokeTradeDetail<T>(new T(), new PokeTradeTrainerInfo(message.Author.Username, message.Author.Id), notifier, PokeTradeType.FixOT, code, false, lgcode, 1, 1, false, false, uniqueID);
+        var trade = new TradeEntry<T>(detail, message.Author.Id, PokeRoutineType.FixOT, message.Author.Username, uniqueID);
+        
+        if (Hub.Queues.Info.AddToTradeQueue(trade, message.Author.Id, false, Hub.Config.Kook.GlobalSudoList.Contains(message.Author.Id)) == QueueResultAdd.Added)
+        {
+            await message.Channel.SendTextAsync($"Processing fixOT request... Code: {code:D8}");
+            await notifier.SendInitialQueueUpdate();
+        }
+    }
+
+    private async Task HandleDittoTradeCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (args.Count < 3)
+        {
+            await message.Channel.SendTextAsync("Usage: ditto <IVs/Keyword> <Language> <Nature>");
+            return;
+        }
+
+        if (Hub.Queues.Info.IsUserInQueue(message.Author.Id))
+        {
+            await message.Channel.SendTextAsync("You are already in the queue.");
+            return;
+        }
+
+        if (!Enum.TryParse(args[1], true, out LanguageID lang)) return;
+        var nature = args[2].Trim()[..1].ToUpper() + args[2].Trim()[1..].ToLower();
+        var set = new ShowdownSet($"{args[0]}(Ditto)\nLanguage: {lang}\nNature: {nature}");
+        var pkm = AutoLegalityWrapper.GetTrainerInfo<T>().GetLegal(AutoLegalityWrapper.GetTemplate(set), out _);
+
+        if (pkm != null)
+        {
+            TradeExtensions<T>.DittoTrade((T)pkm);
+            var pk = (T)pkm; pk.ResetPartyStats();
+            await KookHelper<T>.AddToQueueAsync(message, Hub.Queues.Info.GetRandomTradeCode(message.Author.Id), message.Author.Username, pk, message.Author, _client);
+        }
+    }
+
+    private async Task HandleQueueStatusCommandAsync(SocketMessage message)
+    {
+        var pos = Hub.Queues.Info.CheckPosition(message.Author.Id);
+        if (pos.Position == -1)
+            await message.Channel.SendTextAsync($"{message.Author.Username}, you are not in the queue.");
+        else
+            await message.Channel.SendTextAsync($"{message.Author.Username}, position {pos.Position}. ETA: {Hub.Config.Queues.EstimateDelay(pos.Position, Hub.Bots.Count):F1} min(s).");
+    }
+
+    private async Task HandleQueueClearCommandAsync(SocketMessage message)
+    {
+        if (Hub.Queues.Info.RemoveFromQueue(message.Author.Id))
+            await message.Channel.SendTextAsync($"{message.Author.Username}, removed from queue.");
+        else
+            await message.Channel.SendTextAsync($"{message.Author.Username}, not in queue.");
+    }
+
+    private async Task HandleDeleteTradeCodeCommandAsync(SocketMessage message)
+    {
+        if (new TradeCodeStorage().DeleteTradeCode(message.Author.Id))
+            await message.Channel.SendTextAsync("Deleted stored trade code.");
+        else
+            await message.Channel.SendTextAsync("No stored trade code found.");
+    }
+
+    private async Task HandleEggCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (args.Count == 0 || Hub.Queues.Info.IsUserInQueue(message.Author.Id)) return;
+        var pkm = AutoLegalityWrapper.GetTrainerInfo<T>().GenerateEgg(AutoLegalityWrapper.GetTemplate(new ShowdownSet(string.Join(" ", args))), out var res);
+        if (res == LegalizationResult.Regenerated && pkm != null)
+        {
+            var pk = EntityConverter.ConvertToType(pkm, typeof(T), out _) as T ?? (T)pkm;
+            pk.ResetPartyStats();
+            await KookHelper<T>.AddToQueueAsync(message, Hub.Queues.Info.GetRandomTradeCode(message.Author.Id), message.Author.Username, pk, message.Author, _client);
+        }
+    }
+
+    private async Task HandleMysteryEggCommandAsync(SocketMessage message)
+    {
+        if (Hub.Queues.Info.IsUserInQueue(message.Author.Id)) return;
+        var egg = MysteryModule<T>.GenerateLegalMysteryEgg();
+        if (egg != null)
+            await KookHelper<T>.AddToQueueAsync(message, Hub.Queues.Info.GetRandomTradeCode(message.Author.Id), message.Author.Username, egg, message.Author, _client);
+    }
+
+    private async Task HandleBatchTradeCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (args.Count == 0 || Hub.Queues.Info.IsUserInQueue(message.Author.Id)) return;
+        var sets = BatchHelpers<T>.ParseBatchTradeContent(BatchNormalizer.NormalizeBatchCommands(string.Join(" ", args)));
+        if (sets.Count > Hub.Config.Trade.BatchSettings.MaxBatchAmount) return;
+
+        var pkmList = new List<T>();
+        foreach (var s in sets)
+        {
+            var res = await KookHelper<T>.ProcessShowdownSetAsync(s);
+            if (res.Pokemon != null) pkmList.Add(res.Pokemon);
+        }
+
+        if (pkmList.Count > 0)
+            await KookHelper<T>.AddBatchContainerToQueueAsync(message, Hub.Queues.Info.GetRandomTradeCode(message.Author.Id), message.Author.Username, pkmList[0], pkmList, message.Author, _client);
+    }
+
+    private async Task HandlePokepasteCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (args.Count == 0) return;
+        try
+        {
+            var sets = ParseShowdownSets(await NetUtil.HttpClient.GetStringAsync(args[0]));
+            if (sets.Count == 0) return;
+            await message.Channel.SendTextAsync($"Found {sets.Count} Pokémon. Processing...");
+            _ = Task.Run(async () => {
+                foreach (var s in sets) {
+                    var res = await KookHelper<T>.ProcessShowdownSetAsync(string.Join("\n", s.GetSetLines()));
+                    if (res.Pokemon != null) await message.Author.SendTextAsync($"Generated {res.Pokemon.Species} from Pokepaste.");
+                }
+            });
+        } catch { }
+    }
+
+    private static List<ShowdownSet> ParseShowdownSets(string html)
+    {
+        var list = new List<ShowdownSet>();
+        foreach (System.Text.RegularExpressions.Match m in new System.Text.RegularExpressions.Regex(@"<pre>(.*?)</pre>", System.Text.RegularExpressions.RegexOptions.Singleline).Matches(html))
+            list.Add(new ShowdownSet(System.Net.WebUtility.HtmlDecode(System.Text.RegularExpressions.Regex.Replace(m.Groups[1].Value, "<.*?>", string.Empty))));
+        return list;
+    }
+
+    private async Task HandleSpecialRequestPokemonCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (args.Count == 0) return;
+        var eventData = SpecialRequestModule<T>.GetEventData(args[0]);
+        if (eventData == null) return;
+
+        if (args.Count > 1 && int.TryParse(args[1], out int index))
+        {
+            if (Hub.Queues.Info.IsUserInQueue(message.Author.Id)) return;
+            var entityEvents = eventData.Where(gift => gift.IsEntity && !gift.IsItem).ToArray();
+            if (index < 1 || index > entityEvents.Length) return;
+            var pk = SpecialRequestModule<T>.ConvertEventToPKM(entityEvents[index - 1]);
+            if (pk != null)
+                await KookHelper<T>.AddToQueueAsync(message, Hub.Queues.Info.GetRandomTradeCode(message.Author.Id), message.Author.Username, pk, message.Author, _client);
+        }
+        else await message.Channel.SendTextAsync("Event listing restricted to Discord.");
+    }
 }
 
 public class KookManager(KookSettings Config)
 {
     public readonly KookSettings Config = Config;
-    public bool CanUseCommandChannel(ulong channelId) 
-    {
-        if (Config.ChannelWhitelist.List.Count == 0)
-            return Config.ChannelWhitelist.AllowIfEmpty;
-        return Config.ChannelWhitelist.Contains(channelId);
-    }
+    public bool CanUseCommandChannel(ulong id) => Config.ChannelWhitelist.List.Count == 0 ? Config.ChannelWhitelist.AllowIfEmpty : Config.ChannelWhitelist.Contains(id);
 }

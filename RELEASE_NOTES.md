@@ -1,23 +1,27 @@
-# DudeBot.NET Release Notes (v6.4.0)
+# DudeBot.NET Release Notes (v6.4.1)
 
-## Major Infrastructure Update
+This release focuses on expanding platform support with a comprehensive Kook integration and stabilizing the core ecosystem for multi-platform synchronization.
 
-This release marks a significant milestone in the DudeBot.NET ecosystem, focusing on modernization and infrastructure reliability.
+## 🚀 New Features
+- **Full Kook Platform Integration**:
+  - Parity with Discord for essential commands (`$trade`, `$clone`, `$fixOT`, `$ditto`, `$item`, etc.).
+  - Robust role-based permission system (Role can Trade/Clone/FixOT).
+  - Support for `$batchTrade`, `$pokepaste`, and `$specialrequestpokemon` (SRP).
+  - Automatic status announcements (Online/Offline) via Kook CardMessages.
+  - Channel whitelist and user blacklist support.
+- **Enhanced Integration Settings**:
+  - Expanded `KookSettings` to include granular permission controls matching Discord's security model.
+  - Improved `RemoteControlAccessList` utilization across platforms.
 
-### 🔄 Core Engine Migration
-- **PKHeX.Core NuGet Migration:** Successfully transitioned the entire project to use the official **PKHeX.Core** NuGet package (v26.5.5). This provides a more stable foundation and streamlines future dependency management.
-- **Custom ALM Integration:** Integrated a specialized fork of **PKHeX-Plugins** (santacrab2/cherrytree) to ensure seamless compatibility with the latest Core library.
-- **API Modernization:** Refactored multiple systems to align with the latest PKHeX 2026 standards, including `EntityContext` handling and unified `PKM` data structures.
+## 🛠️ Improvements & Bug Fixes
+- **Dependency Management**: Unified all projects to target `net10.0` and updated essential NuGet packages.
+- **Core Stability**: Refined the `SysKook` message handler for better performance and reliability.
+- **Queue Management**: Synchronized queue clear/status logic to prevent platform-specific inconsistencies.
+- **Legality Updates**: Integrated latest `PKHeX.Core` improvements via NuGet.
 
-### 🧪 Enhanced Testing Suite
-- **Logic Verification:** Added a new suite of independent command logic tests in `SysBot.Tests`.
-- **Independent Validation:** Verified `$convert`, `$legalize`, and `$lc` core logic in a headless environment, ensuring reliability independent of the Discord infrastructure.
-- **Stability:** Executed the full 66-test battery with 100% success rate across all Pokémon generations.
-
-### 🛠️ Bug Fixes & Refinement
-- **VC Legality Patch:** Restored legacy support for Generation 1/2 Virtual Console transfers by re-implementing nature-experience correlation logic manually.
-- **Inventory System:** Updated SWSH fossil and treasure pouch constructors to match updated Core signatures.
-- **Metadata Reliability:** Resolved `GameVersionPriorityType` serialization warnings to ensure cleaner logs and more reliable configuration handling.
+## 📦 Maintenance
+- Merged security and performance updates for `MySqlConnector` and `Google.Apis.YouTube.v3`.
+- Optimized GitHub Actions workflows for streamlined CI/CD.
 
 ---
-*DudeBot.NET v6.4.0 | Synchronized Intelligence*
+*DudeBot.NET v6.4.1 | Cross-Platform Synchronized Intelligence*
