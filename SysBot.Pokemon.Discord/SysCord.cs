@@ -177,8 +177,10 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _commands.Log -= Log;
         _client.PresenceUpdated -= Client_PresenceUpdated;
         _client.Disconnected -= OnDisconnected;
+        _client.Ready -= SetDudeBotNameAsync;
         _client.Ready -= LoadLoggingAndEcho;
         _client.MessageReceived -= HandleMessageAsync;
+        _client.JoinedGuild -= HandleJoinedGuild;
 
         try
         {
@@ -213,12 +215,15 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         if (ReferenceEquals(Runner, _runner))
             Runner = null!;
 
-        try
-        {
-            _client.StopAsync().GetAwaiter().GetResult();
-            _client.Dispose();
-        }
-        catch { }
+        if (ReferenceEquals(SysCordSettings.Manager, Manager))
+            SysCordSettings.Manager = default!;
+        if (ReferenceEquals(SysCordSettings.HubConfig, Hub.Config))
+            SysCordSettings.HubConfig = default!;
+        if (ReferenceEquals(SysCordSettings.AIService, _aiService))
+            SysCordSettings.AIService = null;
+
+        if (_services is IDisposable services)
+            services.Dispose();
     }
 
     public static PokeBotRunner<T> Runner { get; private set; } = default!;
@@ -378,11 +383,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
     {
         var assembly = Assembly.GetExecutingAssembly();
 
-        _client.Ready += () =>
-        {
-            DudeBot.Name = _client.CurrentUser.Username;
-            return Task.CompletedTask;
-        };
+        _client.Ready += SetDudeBotNameAsync;
 
         await _commands.AddModulesAsync(assembly, _services).ConfigureAwait(false);
         foreach (var t in assembly.DefinedTypes.Where(z => z.IsSubclassOf(typeof(ModuleBase<SocketCommandContext>)) && z.IsGenericType))
@@ -411,6 +412,12 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _client.Ready += LoadLoggingAndEcho;
         _client.MessageReceived += HandleMessageAsync;
         _client.JoinedGuild += HandleJoinedGuild;
+    }
+
+    private Task SetDudeBotNameAsync()
+    {
+        DudeBot.Name = _client.CurrentUser.Username;
+        return Task.CompletedTask;
     }
 
     private async Task HandleJoinedGuild(SocketGuild guild)

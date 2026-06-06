@@ -1,26 +1,18 @@
 # DudeBot.NET Release Notes
 
-All notable changes to this project will be documented in this file.
+## v6.4.2 - 2026-06-06
 
-## [Unreleased]
-### Added
-- **Automated Testing Suite Expansion**:
-  - **AutoOT Validation**: Added tests to verify Original Trainer (OT) name sanitation across different languages (Asian vs. Latin) and ensure Pokémon legality is maintained after applying AutoOT data.
-  - **Batch Trade Processing**: Added comprehensive tests for `BatchNormalizer` to validate command conversion (Scale, Met Date, Egg Date), automatic Alcremie topping injection logic, and **full multi-Pokémon batch generation pipeline verification**.
-  - **Parsing Robustness**: Added tests for `TradeModuleHelpers` to ensure correct splitting of multi-set batch trade content using various delimiters.
-
-## [v6.4.1] - 2026-06-02
-### Added
-- **Kook Platform Integration**:
-  - Complete parity with Discord for core commands (`$trade`, `$clone`, `$fixOT`, `$item`, etc.).
-  - Role-based permission system for granular access control.
-  - Support for `$batchTrade`, `$pokepaste`, and Special Request Pokémon (SRP).
-  - Automatic Online/Offline status announcements via CardMessages.
-- **Improved Networking**: Refactored `NetUtil` to resolve ambiguity and improved overall connection stability.
+### Fixed
+- Stopped the trade hub heartbeat task during disposal so released hubs are not kept alive by an uncancelled background loop.
+- Cleared stale Twitch, Discord, and Kook static references during integration disposal to support cleaner shutdowns and reloads.
+- Unsubscribed Discord lifecycle handlers consistently and removed duplicate Discord client disposal during shutdown.
+- Disposed the Discord service provider created for command modules.
 
 ### Changed
-- **Version Alignment**: All projects now target `net10.0`.
-- **Dependency Updates**: Updated `PKHeX.Core`, `MySqlConnector`, and `Google.Apis.YouTube.v3` to their latest versions.
+- Updated the application version from `v6.4.1` to `v6.4.2`.
+- Aligned WinForms package metadata with the `6.4.2` release version.
+- Reused `DudeBot.Version` in the medals leaderboard footer instead of hardcoding the release string.
 
----
-*DudeBot.NET | Cross-Platform Pokemon Trading Intelligence*
+### Tested
+- Full solution build with `dotnet build SysBot.NET.sln --no-restore`.
+- SysBot test project with non-SQL tests enabled. SQL tests require a reachable MySQL host.

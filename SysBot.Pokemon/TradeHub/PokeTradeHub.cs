@@ -2,6 +2,7 @@ using PKHeX.Core;
 using SysBot.Base;
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SysBot.Pokemon;
@@ -24,6 +25,8 @@ public class PokeTradeHub<T> : IDisposable where T : PKM, new()
     public readonly TradeQueueManager<T> Queues;
 
     private readonly string _instanceId = Guid.NewGuid().ToString().Substring(0, 8);
+    private readonly CancellationTokenSource _heartbeatCancellation = new();
+    private readonly Task _heartbeatTask;
 
     public PokeTradeHub(PokeTradeHubConfig config)
     {
@@ -36,24 +39,52 @@ public class PokeTradeHub<T> : IDisposable where T : PKM, new()
 
         Queues = new TradeQueueManager<T>(this);
 
-        // Start background heartbeat to track live bots on the website
-        Task.Run(async () =>
+        _heartbeatTask = RunHeartbeatAsync(_heartbeatCancellation.Token);
+    }
+
+    private async Task RunHeartbeatAsync(CancellationToken token)
+    {
+        // Background heartbeat to track live bots on the website.
+        while (!token.IsCancellationRequested)
         {
-            while (true)
+            try
             {
-                try
-                {
-                    string game = typeof(T).Name.Replace("PK", "").Replace("PA", "");
-                    await DatabaseService.SendBotHeartbeat(_instanceId, config.BotName, game).ConfigureAwait(false);
-                }
-                catch { }
-                await Task.Delay(TimeSpan.FromMinutes(1)).ConfigureAwait(false);
+                string game = typeof(T).Name.Replace("PK", "").Replace("PA", "");
+                await DatabaseService.SendBotHeartbeat(_instanceId, Config.BotName, game).ConfigureAwait(false);
             }
-        });
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                break;
+            }
+            catch
+            {
+                // Heartbeat failures should not stop the bot hub.
+            }
+
+            try
+            {
+                await Task.Delay(TimeSpan.FromMinutes(1), token).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                break;
+            }
+        }
     }
 
     public void Dispose()
     {
+        _heartbeatCancellation.Cancel();
+        try
+        {
+            _heartbeatTask.Wait(TimeSpan.FromSeconds(5));
+        }
+        catch (AggregateException ex)
+        {
+            ex.Handle(static e => e is OperationCanceledException);
+        }
+
+        _heartbeatCancellation.Dispose();
         BotSync.Dispose();
         Ledy.Dispose();
         GC.SuppressFinalize(this);

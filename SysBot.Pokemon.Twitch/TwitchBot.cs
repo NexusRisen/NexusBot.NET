@@ -17,6 +17,7 @@ namespace SysBot.Pokemon.Twitch
         internal static readonly List<TwitchQueue<T>> QueuePool = new();
 
         private static PokeTradeHub<T> Hub = default!;
+        private readonly PokeTradeHub<T> _hub;
 
         private readonly string Channel;
 
@@ -30,6 +31,7 @@ namespace SysBot.Pokemon.Twitch
 
         public TwitchBot(TwitchSettings settings, PokeTradeHub<T> hub)
         {
+            _hub = hub;
             Hub = hub;
             Settings = settings;
 
@@ -104,6 +106,8 @@ namespace SysBot.Pokemon.Twitch
             _cts.Cancel();
             _cts.Dispose();
             QueuePool.Clear();
+            if (ReferenceEquals(Hub, _hub))
+                Hub = default!;
             EchoUtil.Forwarders.Remove(_echoForwarder);
             client.OnLog -= Client_OnLog;
             client.OnJoinedChannel -= Client_OnJoinedChannel;

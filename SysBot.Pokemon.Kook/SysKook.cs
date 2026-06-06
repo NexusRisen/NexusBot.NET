@@ -175,6 +175,11 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         if (ReferenceEquals(Runner, _runner))
             Runner = null!;
 
+        if (ReferenceEquals(SysKookSettings.Manager, Manager))
+            SysKookSettings.Manager = default!;
+        if (ReferenceEquals(SysKookSettings.HubConfig, Hub.Config))
+            SysKookSettings.HubConfig = default!;
+
         try
         {
             _client.StopAsync().GetAwaiter().GetResult();
