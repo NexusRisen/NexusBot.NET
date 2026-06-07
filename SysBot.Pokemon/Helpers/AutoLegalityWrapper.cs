@@ -253,7 +253,12 @@ public static class AutoLegalityWrapper
                 LegalizationResult.VersionMismatch => "VersionMismatch",
                 _ => "",
             };
-            return result.Created;
+
+            var pkm = result.Created;
+            if (pkm != null && set is RegenTemplate rt && APILegality.AllowTrainerOverride && rt.Regen.Trainer != null)
+                pkm.SetAllTrainerData(rt.Regen.Trainer);
+
+            return pkm;
         }
         else
         {

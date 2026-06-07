@@ -41,6 +41,9 @@ public static class AutoLegalityExtensionsDiscord
                 // Generate egg using ALM
                 pkm = sav.GenerateEgg(template, out var eggResult);
                 result = eggResult.ToString();
+
+                if (pkm != null && APILegality.AllowTrainerOverride && template.Regen.Trainer != null)
+                    pkm.SetAllTrainerData(template.Regen.Trainer);
             }
             else
             {

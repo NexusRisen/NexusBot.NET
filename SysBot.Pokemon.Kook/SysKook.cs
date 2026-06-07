@@ -578,9 +578,14 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
     private async Task HandleEggCommandAsync(SocketMessage message, List<string> args)
     {
         if (args.Count == 0 || Hub.Queues.Info.IsUserInQueue(message.Author.Id)) return;
-        var pkm = AutoLegalityWrapper.GetTrainerInfo<T>().GenerateEgg(AutoLegalityWrapper.GetTemplate(new ShowdownSet(string.Join(" ", args))), out var res);
+        var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
+        var template = AutoLegalityWrapper.GetTemplate(new ShowdownSet(string.Join(" ", args)));
+        var pkm = sav.GenerateEgg(template, out var res);
         if (res == LegalizationResult.Regenerated && pkm != null)
         {
+            if (APILegality.AllowTrainerOverride && template.Regen.Trainer != null)
+                pkm.SetAllTrainerData(template.Regen.Trainer);
+
             var pk = EntityConverter.ConvertToType(pkm, typeof(T), out _) as T ?? (T)pkm;
             pk.ResetPartyStats();
             await KookHelper<T>.AddToQueueAsync(message, Hub.Queues.Info.GetRandomTradeCode(message.Author.Id), message.Author.Username, pk, message.Author, _client);

@@ -289,6 +289,12 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
                     // Generate the egg using ALM's GenerateEgg method
                     var pkm = sav.GenerateEgg(template, out var result);
 
+                    if (result == LegalizationResult.Regenerated && pkm != null)
+                    {
+                        if (APILegality.AllowTrainerOverride && template.Regen.Trainer != null)
+                            pkm.SetAllTrainerData(template.Regen.Trainer);
+                    }
+
                     if (result != LegalizationResult.Regenerated)
                     {
                         var reason = result == LegalizationResult.Timeout

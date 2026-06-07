@@ -76,6 +76,9 @@ public static class PokeTradeHelper<T> where T : PKM, new()
             // Generate egg using ALM
             pkm = sav.GenerateEgg(regenTemplate, out var eggResult);
             result = eggResult.ToString();
+
+            if (pkm != null && APILegality.AllowTrainerOverride && regenTemplate.Regen.Trainer != null)
+                pkm.SetAllTrainerData(regenTemplate.Regen.Trainer);
         }
         else
         {
