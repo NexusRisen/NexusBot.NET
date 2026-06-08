@@ -117,6 +117,17 @@ namespace SysBot.Pokemon.Helpers
             var lines = input.Split(['\n', '\r'], StringSplitOptions.RemoveEmptyEntries);
             var processed = new List<string>();
 
+            bool isGen7PlusID = false;
+            foreach (var line in lines)
+            {
+                var match = Regex.Match(line.Trim(), @"^TID\s*:\s*(\d+)$", RegexOptions.IgnoreCase);
+                if (match.Success)
+                {
+                    if (match.Groups[1].Value.Length == 6 || uint.TryParse(match.Groups[1].Value, out uint tid) && tid > 65535)
+                        isGen7PlusID = true;
+                }
+            }
+
             for (int i = 0; i < lines.Length; i++)
             {
                 var line = lines[i].Trim();
@@ -172,6 +183,30 @@ namespace SysBot.Pokemon.Helpers
 
                 if (!TrySplitCommand(line, out var key, out var value))
                     continue;
+
+                if (key.Equals("TID", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (isGen7PlusID && uint.TryParse(value, out uint tid))
+                        processed.Add($".TrainerTID7={tid}");
+                    else
+                        processed.Add($"TID: {value}");
+                    continue;
+                }
+                
+                if (key.Equals("SID", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (isGen7PlusID && uint.TryParse(value, out uint sid))
+                        processed.Add($".TrainerSID7={sid}");
+                    else
+                        processed.Add($"SID: {value}");
+                    continue;
+                }
+
+                if (key.Equals("OT", StringComparison.OrdinalIgnoreCase))
+                {
+                    processed.Add($"OT: {value}");
+                    continue;
+                }
 
                 if (BatchCommandAliasMap.TryGetValue(key, out var normalizedKey))
                     key = normalizedKey;
