@@ -258,7 +258,7 @@ public static class AutoLegalityWrapper
             if (pkm != null && set is RegenTemplate rt && APILegality.AllowTrainerOverride && rt.Regen.Trainer != null)
                 pkm.SetAllTrainerData(rt.Regen.Trainer);
 
-            return pkm;
+            return pkm!;
         }
         else
         {

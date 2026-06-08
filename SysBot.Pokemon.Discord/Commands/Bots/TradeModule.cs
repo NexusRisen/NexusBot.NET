@@ -312,7 +312,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
                         continue;
                     }
 
-                    pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
+                    pkm = EntityConverter.ConvertToType(pkm!, typeof(T), out _) ?? pkm;
                     if (pkm is not T pk)
                     {
                         errors.Add(new BatchTradeError
