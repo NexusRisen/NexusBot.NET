@@ -15,7 +15,7 @@ public static class KookHelper<T> where T : PKM, new()
 {
     private static TradeQueueInfo<T> Info => SysKook<T>.Runner.Hub.Queues.Info;
 
-    public static async Task AddToQueueAsync(SocketMessage message, int code, string trainerName, T pk, SocketUser trader, KookSocketClient client, List<Pictocodes>? lgcode = null)
+    public static async Task AddToQueueAsync(SocketMessage message, int code, string trainerName, T pk, SocketUser trader, KookSocketClient client, List<Pictocodes>? lgcode = null, bool isHiddenTrade = false)
     {
         var userID = trader.Id;
         var name = trader.Username;
@@ -26,7 +26,7 @@ public static class KookHelper<T> where T : PKM, new()
         int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
 
         var detail = new PokeTradeDetail<T>(pk, trainer, notifier, PokeTradeType.Specific, code, false,
-            lgcode, 1, 1, false, false, uniqueTradeID, false, false);
+            lgcode, 1, 1, false, false, uniqueTradeID, false, isHiddenTrade);
 
         var trade = new TradeEntry<T>(detail, userID, PokeRoutineType.LinkTrade, name, uniqueTradeID);
         

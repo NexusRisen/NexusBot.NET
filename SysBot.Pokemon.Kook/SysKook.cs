@@ -248,7 +248,6 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         var content = message.Content;
         var prefix = Hub.Config.Kook.CommandPrefix;
         if (!content.StartsWith(prefix)) return;
-        
         var parts = content.Substring(prefix.Length).Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length == 0) return;
         
@@ -297,6 +296,29 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         {
             if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
             await HandleDittoTradeCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "hidetrade" || cmd == "ht")
+        {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
+            await HandleTradeCommandAsync(message, parts.Skip(1).ToList(), true);
+        }
+        else if (cmd == "listevents" || cmd == "le")
+        {
+            await HandleListEventsCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "eventrequest" || cmd == "er")
+        {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
+            await HandleEventRequestCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "battlereadylist" || cmd == "brl")
+        {
+            await HandleBattleReadyListCommandAsync(message, parts.Skip(1).ToList());
+        }
+        else if (cmd == "battlereadyrequest" || cmd == "brr")
+        {
+            if (!await CheckPermissions(message, Hub.Config.Kook.RoleCanTrade)) return;
+            await HandleBattleReadyRequestCommandAsync(message, parts.Skip(1).ToList());
         }
         else if (cmd == "queuestatus" || cmd == "qs")
         {
@@ -361,7 +383,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         return false;
     }
 
-    private async Task HandleTradeCommandAsync(SocketMessage message, List<string> args)
+    private async Task HandleTradeCommandAsync(SocketMessage message, List<string> args, bool isHiddenTrade = false)
     {
         if (args.Count == 0)
         {
@@ -410,7 +432,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
             return;
         }
 
-        await KookHelper<T>.AddToQueueAsync(message, code, message.Author.Username, result.Pokemon, message.Author, _client, result.LgCode);
+        await KookHelper<T>.AddToQueueAsync(message, code, message.Author.Username, result.Pokemon, message.Author, _client, result.LgCode, isHiddenTrade);
     }
 
     private async Task HandleItemTradeCommandAsync(SocketMessage message, List<string> args)
@@ -642,11 +664,163 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         return list;
     }
 
+    private async Task HandleListEventsCommandAsync(SocketMessage message, List<string> args)
+    {
+        var folderPath = Hub.Config.Folder.EventsFolder;
+        if (string.IsNullOrEmpty(folderPath))
+        {
+            await message.Channel.SendTextAsync("This bot does not have this feature set up.");
+            return;
+        }
+
+        var files = System.IO.Directory.GetFiles(folderPath)
+            .Select(System.IO.Path.GetFileNameWithoutExtension)
+            .Where(file => file != null)
+            .OrderBy(file => file)
+            .ToList();
+
+        if (files.Count == 0)
+        {
+            await message.Channel.SendTextAsync("No events found.");
+            return;
+        }
+
+        int itemsPerPage = 20;
+        int page = 1;
+        if (args.Count > 0 && int.TryParse(args[0], out int p)) page = p;
+        
+        var pageCount = (int)Math.Ceiling(files.Count / (double)itemsPerPage);
+        page = Math.Clamp(page, 1, pageCount);
+        
+        var pageItems = files.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList();
+        
+        var text = "";
+        for (int i = 0; i < pageItems.Count; i++)
+        {
+            var item = pageItems[i];
+            var index = files.IndexOf(item) + 1;
+            text += $"{index}. {item}\n";
+        }
+        
+        var card = new CardBuilder()
+            .AddModule<HeaderModuleBuilder>(h => h.WithText($"Available Events (Page {page}/{pageCount})"))
+            .AddModule<SectionModuleBuilder>(s => s.WithText(text, false))
+            .AddModule<SectionModuleBuilder>(s => s.WithText($"Use `{Hub.Config.Kook.CommandPrefix}er [index]` to request an event.", true))
+            .Build();
+            
+        await message.Channel.SendCardAsync(card);
+    }
+
+    private async Task HandleEventRequestCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (args.Count == 0 || !int.TryParse(args[0], out int index)) return;
+        var folderPath = Hub.Config.Folder.EventsFolder;
+        if (string.IsNullOrEmpty(folderPath)) return;
+
+        if (Hub.Queues.Info.IsUserInQueue(message.Author.Id)) return;
+
+        var files = System.IO.Directory.GetFiles(folderPath)
+            .Select(System.IO.Path.GetFileName)
+            .Where(x => x != null)
+            .OrderBy(x => x)
+            .ToList();
+
+        if (index < 1 || index > files.Count) return;
+
+        var fileData = await System.IO.File.ReadAllBytesAsync(System.IO.Path.Combine(folderPath, files[index - 1]));
+        var rawData = PKHeX.Core.EntityFormat.GetFromBytes(fileData);
+        var pk = rawData as T ?? PKHeX.Core.EntityConverter.ConvertToType(rawData, typeof(T), out _) as T;
+
+        if (pk != null)
+        {
+            await message.Channel.SendTextAsync("Event request added to queue.");
+            await KookHelper<T>.AddToQueueAsync(message, Hub.Queues.Info.GetRandomTradeCode(message.Author.Id), message.Author.Username, pk, message.Author, _client, Hub.Queues.Info.GetRandomLGTradeCode(message.Author.Id));
+        }
+    }
+
+    private async Task HandleBattleReadyListCommandAsync(SocketMessage message, List<string> args)
+    {
+        var folderPath = Hub.Config.Folder.HOMEReadyPKMFolder;
+        if (string.IsNullOrEmpty(folderPath))
+        {
+            await message.Channel.SendTextAsync("This bot does not have this feature set up.");
+            return;
+        }
+
+        var files = System.IO.Directory.GetFiles(folderPath)
+            .Select(System.IO.Path.GetFileNameWithoutExtension)
+            .Where(file => file != null)
+            .OrderBy(file => file)
+            .ToList();
+
+        if (files.Count == 0)
+        {
+            await message.Channel.SendTextAsync("No battle ready pokemon found.");
+            return;
+        }
+
+        int itemsPerPage = 20;
+        int page = 1;
+        if (args.Count > 0 && int.TryParse(args[0], out int p)) page = p;
+        
+        var pageCount = (int)Math.Ceiling(files.Count / (double)itemsPerPage);
+        page = Math.Clamp(page, 1, pageCount);
+        
+        var pageItems = files.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList();
+        
+        var text = "";
+        for (int i = 0; i < pageItems.Count; i++)
+        {
+            var item = pageItems[i];
+            var index = files.IndexOf(item) + 1;
+            text += $"{index}. {item}\n";
+        }
+        
+        var card = new CardBuilder()
+            .AddModule<HeaderModuleBuilder>(h => h.WithText($"Available Battle Ready (Page {page}/{pageCount})"))
+            .AddModule<SectionModuleBuilder>(s => s.WithText(text, false))
+            .AddModule<SectionModuleBuilder>(s => s.WithText($"Use `{Hub.Config.Kook.CommandPrefix}brr [index]` to request a pokemon.", true))
+            .Build();
+            
+        await message.Channel.SendCardAsync(card);
+    }
+
+    private async Task HandleBattleReadyRequestCommandAsync(SocketMessage message, List<string> args)
+    {
+        if (args.Count == 0 || !int.TryParse(args[0], out int index)) return;
+        var folderPath = Hub.Config.Folder.HOMEReadyPKMFolder;
+        if (string.IsNullOrEmpty(folderPath)) return;
+
+        if (Hub.Queues.Info.IsUserInQueue(message.Author.Id)) return;
+
+        var files = System.IO.Directory.GetFiles(folderPath)
+            .Select(System.IO.Path.GetFileName)
+            .Where(x => x != null)
+            .OrderBy(x => x)
+            .ToList();
+
+        if (index < 1 || index > files.Count) return;
+
+        var fileData = await System.IO.File.ReadAllBytesAsync(System.IO.Path.Combine(folderPath, files[index - 1]));
+        var rawData = PKHeX.Core.EntityFormat.GetFromBytes(fileData);
+        var pk = rawData as T ?? PKHeX.Core.EntityConverter.ConvertToType(rawData, typeof(T), out _) as T;
+
+        if (pk != null)
+        {
+            await message.Channel.SendTextAsync("Battle Ready request added to queue.");
+            await KookHelper<T>.AddToQueueAsync(message, Hub.Queues.Info.GetRandomTradeCode(message.Author.Id), message.Author.Username, pk, message.Author, _client, Hub.Queues.Info.GetRandomLGTradeCode(message.Author.Id));
+        }
+    }
+
     private async Task HandleSpecialRequestPokemonCommandAsync(SocketMessage message, List<string> args)
     {
         if (args.Count == 0) return;
         var eventData = TradeModuleHelpers.GetEventData(args[0]);
-        if (eventData == null) return;
+        if (eventData == null)
+        {
+            await message.Channel.SendTextAsync($"Invalid generation or game: {args[0]}");
+            return;
+        }
 
         if (args.Count > 1 && int.TryParse(args[1], out int index))
         {
@@ -657,7 +831,39 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
             if (pk != null)
                 await KookHelper<T>.AddToQueueAsync(message, Hub.Queues.Info.GetRandomTradeCode(message.Author.Id), message.Author.Username, pk, message.Author, _client);
         }
-        else await message.Channel.SendTextAsync("Event listing restricted to Discord.");
+        else
+        {
+            var entityEvents = eventData.Where(gift => gift.IsEntity && !gift.IsItem).ToArray();
+            int itemsPerPage = 25;
+            int page = 1;
+            if (args.Count > 1 && args[1].StartsWith("page", StringComparison.OrdinalIgnoreCase) && int.TryParse(args[1].AsSpan(4), out int pageNumber))
+            {
+                page = pageNumber;
+            }
+
+            var pageCount = (int)Math.Ceiling((double)entityEvents.Length / itemsPerPage);
+            page = Math.Clamp(page, 1, pageCount);
+            
+            var pageItems = entityEvents.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToArray();
+            int offset = (page - 1) * itemsPerPage;
+            
+            var text = "";
+            for (int i = 0; i < pageItems.Length; i++)
+            {
+                var gift = pageItems[i];
+                string species = PKHeX.Core.GameInfo.Strings.Species[gift.Species];
+                string eventDetails = $"{offset + i + 1}. {gift.CardHeader} - {species} | Lvl.{gift.Level} | OT: {gift.OriginalTrainerName}";
+                text += eventDetails + "\n";
+            }
+            
+            var card = new CardBuilder()
+                .AddModule<HeaderModuleBuilder>(h => h.WithText($"Available Events - {args[0].ToUpperInvariant()} (Page {page}/{pageCount})"))
+                .AddModule<SectionModuleBuilder>(s => s.WithText(text, false))
+                .AddModule<SectionModuleBuilder>(s => s.WithText($"Use `{Hub.Config.Kook.CommandPrefix}srp {args[0]} [index]` to request an event, or `page[num]` to view more pages.", true))
+                .Build();
+            
+            await message.Channel.SendCardAsync(card);
+        }
     }
 }
 

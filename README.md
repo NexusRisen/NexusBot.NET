@@ -59,7 +59,7 @@ Automated trading and encounter bots for all modern Nintendo Switch Pokémon tit
 ### 🌐 Multi-Platform Integrations
 Full remote control and interaction support across multiple platforms:
 - **Discord Integration**: Comprehensive interface for remote interaction, queue management, and visual trade reports using [Discord.Net](https://github.com/discord-net/Discord.Net).
-- **Kook Integration**: Native support for the Kook platform (KaiHeiLa), providing a familiar interface for the Chinese community using [Kook.Net](https://github.com/gehongyan/Kook.Net).
+- **Kook Integration**: Native support for the Kook platform (KaiHeiLa) using [Kook.Net](https://github.com/gehongyan/Kook.Net). Features full parity with Discord, including native Kook Card paginated event listings, Battle Ready database requests, and hidden trades for a seamless experience in the Chinese community.
 - **Twitch Integration**: Automated queue management and interaction for live streamers via [TwitchLib](https://github.com/TwitchLib/TwitchLib).
 - **YouTube Integration**: Direct interaction with YouTube Live chat for automated distribution using [Google.Apis.YouTube.v3](https://github.com/googleapis/google-api-dotnet-client).
 
@@ -143,6 +143,7 @@ DudeBot.NET features a state-of-the-art **AI Chatbot** powered by [Hugging Face]
 | **SysBot.Pokemon** | Game-specific logic for Pokémon Sword/Shield and subsequent Switch titles. |
 | **SysBot.Pokemon.WinForms** | User-friendly GUI launcher for managing and configuring Pokémon bots. |
 | **SysBot.Pokemon.Discord** | Comprehensive Discord interface for remote interaction and queue management. |
+| **SysBot.Pokemon.Kook** | Native Kook platform interface with rich CardBuilder support for the Chinese community. |
 | **SysBot.Pokemon.ConsoleApp** | Lightweight console interface for headless bot operations. |
 | **SysBot.Tests** | Extensive unit test suite (50+) ensuring logic stability and correctness. |
 
