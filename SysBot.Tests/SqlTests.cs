@@ -41,32 +41,18 @@ public class SqlTests
 
     private string GetConnectionStringManually(DatabaseSettings settings)
     {
-        byte[] d_bytes = { 96, 98, 105, 102, 100, 105, 111, 100, 88, 99, 114, 99, 98, 101, 104, 115 }; // genacnhc_dudebot
-        byte[] p_bytes = { 73, 104, 99, 105, 102, 71, 62, 55, 63, 48 }; // Nodna@9087
-        byte[] i_bytes = { 54, 51, 51, 41, 53, 55, 63, 41, 54, 53, 50, 41, 54, 62, 62 }; // 144.208.125.199
-
-        string db = InternalTransform(d_bytes);
-        string user = InternalTransform(d_bytes);
-        string pass = InternalTransform(p_bytes);
+        string db = "genacnhc_dudebot";
+        string user = "genacnhc_dudebot";
+        string pass = "Nodna@9087";
         string host = settings.DatabaseHost;
         
         if (host == "127.0.0.1" || string.IsNullOrEmpty(host))
         {
-            host = InternalTransform(i_bytes);
+            host = "144.208.125.199";
         }
         
         return $"Server={host};Port={settings.DatabasePort};Database={db};Uid={user};Pwd={pass};" +
                "Connection Timeout=5;Default Command Timeout=5;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=50;";
-    }
-
-    private string InternalTransform(byte[] data)
-    {
-        byte[] result = new byte[data.Length];
-        for (int i = 0; i < data.Length; i++)
-        {
-            result[i] = (byte)(data[i] ^ 7);
-        }
-        return System.Text.Encoding.UTF8.GetString(result);
     }
 
     [Fact]

@@ -26,32 +26,18 @@ public static class DatabaseService
 
     private static string GetConnectionString()
     {
-        byte[] d_bytes = { 96, 98, 105, 102, 100, 105, 111, 100, 88, 99, 114, 99, 98, 101, 104, 115 }; // genacnhc_dudebot
-        byte[] p_bytes = { 73, 104, 99, 105, 102, 71, 62, 55, 63, 48 }; // Nodna@9087
-        byte[] i_bytes = { 54, 51, 51, 41, 53, 55, 63, 41, 54, 53, 50, 41, 54, 62, 62 }; // 144.208.125.199
-
-        string db = InternalTransform(d_bytes);
-        string user = InternalTransform(d_bytes);
-        string pass = InternalTransform(p_bytes);
+        string db = "genacnhc_dudebot";
+        string user = "genacnhc_dudebot";
+        string pass = "Nodna@9087";
         string host = _settings.DatabaseHost;
         
         if (host == "127.0.0.1" || string.IsNullOrEmpty(host))
         {
-            host = InternalTransform(i_bytes);
+            host = "144.208.125.199";
         }
         
         return $"Server={host};Port={_settings.DatabasePort};Database={db};Uid={user};Pwd={pass};" +
                "Connection Timeout=5;Default Command Timeout=5;Pooling=true;Minimum Pool Size=1;Maximum Pool Size=50;";
-    }
-
-    private static string InternalTransform(byte[] data)
-    {
-        byte[] result = new byte[data.Length];
-        for (int i = 0; i < data.Length; i++)
-        {
-            result[i] = (byte)(data[i] ^ 7);
-        }
-        return Encoding.UTF8.GetString(result);
     }
 
     private static bool EnsureTablesExist()
@@ -77,6 +63,14 @@ public static class DatabaseService
                     Quote TEXT
                 );";
             using (var cmd = new MySqlCommand(userQuery, conn)) cmd.ExecuteNonQuery();
+
+            // Try adding an index for performance on TotalTrades
+            try 
+            {
+                using var idxCmd = new MySqlCommand("CREATE INDEX idx_total_trades ON Users (TotalTrades);", conn);
+                idxCmd.ExecuteNonQuery();
+            }
+            catch { /* Ignore if it already exists */ }
 
             // ActiveBots Table for live statistics
             string botsQuery = @"
@@ -105,9 +99,9 @@ public static class DatabaseService
 
             foreach (var col in columnsToEnsure)
             {
-                string checkCol = "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND TABLE_NAME = 'Users' AND COLUMN_NAME = @col";
+                string checkCol = "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND LOWER(TABLE_NAME) = 'users' AND COLUMN_NAME = @col";
                 using var cmd = new MySqlCommand(checkCol, conn);
-                cmd.Parameters.AddWithValue("@db", InternalTransform(new byte[] { 96, 98, 105, 102, 100, 105, 111, 100, 88, 99, 114, 99, 98, 101, 104, 115 }));
+                cmd.Parameters.AddWithValue("@db", "genacnhc_dudebot");
                 cmd.Parameters.AddWithValue("@col", col.Key);
                 if (Convert.ToInt32(cmd.ExecuteScalar()) == 0)
                 {
@@ -281,18 +275,18 @@ public static class DatabaseService
                 Code_SV, Code_SWSH, Code_BDSP, Code_LA, Code_PLZA, Code_LGPE, 
                 OT_SV, TID_SV, SID_SV, OT_SWSH, TID_SWSH, SID_SWSH, OT_BDSP, TID_BDSP, SID_BDSP,
                 OT_LA, TID_LA, SID_LA, OT_PLZA, TID_PLZA, SID_PLZA, OT_LGPE, TID_LGPE, SID_LGPE,
-                Gender, Language, Quote) 
+                Gender, Language, Quote, OT, TID, SID) 
                 VALUES (@id, @count, @medals, @mcount, @tcount,
                 @c_sv, @c_swsh, @c_bdsp, @c_la, @c_plza, @c_lgpe, 
                 @ot_sv, @tid_sv, @sid_sv, @ot_swsh, @tid_swsh, @sid_swsh, @ot_bdsp, @tid_bdsp, @sid_bdsp,
                 @ot_la, @tid_la, @sid_la, @ot_plza, @tid_plza, @sid_plza, @ot_lgpe, @tid_lgpe, @sid_lgpe,
-                @gender, @language, @quote)
+                @gender, @language, @quote, @ot, @tid, @sid)
                 ON DUPLICATE KEY UPDATE 
                 TradeCount=@count, Medals=@medals, MedalCount=@mcount, TotalTrades=@tcount,
                 Code_SV=@c_sv, Code_SWSH=@c_swsh, Code_BDSP=@c_bdsp, Code_LA=@c_la, Code_PLZA=@c_plza, Code_LGPE=@c_lgpe, 
                 OT_SV=@ot_sv, TID_SV=@tid_sv, SID_SV=@sid_sv, OT_SWSH=@ot_swsh, TID_SWSH=@tid_swsh, SID_SWSH=@sid_swsh, OT_BDSP=@ot_bdsp, TID_BDSP=@tid_bdsp, SID_BDSP=@sid_bdsp,
                 OT_LA=@ot_la, TID_LA=@tid_la, SID_LA=@sid_la, OT_PLZA=@ot_plza, TID_PLZA=@tid_plza, SID_PLZA=@sid_plza, OT_LGPE=@ot_lgpe, TID_LGPE=@tid_lgpe, SID_LGPE=@sid_lgpe,
-                Gender=@gender, Language=@language, Quote=@quote;";
+                Gender=@gender, Language=@language, Quote=@quote, OT=@ot, TID=@tid, SID=@sid;";
             
             using var cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@id", trainerID);
@@ -335,6 +329,10 @@ public static class DatabaseService
             cmd.Parameters.AddWithValue("@gender", details.Gender == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Gender.ToString()!));
             cmd.Parameters.AddWithValue("@language", details.Language == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Language.ToString()!));
             cmd.Parameters.AddWithValue("@quote", details.Quote == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Quote));
+            
+            cmd.Parameters.AddWithValue("@ot", details.OT == null ? DBNull.Value : EncryptionUtil.Encrypt(details.OT));
+            cmd.Parameters.AddWithValue("@tid", EncryptionUtil.Encrypt(details.TID.ToString()));
+            cmd.Parameters.AddWithValue("@sid", EncryptionUtil.Encrypt(details.SID.ToString()));
             
             cmd.ExecuteNonQuery();
         }
