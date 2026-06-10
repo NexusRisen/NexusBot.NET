@@ -1,6 +1,6 @@
 # DudeBot.NET Release Notes
 
-## 🚀 v6.4.6 - 2026-06-09
+## 🚀 v6.4.7 - 2026-06-09
 
 ### 🐛 Bug Fixes & Improvements
 - **SQL Case Sensitivity Fix**: Fixed an issue where MySQL servers running on Windows would throw a `Duplicate column name` error during database initialization due to case-sensitivity in the `information_schema` queries.
