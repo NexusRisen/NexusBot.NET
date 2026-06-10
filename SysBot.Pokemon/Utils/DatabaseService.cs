@@ -55,9 +55,6 @@ public static class DatabaseService
                     Medals TEXT NOT NULL,
                     MedalCount INT DEFAULT 0,
                     TotalTrades INT DEFAULT 0,
-                    OT TEXT,
-                    TID TEXT,
-                    SID TEXT,
                     Gender TEXT,
                     Language TEXT,
                     Quote TEXT
@@ -275,18 +272,18 @@ public static class DatabaseService
                 Code_SV, Code_SWSH, Code_BDSP, Code_LA, Code_PLZA, Code_LGPE, 
                 OT_SV, TID_SV, SID_SV, OT_SWSH, TID_SWSH, SID_SWSH, OT_BDSP, TID_BDSP, SID_BDSP,
                 OT_LA, TID_LA, SID_LA, OT_PLZA, TID_PLZA, SID_PLZA, OT_LGPE, TID_LGPE, SID_LGPE,
-                Gender, Language, Quote, OT, TID, SID) 
+                Gender, Language, Quote) 
                 VALUES (@id, @count, @medals, @mcount, @tcount,
                 @c_sv, @c_swsh, @c_bdsp, @c_la, @c_plza, @c_lgpe, 
                 @ot_sv, @tid_sv, @sid_sv, @ot_swsh, @tid_swsh, @sid_swsh, @ot_bdsp, @tid_bdsp, @sid_bdsp,
                 @ot_la, @tid_la, @sid_la, @ot_plza, @tid_plza, @sid_plza, @ot_lgpe, @tid_lgpe, @sid_lgpe,
-                @gender, @language, @quote, @ot, @tid, @sid)
+                @gender, @language, @quote)
                 ON DUPLICATE KEY UPDATE 
                 TradeCount=@count, Medals=@medals, MedalCount=@mcount, TotalTrades=@tcount,
                 Code_SV=@c_sv, Code_SWSH=@c_swsh, Code_BDSP=@c_bdsp, Code_LA=@c_la, Code_PLZA=@c_plza, Code_LGPE=@c_lgpe, 
                 OT_SV=@ot_sv, TID_SV=@tid_sv, SID_SV=@sid_sv, OT_SWSH=@ot_swsh, TID_SWSH=@tid_swsh, SID_SWSH=@sid_swsh, OT_BDSP=@ot_bdsp, TID_BDSP=@tid_bdsp, SID_BDSP=@sid_bdsp,
                 OT_LA=@ot_la, TID_LA=@tid_la, SID_LA=@sid_la, OT_PLZA=@ot_plza, TID_PLZA=@tid_plza, SID_PLZA=@sid_plza, OT_LGPE=@ot_lgpe, TID_LGPE=@tid_lgpe, SID_LGPE=@sid_lgpe,
-                Gender=@gender, Language=@language, Quote=@quote, OT=@ot, TID=@tid, SID=@sid;";
+                Gender=@gender, Language=@language, Quote=@quote;";
             
             using var cmd = new MySqlCommand(query, conn);
             cmd.Parameters.AddWithValue("@id", trainerID);
@@ -329,10 +326,6 @@ public static class DatabaseService
             cmd.Parameters.AddWithValue("@gender", details.Gender == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Gender.ToString()!));
             cmd.Parameters.AddWithValue("@language", details.Language == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Language.ToString()!));
             cmd.Parameters.AddWithValue("@quote", details.Quote == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Quote));
-            
-            cmd.Parameters.AddWithValue("@ot", details.OT == null ? DBNull.Value : EncryptionUtil.Encrypt(details.OT));
-            cmd.Parameters.AddWithValue("@tid", EncryptionUtil.Encrypt(details.TID.ToString()));
-            cmd.Parameters.AddWithValue("@sid", EncryptionUtil.Encrypt(details.SID.ToString()));
             
             cmd.ExecuteNonQuery();
         }
