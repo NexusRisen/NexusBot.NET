@@ -109,6 +109,8 @@ public class HuggingFaceService : IDisposable
                         return responseText;
                     }
                 }
+                
+                throw new Exception("Received empty response or choices from Hugging Face API.");
             }
             catch (Exception ex)
             {
