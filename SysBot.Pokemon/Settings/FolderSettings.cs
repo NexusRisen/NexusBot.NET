@@ -26,33 +26,29 @@ public class FolderSettings : IDumper
 
     public void CreateDefaults(string path)
     {
-        var dump = Path.Combine(path, "dump");
+        DumpFolder = string.IsNullOrWhiteSpace(DumpFolder) ? Path.Combine(path, "dump") : DumpFolder;
         if (!Directory.Exists(DumpFolder))
         {
-            Directory.CreateDirectory(dump);
+            Directory.CreateDirectory(DumpFolder);
         }
-        DumpFolder = dump;
         Dump = true;
 
-        var distribute = Path.Combine(path, "distribute");
+        DistributeFolder = string.IsNullOrWhiteSpace(DistributeFolder) ? Path.Combine(path, "distribute") : DistributeFolder;
         if (!Directory.Exists(DistributeFolder))
         {
-            Directory.CreateDirectory(distribute);
+            Directory.CreateDirectory(DistributeFolder);
         }
-        DistributeFolder = distribute;
 
-        var events = Path.Combine(path, "events");
+        EventsFolder = string.IsNullOrWhiteSpace(EventsFolder) ? Path.Combine(path, "events") : EventsFolder;
         if (!Directory.Exists(EventsFolder))
         {
-            Directory.CreateDirectory(events);
+            Directory.CreateDirectory(EventsFolder);
         }
-        EventsFolder = events;
 
-        var homeReady = Path.Combine(path, "homeready");
+        HOMEReadyPKMFolder = string.IsNullOrWhiteSpace(HOMEReadyPKMFolder) ? Path.Combine(path, "homeready") : HOMEReadyPKMFolder;
         if (!Directory.Exists(HOMEReadyPKMFolder))
         {
-            Directory.CreateDirectory(homeReady);
+            Directory.CreateDirectory(HOMEReadyPKMFolder);
         }
-        HOMEReadyPKMFolder = homeReady;
     }
 }
