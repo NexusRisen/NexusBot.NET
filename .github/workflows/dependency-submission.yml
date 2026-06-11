@@ -24,4 +24,4 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Submit Dependencies
-        uses: advanced-security/component-detection-dependency-submission-action@v3
+        uses: advanced-security/component-detection-dependency-submission-action@v0.1.1
