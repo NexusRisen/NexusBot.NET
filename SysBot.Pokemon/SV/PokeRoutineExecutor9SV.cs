@@ -253,6 +253,9 @@ public abstract class PokeRoutineExecutor9SV : PokeRoutineExecutor<PK9>
             await Click(A, 1_000, token).ConfigureAwait(false);
         }
 
+        // Wait an extra 10 seconds for the game to load.
+        await Task.Delay(10_000, token).ConfigureAwait(false);
+
         int timer = 60_000;
         while (!await IsOnOverworldTitle(token).ConfigureAwait(false))
         {
