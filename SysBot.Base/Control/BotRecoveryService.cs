@@ -20,6 +20,7 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
     private readonly SemaphoreSlim _recoveryLock = new(1, 1);
     private readonly Task _monitorTask;
     private bool _isDisposed;
+    private readonly List<IRecoveryMaintenance> _maintenanceTasks = new();
 
     public event EventHandler<BotRecoveryEventArgs>? RecoveryAttempted;
     public event EventHandler<BotRecoveryEventArgs>? RecoverySucceeded;
@@ -39,8 +40,10 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
 
     private static void ValidateConfiguration(RecoveryConfiguration config)
     {
-        if (config.MaxRecoveryAttempts < 1)
-            throw new ArgumentException("MaxRecoveryAttempts must be at least 1", nameof(config));
+        if (config.MaxRecoveryAttempts < 1 && config.MaxRecoveryAttempts != -1)
+            throw new ArgumentException("MaxRecoveryAttempts must be at least 1 or -1 for unlimited", nameof(config));
+        if (config.HardRecoveryThreshold < 1 && config.HardRecoveryThreshold != -1)
+            throw new ArgumentException("HardRecoveryThreshold must be at least 1 or -1 to disable hard recovery", nameof(config));
         if (config.InitialRecoveryDelaySeconds < 0)
             throw new ArgumentException("InitialRecoveryDelaySeconds cannot be negative", nameof(config));
         if (config.BackoffMultiplier < 1.0)
@@ -60,6 +63,19 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
         };
         
         _recoveryStates.AddOrUpdate(bot.Bot.Connection.Name, state, (_, __) => state);
+    }
+
+    /// <summary>
+    /// Registers an IRecoveryMaintenance task that will be called periodically.
+    /// </summary>
+    public void RegisterMaintenanceTask(IRecoveryMaintenance task)
+    {
+        if (task == null) throw new ArgumentNullException(nameof(task));
+        lock (_maintenanceTasks)
+        {
+            if (!_maintenanceTasks.Contains(task))
+                _maintenanceTasks.Add(task);
+        }
     }
 
     /// <summary>
@@ -95,9 +111,15 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
                 // Perform periodic system maintenance
                 LogUtil.CleanupStaleBuffers(TimeSpan.FromMinutes(10));
                 
-                // Try to trigger cleanup for BatchTradeTracker if possible
-                // We use reflection here because BatchTradeTracker is in SysBot.Pokemon which SysBot.Base cannot reference directly
-                TryCleanupBatchTracker();
+                // Perform registered maintenance tasks
+                lock (_maintenanceTasks)
+                {
+                    foreach (var task in _maintenanceTasks)
+                    {
+                        try { task.PerformMaintenance(); }
+                        catch { /* Ignore errors during maintenance */ }
+                    }
+                }
 
                 if (!_config.EnableRecovery || _isDisposed)
                     continue;
@@ -176,10 +198,14 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
             return false;
         }
 
-        // Check if we've exceeded max attempts
-        if (state.ConsecutiveFailures >= _config.MaxRecoveryAttempts)
+        // Check if we've exceeded max attempts (unless unlimited)
+        if (_config.MaxRecoveryAttempts != -1 && state.ConsecutiveFailures >= _config.MaxRecoveryAttempts)
         {
-            LogUtil.LogError($"Bot {botName} has exceeded maximum recovery attempts ({_config.MaxRecoveryAttempts})", "Recovery");
+            if (!state.HasNotifiedMaxAttempts)
+            {
+                LogUtil.LogError($"Bot {botName} has exceeded maximum recovery attempts ({_config.MaxRecoveryAttempts})", "Recovery");
+                state.HasNotifiedMaxAttempts = true;
+            }
             return false;
         }
 
@@ -229,7 +255,8 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
             { 
                 BotName = botName, 
                 CrashTime = DateTime.UtcNow,
-                AttemptNumber = state.ConsecutiveFailures 
+                AttemptNumber = state.ConsecutiveFailures,
+                CrashReason = bot.LastException?.InnerException?.Message ?? bot.LastException?.Message
             });
 
             LogUtil.LogInfo($"Attempting recovery for bot {botName} (attempt {state.ConsecutiveFailures}/{_config.MaxRecoveryAttempts})", "Recovery");
@@ -249,10 +276,20 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
             await Task.Delay(TimeSpan.FromSeconds(delay), cancellationToken).ConfigureAwait(false);
 
             // Attempt to restart the bot
-            await Task.Run(() =>
+            await Task.Run(async () =>
             {
                 try
                 {
+                    if (_config.HardRecoveryThreshold != -1 && state.ConsecutiveFailures >= _config.HardRecoveryThreshold)
+                    {
+                        LogUtil.LogInfo($"Bot {botName} hit hard recovery threshold ({_config.HardRecoveryThreshold}). Performing hard disconnect.", "Recovery");
+                        bot.Bot.Connection.Disconnect();
+                        // Brief wait before reconnecting
+                        await Task.Delay(2000, cancellationToken).ConfigureAwait(false);
+                        // Reset essentially calls Disconnect and Reconnect
+                        bot.Bot.Connection.Reset();
+                    }
+
                     bot.Start();
                     state.LastStartTime = DateTime.UtcNow;
                     state.IsIntentionallyStopped = false;
@@ -265,7 +302,7 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
             }).ConfigureAwait(false);
 
             // Wait a bit to see if the bot stays running
-            await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(_config.VerificationDelaySeconds), cancellationToken).ConfigureAwait(false);
 
             if (bot.IsRunning)
             {
@@ -347,6 +384,7 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
             state.ClearCrashHistory();
             state.LastRecoveryAttempt = null;
             state.IsRecovering = false;
+            state.HasNotifiedMaxAttempts = false;
         }
     }
     
@@ -368,56 +406,7 @@ public sealed class BotRecoveryService<T> : IDisposable where T : class, IConsol
         LogUtil.LogInfo("Bot recovery service disabled", "Recovery");
     }
 
-    private static void TryCleanupBatchTracker()
-    {
-        try
-        {
-            // We use reflection to access BatchTradeTracker<T>.CleanupAll()
-            // Since we don't have a direct reference to the type here in the Base project,
-            // we look it up by name in the Pokemon assembly.
-            var pokemonAssembly = AppDomain.CurrentDomain.GetAssemblies()
-                .FirstOrDefault(a => a.GetName().Name == "SysBot.Pokemon");
-            
-            if (pokemonAssembly == null) return;
 
-            var trackerType = pokemonAssembly.GetType("SysBot.Pokemon.Helpers.BatchTradeTracker`1");
-            if (trackerType == null) return;
-
-            // Find all instantiated generic types for BatchTradeTracker and call CleanupAll
-            // Actually, CleanupAll is static, so we just need to call it on the generic versions we care about
-            // or find all loaded versions.
-            var genericArguments = new[] { "PKHeX.Core.PK9", "PKHeX.Core.PK8", "PKHeX.Core.PA9", "PKHeX.Core.PA8", "PKHeX.Core.PB8", "PKHeX.Core.PB7" };
-            foreach (var argName in genericArguments)
-            {
-                var argType = pokemonAssembly.GetType(argName) ?? AppDomain.CurrentDomain.GetAssemblies()
-                    .Select(a => a.GetType(argName)).FirstOrDefault(t => t != null);
-                
-                if (argType == null) continue;
-
-                var specificTrackerType = trackerType.MakeGenericType(argType);
-                var cleanupMethod = specificTrackerType.GetMethod("CleanupAll", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                cleanupMethod?.Invoke(null, null);
-            }
-
-            // Also trigger Hub maintenance if possible
-            // Simpler: Try to find any active PokeTradeHub and call CleanupMaintenance
-            var runnerType = pokemonAssembly.GetTypes().FirstOrDefault(t => t.Name == "PokeBotRunner`1");
-            if (runnerType != null)
-            {
-                var activeHubProperty = runnerType.GetProperty("ActiveHub", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                var activeHub = activeHubProperty?.GetValue(null);
-                if (activeHub != null)
-                {
-                    var cleanupMethod = activeHub.GetType().GetMethod("CleanupMaintenance");
-                    cleanupMethod?.Invoke(activeHub, null);
-                }
-            }
-        }
-        catch
-        {
-            // Ignore reflection errors during background maintenance
-        }
-    }
 }
 
 /// <summary>
@@ -436,6 +425,8 @@ public class RecoveryConfiguration
     public int MinimumStableUptimeSeconds { get; set; } = 600;
     public bool NotifyOnRecoveryAttempt { get; set; } = true;
     public bool NotifyOnRecoveryFailure { get; set; } = true;
+    public int HardRecoveryThreshold { get; set; } = 3;
+    public int VerificationDelaySeconds { get; set; } = 10;
 }
 
 /// <summary>
@@ -459,6 +450,7 @@ public class BotRecoveryState
     public DateTime? LastRecoveryAttempt { get; set; }
     public DateTime LastStartTime { get; set; }
     public bool IsIntentionallyStopped { get; set; }
+    public bool HasNotifiedMaxAttempts { get; set; }
     
     public bool IsRecovering 
     { 
@@ -511,4 +503,5 @@ public class BotCrashEventArgs : EventArgs
     public string BotName { get; set; } = string.Empty;
     public DateTime CrashTime { get; set; }
     public int AttemptNumber { get; set; }
+    public string? CrashReason { get; set; }
 }

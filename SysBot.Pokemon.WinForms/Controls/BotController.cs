@@ -132,15 +132,27 @@ public partial class BotController : UserControl
         string labelTranslated = UILocalizer.Translate(bot.Connection.Label, lang);
         string namePrefix = State.Connection.Protocol == SwitchProtocol.WiFi ? UILocalizer.Translate("IP Address", lang) : UILocalizer.Translate("Port", lang);
 
-        L_Description.Text = $"[{bot.LastTime:hh:mm:ss}] {labelTranslated}: {LogLocalizer.Translate(bot.LastLogged)}";
+        string description = $"[{bot.LastTime:hh:mm:ss}] {labelTranslated}: {LogLocalizer.Translate(bot.LastLogged)}";
         L_Left.Text = $"{namePrefix}: {bot.Connection.Name}{Environment.NewLine}{routineTranslated}";
 
         var lastTime = bot.LastTime;
         if (!b.IsRunning)
         {
-            PB_Lamp.BackColor = Color.Transparent;
+            var recoveryState = b.GetRecoveryState();
+            if (recoveryState != null && recoveryState.IsRecovering)
+            {
+                L_Description.Text = $"[{DateTime.Now:hh:mm:ss}] {labelTranslated}: Recovering... (Attempt {recoveryState.ConsecutiveFailures})";
+                PB_Lamp.BackColor = Color.Orange;
+            }
+            else
+            {
+                L_Description.Text = description;
+                PB_Lamp.BackColor = Color.Transparent;
+            }
             return;
         }
+
+        L_Description.Text = description;
         if (!b.Bot.Connection.Connected)
         {
             PB_Lamp.BackColor = Color.Aqua;

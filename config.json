@@ -619,7 +619,7 @@
         "Port": 6000,
         "UseCRLF": true
       },
-      "CurrentRoutineType": 0,
+      "CurrentRoutineType": 2,
       "InitialRoutine": 2,
       "NextRoutineType": 0
     }

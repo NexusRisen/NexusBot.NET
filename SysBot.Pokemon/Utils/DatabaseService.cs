@@ -114,6 +114,22 @@ public static class DatabaseService
                 );";
             using (var cmd = new MySqlCommand(blacklistQuery, conn)) cmd.ExecuteNonQuery();
 
+            string linkedAccountsQuery = @"
+                CREATE TABLE IF NOT EXISTS LinkedAccounts (
+                    AliasID BIGINT UNSIGNED PRIMARY KEY,
+                    PrimaryTrainerID BIGINT UNSIGNED NOT NULL,
+                    Platform VARCHAR(50) NOT NULL
+                );";
+            using (var cmd = new MySqlCommand(linkedAccountsQuery, conn)) cmd.ExecuteNonQuery();
+
+            string tokensQuery = @"
+                CREATE TABLE IF NOT EXISTS AccountLinkTokens (
+                    Token VARCHAR(10) PRIMARY KEY,
+                    PrimaryTrainerID BIGINT UNSIGNED NOT NULL,
+                    ExpiresAt DATETIME NOT NULL
+                );";
+            using (var cmd = new MySqlCommand(tokensQuery, conn)) cmd.ExecuteNonQuery();
+
             LogUtil.LogInfo("DatabaseService", "Global database ready.");
             return true;
         }
@@ -196,15 +212,128 @@ public static class DatabaseService
         }
     }
 
+    public static ulong GetPrimaryId(ulong trainerID)
+    {
+        if (!_initialized) return trainerID;
+        try
+        {
+            using var conn = new MySqlConnection(GetConnectionString());
+            conn.Open();
+            string query = "SELECT PrimaryTrainerID FROM LinkedAccounts WHERE AliasID = @id LIMIT 1";
+            using var cmd = new MySqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@id", trainerID);
+            var result = cmd.ExecuteScalar();
+            if (result != null && ulong.TryParse(result.ToString(), out ulong primary))
+            {
+                return primary;
+            }
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogError($"Error fetching primary ID: {ex.Message}", "DatabaseService");
+        }
+        return trainerID;
+    }
+
+    public static string GenerateLinkToken(ulong primaryTrainerID)
+    {
+        if (!_initialized) return "DB_OFF";
+        try
+        {
+            using var conn = new MySqlConnection(GetConnectionString());
+            conn.Open();
+            
+            // Delete old tokens for this user
+            string delQuery = "DELETE FROM AccountLinkTokens WHERE PrimaryTrainerID = @id";
+            using (var cmd = new MySqlCommand(delQuery, conn))
+            {
+                cmd.Parameters.AddWithValue("@id", primaryTrainerID);
+                cmd.ExecuteNonQuery();
+            }
+
+            // Clean up expired tokens generally
+            string cleanQuery = "DELETE FROM AccountLinkTokens WHERE ExpiresAt < NOW()";
+            using (var cmd = new MySqlCommand(cleanQuery, conn)) cmd.ExecuteNonQuery();
+
+            string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            string token = new string(Enumerable.Repeat(chars, 6).Select(s => s[random.Next(s.Length)]).ToArray());
+            
+            string query = "INSERT INTO AccountLinkTokens (Token, PrimaryTrainerID, ExpiresAt) VALUES (@tok, @id, DATE_ADD(NOW(), INTERVAL 15 MINUTE))";
+            using var insertCmd = new MySqlCommand(query, conn);
+            insertCmd.Parameters.AddWithValue("@tok", token);
+            insertCmd.Parameters.AddWithValue("@id", primaryTrainerID);
+            insertCmd.ExecuteNonQuery();
+            
+            return token;
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogError($"Error generating link token: {ex.Message}", "DatabaseService");
+            return "ERROR";
+        }
+    }
+
+    public static bool LinkAccount(ulong aliasId, string token, string platform)
+    {
+        if (!_initialized) return false;
+        try
+        {
+            using var conn = new MySqlConnection(GetConnectionString());
+            conn.Open();
+            
+            string selQuery = "SELECT PrimaryTrainerID FROM AccountLinkTokens WHERE Token = @tok AND ExpiresAt > NOW() LIMIT 1";
+            ulong primaryId = 0;
+            using (var cmd = new MySqlCommand(selQuery, conn))
+            {
+                cmd.Parameters.AddWithValue("@tok", token);
+                var res = cmd.ExecuteScalar();
+                if (res == null) return false;
+                primaryId = Convert.ToUInt64(res);
+            }
+
+            // Prevent linking to yourself or if you are already an alias
+            if (primaryId == aliasId) return false;
+
+            string insQuery = @"
+                INSERT INTO LinkedAccounts (AliasID, PrimaryTrainerID, Platform) 
+                VALUES (@alias, @primary, @plat)
+                ON DUPLICATE KEY UPDATE PrimaryTrainerID=@primary, Platform=@plat;";
+            using (var cmd = new MySqlCommand(insQuery, conn))
+            {
+                cmd.Parameters.AddWithValue("@alias", aliasId);
+                cmd.Parameters.AddWithValue("@primary", primaryId);
+                cmd.Parameters.AddWithValue("@plat", platform);
+                cmd.ExecuteNonQuery();
+            }
+
+            // Delete the used token
+            string delQuery = "DELETE FROM AccountLinkTokens WHERE Token = @tok";
+            using (var cmd = new MySqlCommand(delQuery, conn))
+            {
+                cmd.Parameters.AddWithValue("@tok", token);
+                cmd.ExecuteNonQuery();
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogError($"Error linking account: {ex.Message}", "DatabaseService");
+            return false;
+        }
+    }
+
     public static TradeCodeStorage.TradeCodeDetails? GetUser(ulong trainerID)
     {
+        ulong realTrainerID = GetPrimaryId(trainerID);
         try
         {
             using var conn = new MySqlConnection(GetConnectionString());
             conn.Open();
             string query = "SELECT * FROM Users WHERE TrainerID = @id";
             using var cmd = new MySqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@id", trainerID);
+            cmd.Parameters.AddWithValue("@id", realTrainerID);
             
             using var reader = cmd.ExecuteReader();
             if (reader.Read())
@@ -263,6 +392,7 @@ public static class DatabaseService
 
     public static void SaveUser(ulong trainerID, TradeCodeStorage.TradeCodeDetails details)
     {
+        ulong realTrainerID = GetPrimaryId(trainerID);
         try
         {
             using var conn = new MySqlConnection(GetConnectionString());
@@ -286,7 +416,7 @@ public static class DatabaseService
                 Gender=@gender, Language=@language, Quote=@quote;";
             
             using var cmd = new MySqlCommand(query, conn);
-            cmd.Parameters.AddWithValue("@id", trainerID);
+            cmd.Parameters.AddWithValue("@id", realTrainerID);
             cmd.Parameters.AddWithValue("@count", EncryptionUtil.Encrypt(details.TradeCount.ToString()));
             cmd.Parameters.AddWithValue("@medals", EncryptionUtil.Encrypt(details.Medals.ToString()));
             cmd.Parameters.AddWithValue("@mcount", details.MedalCount); 

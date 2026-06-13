@@ -48,7 +48,13 @@ public class RecoverableBotSource<T> : BotSource<T>, IDisposable where T : class
         // Cancel any existing monitoring
         StopMonitoring();
         
-        // Clear the intentionally stopped flag in recovery service
+        // Reset recovery state if this is a manual start
+        var state = GetRecoveryState();
+        if (state == null || !state.IsRecovering)
+        {
+            ResetRecoveryState();
+        }
+        
         _recoveryService?.ClearIntentionallyStopped(Bot.Connection.Name);
         
         base.Start();

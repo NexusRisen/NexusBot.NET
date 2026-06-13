@@ -576,11 +576,11 @@ public sealed partial class Main : Form
         PokeRoutineExecutorBase newBot;
         try
         {
-            Console.WriteLine($"Current Mode ({Config.Mode}) does not support this type of bot ({cfg.CurrentRoutineType}).");
             newBot = RunningEnvironment.CreateBotFromConfig(cfg);
         }
         catch
         {
+            Console.WriteLine($"Current Mode ({Config.Mode}) does not support this type of bot ({cfg.CurrentRoutineType}).");
             return false;
         }
 

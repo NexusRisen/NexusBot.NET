@@ -39,7 +39,7 @@ public interface IPokeBotRunner : IDisposable
     event EventHandler<PokeRoutineExecutorBase> BotRemoved;
 }
 
-public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPokeBotRunner where T : PKM, new()
+public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPokeBotRunner, IRecoveryMaintenance where T : PKM, new()
 {
     public static PokeTradeHub<T>? ActiveHub { get; private set; }
     public readonly PokeTradeHub<T> Hub;
@@ -143,14 +143,37 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
             RecoverIntentionalStops = Hub.Config.Recovery.RecoverIntentionalStops,
             MinimumStableUptimeSeconds = Hub.Config.Recovery.MinimumStableUptimeSeconds,
             NotifyOnRecoveryAttempt = Hub.Config.Recovery.NotifyOnRecoveryAttempt,
-            NotifyOnRecoveryFailure = Hub.Config.Recovery.NotifyOnRecoveryFailure
+            NotifyOnRecoveryFailure = Hub.Config.Recovery.NotifyOnRecoveryFailure,
+            HardRecoveryThreshold = Hub.Config.Recovery.HardRecoveryThreshold,
+            VerificationDelaySeconds = Hub.Config.Recovery.VerificationDelaySeconds
         };
 
         InitializeRecovery(recoveryConfig);
 
+        if (RecoveryService != null)
+        {
+            RecoveryService.RegisterMaintenanceTask(this);
+        }
+
         if (Hub.Config.Recovery.EnableRecovery)
         {
             LogUtil.LogInfo("Bot recovery system is enabled", "Recovery");
+        }
+    }
+
+    public void PerformMaintenance()
+    {
+        try
+        {
+            // Clean up stale batch trades for this runner's type
+            SysBot.Pokemon.Helpers.BatchTradeTracker<T>.CleanupAll();
+
+            // Perform Hub maintenance
+            Hub.CleanupMaintenance();
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogError($"Error during recovery maintenance: {ex.Message}", "Recovery");
         }
     }
 

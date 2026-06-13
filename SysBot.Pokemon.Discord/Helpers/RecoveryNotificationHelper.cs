@@ -41,9 +41,13 @@ public static class RecoveryNotificationHelper
 
     private static async Task OnBotCrashed(BotCrashEventArgs e)
     {
+        var description = $"**Bot:** {e.BotName}\n**Time:** {e.CrashTime:yyyy-MM-dd HH:mm:ss} UTC";
+        if (!string.IsNullOrEmpty(e.CrashReason))
+            description += $"\n**Reason:** {e.CrashReason}";
+
         var embed = new EmbedBuilder()
             .WithTitle("Bot Crash Detected")
-            .WithDescription($"**Bot:** {e.BotName}\n**Time:** {e.CrashTime:yyyy-MM-dd HH:mm:ss} UTC")
+            .WithDescription(description)
             .WithColor(Color.Orange)
             .WithTimestamp(DateTimeOffset.UtcNow)
             .WithFooter("Attempting automatic recovery...")

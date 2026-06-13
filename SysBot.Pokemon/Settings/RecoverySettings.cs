@@ -45,5 +45,11 @@ public class RecoverySettings
     [Category(Recovery), Description("Minimum uptime in seconds before a bot is considered stable (resets recovery attempts).")]
     public int MinimumStableUptimeSeconds { get; set; } = 600; // 10 minutes
 
+    [Category(Recovery), Description("The consecutive failure attempt number at which the bot will perform a hard connection reset before restarting.")]
+    public int HardRecoveryThreshold { get; set; } = 3;
+
+    [Category(Recovery), Description("Delay in seconds to wait before verifying that a restarted bot is stable.")]
+    public int VerificationDelaySeconds { get; set; } = 10;
+
     public override string ToString() => "Bot Recovery Settings";
 }

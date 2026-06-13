@@ -42,6 +42,9 @@ public class RecoverableBotRunner<T> : BotRunner<T>, IDisposable where T : class
         _recoveryService.RecoverySucceeded += OnRecoverySucceeded;
         _recoveryService.RecoveryFailed += OnRecoveryFailed;
 
+        // Ensure any bots added before recovery was initialized are converted
+        ConvertToRecoverable();
+
         LogUtil.LogInfo("Bot recovery service initialized", "Recovery");
     }
 

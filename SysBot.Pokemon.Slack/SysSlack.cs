@@ -25,8 +25,8 @@ public sealed class SysSlack<T> : IDisposable where T : PKM, new()
     private readonly PokeBotRunner<T> _runner;
     private readonly ProgramConfig _config;
     
-    private ISlackApiClient _apiClient;
-    private ISlackSocketModeClient _socketClient;
+    private ISlackApiClient _apiClient = null!;
+    private ISlackSocketModeClient _socketClient = null!;
 
     private readonly HashSet<string> _validCommands = new HashSet<string>
     {
@@ -34,7 +34,8 @@ public sealed class SysSlack<T> : IDisposable where T : PKM, new()
         "egg", "Egg", "hidetrade", "ht", "batchTrade", "bt", "listevents", "le",
         "eventrequest", "er", "battlereadylist", "brl", "battlereadyrequest", "brr", "pokepaste", "pp",
         "PokePaste", "PP", "randomteam", "rt", "RandomTeam", "Rt", "specialrequestpokemon", "srp",
-        "queueStatus", "qs", "queueClear", "qc", "ts", "tc", "deleteTradeCode", "dtc", "mysteryegg", "me", "id"
+        "queueStatus", "qs", "queueClear", "qc", "ts", "tc", "deleteTradeCode", "dtc", "mysteryegg", "me", "id",
+        "linkcode", "link"
     };
 
     private readonly CancellationTokenSource _cts = new();
@@ -299,6 +300,33 @@ public sealed class SysSlack<T> : IDisposable where T : PKM, new()
             else if (cmd == "deletetradecode" || cmd == "dtc")
             {
                 await HandleDeleteTradeCodeCommandAsync(message);
+            }
+            else if (cmd == "linkcode")
+            {
+                string token = DatabaseService.GenerateLinkToken(userIdNumeric);
+                if (token == "DB_OFF" || token == "ERROR")
+                    await SlackHelper<T>.SendAsync(_apiClient, message.Channel, "Account linking is currently disabled or an error occurred.");
+                else
+                    await SlackHelper<T>.SendAsync(_apiClient, message.Channel, $"<@{message.User}> Your account link token is: *{token}*\nThis token will expire in 15 minutes. Go to the other platform and run `link {token}` to link that account to this Slack account.");
+            }
+            else if (cmd == "link")
+            {
+                if (parts.Length < 2) 
+                {
+                    await SlackHelper<T>.SendAsync(_apiClient, message.Channel, "Please provide the 6-character token.");
+                    return;
+                }
+                string token = parts[1].Trim().ToUpper();
+                if (token.Length != 6)
+                {
+                    await SlackHelper<T>.SendAsync(_apiClient, message.Channel, "Invalid token format. It should be 6 characters long.");
+                    return;
+                }
+                bool success = DatabaseService.LinkAccount(userIdNumeric, token, "Slack");
+                if (success)
+                    await SlackHelper<T>.SendAsync(_apiClient, message.Channel, $"<@{message.User}> successfully linked! Your stats here will now match the primary account you linked from.");
+                else
+                    await SlackHelper<T>.SendAsync(_apiClient, message.Channel, $"<@{message.User}> failed to link account. The token may be expired, invalid, or you are trying to link to yourself.");
             }
             // More commands like batchtrade can be added similarly, but standard commands are covered.
         }
@@ -619,9 +647,9 @@ public sealed class SysSlack<T> : IDisposable where T : PKM, new()
 
         if (index < 1 || index > files.Count) return;
 
-        var fileData = await System.IO.File.ReadAllBytesAsync(System.IO.Path.Combine(folderPath, files[index - 1]));
+        var fileData = await System.IO.File.ReadAllBytesAsync(System.IO.Path.Combine(folderPath, files[index - 1]!));
         var rawData = PKHeX.Core.EntityFormat.GetFromBytes(fileData);
-        var pk = rawData as T ?? PKHeX.Core.EntityConverter.ConvertToType(rawData, typeof(T), out _) as T;
+        var pk = rawData as T ?? PKHeX.Core.EntityConverter.ConvertToType(rawData!, typeof(T), out _) as T;
 
         if (pk != null)
         {
@@ -688,9 +716,9 @@ public sealed class SysSlack<T> : IDisposable where T : PKM, new()
 
         if (index < 1 || index > files.Count) return;
 
-        var fileData = await System.IO.File.ReadAllBytesAsync(System.IO.Path.Combine(folderPath, files[index - 1]));
+        var fileData = await System.IO.File.ReadAllBytesAsync(System.IO.Path.Combine(folderPath, files[index - 1]!));
         var rawData = PKHeX.Core.EntityFormat.GetFromBytes(fileData);
-        var pk = rawData as T ?? PKHeX.Core.EntityConverter.ConvertToType(rawData, typeof(T), out _) as T;
+        var pk = rawData as T ?? PKHeX.Core.EntityConverter.ConvertToType(rawData!, typeof(T), out _) as T;
 
         if (pk != null)
         {

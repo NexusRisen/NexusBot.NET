@@ -24,6 +24,8 @@ public class BotSource<T>(RoutineExecutor<T> Bot) : IDisposable
 
     private Task? _stopTask;
 
+    public Exception? LastException { get; private set; }
+
     public virtual void Pause()
     {
         lock (_lock)
@@ -112,6 +114,7 @@ public class BotSource<T>(RoutineExecutor<T> Bot) : IDisposable
                 return;
 
             IsRunning = true;
+            LastException = null; // Clear previous exception on start
             var token = Source.Token;
             Task.Run(async () => await Bot.RunAsync(token)
                 .ContinueWith(ReportFailure, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
@@ -176,6 +179,7 @@ public class BotSource<T>(RoutineExecutor<T> Bot) : IDisposable
     {
         var ident = Bot.Connection.Name;
         var ae = finishedTask.Exception;
+        LastException = ae;
         if (ae == null)
         {
             LogUtil.LogError("Bot has stopped without error.", ident);
