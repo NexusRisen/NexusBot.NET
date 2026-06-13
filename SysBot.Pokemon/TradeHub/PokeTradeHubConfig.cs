@@ -24,6 +24,10 @@ public sealed class PokeTradeHubConfig : BaseConfig
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public KookSettings Kook { get; set; } = new();
 
+    [Category(Integration)]
+    [TypeConverter(typeof(ExpandableObjectConverter))]
+    public SlackSettings Slack { get; set; } = new();
+
     [Category(BotTrade), Description("Settings for idle distribution trades.")]
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public DistributionSettings Distribution { get; set; } = new();

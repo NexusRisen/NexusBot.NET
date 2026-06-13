@@ -23,6 +23,7 @@
     <ProjectReference Include="..\SysBot.Pokemon\SysBot.Pokemon.csproj" />
     <ProjectReference Include="..\SysBot.Pokemon.Discord\SysBot.Pokemon.Discord.csproj" />
     <ProjectReference Include="..\SysBot.Pokemon.Kook\SysBot.Pokemon.Kook.csproj" />
+    <ProjectReference Include="..\SysBot.Pokemon.Slack\SysBot.Pokemon.Slack.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PKHeX.Core.AutoMod">
