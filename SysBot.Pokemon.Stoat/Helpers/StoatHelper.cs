@@ -16,7 +16,7 @@ public static class StoatHelper<T> where T : PKM, new()
     {
         new TradeCodeStorage().UpdateUsername(ConvertId(userId), userName);
         var trainer = new PokeTradeTrainerInfo(trainerName, ConvertId(userId));
-        var notifier = new StoatTradeNotifier<T>(pk, trainer, code, userId, client, lgcode);
+        var notifier = new StoatTradeNotifier<T>(pk, trainer, code, userId, client, 1, 1, false, lgcode);
         int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
 
         var detail = new PokeTradeDetail<T>(pk, trainer, notifier, PokeTradeType.Specific, code, false, lgcode, 1, 1, false, false, uniqueTradeID, false, isHiddenTrade);
@@ -42,7 +42,7 @@ public static class StoatHelper<T> where T : PKM, new()
     {
         new TradeCodeStorage().UpdateUsername(ConvertId(userId), userName);
         var trainer = new PokeTradeTrainerInfo(trainerName, ConvertId(userId));
-        var notifier = new StoatTradeNotifier<T>(firstTrade, trainer, code, userId, client, null);
+        var notifier = new StoatTradeNotifier<T>(firstTrade, trainer, code, userId, client, 1, allTrades.Count, false, null);
         int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
 
         var detail = new PokeTradeDetail<T>(firstTrade, trainer, notifier, PokeTradeType.Batch, code, false, null, 1, allTrades.Count, false, false, uniqueTradeID, false, false) { BatchTrades = allTrades };
