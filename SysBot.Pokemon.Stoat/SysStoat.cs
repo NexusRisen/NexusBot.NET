@@ -40,6 +40,8 @@ public sealed partial class SysStoat<T> : IDisposable where T : PKM, new()
         Hub = runner.Hub;
         _config = config;
 
+        _commandRegistry.RegisterCommands(this);
+
         foreach (var bot in runner.Hub.Bots.ToArray())
         {
             if (bot is ITradeBot tradeBot)
