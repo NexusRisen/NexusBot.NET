@@ -142,7 +142,11 @@ public class BotSource<T>(RoutineExecutor<T> Bot) : IDisposable
             Source = new CancellationTokenSource();
 
             _stopTask = Task.Run(async () => await Bot.HardStop()
-                .ContinueWith(ReportFailure, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
+                .ContinueWith(t => 
+                {
+                    if (t.Exception != null)
+                        LogUtil.LogInfo($"Incomplete clean exit: {t.Exception.InnerException?.Message ?? t.Exception.Message}", Bot.Connection.Name);
+                }, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously)
                 .ContinueWith(_ =>
                 {
                     lock (_lock)

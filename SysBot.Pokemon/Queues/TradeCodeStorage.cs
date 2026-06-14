@@ -297,6 +297,29 @@ public class TradeCodeStorage
         return false;
     }
 
+    public void UpdateUsername(ulong trainerID, string username)
+    {
+        if (DatabaseService.UseRemoteDb)
+        {
+            var user = DatabaseService.GetUser(trainerID);
+            if (user != null && user.Username != username)
+            {
+                user.Username = username;
+                DatabaseService.SaveUser(trainerID, user);
+            }
+            return;
+        }
+        LoadFromFile();
+        if (_tradeCodeDetails!.TryGetValue(trainerID, out var details))
+        {
+            if (details.Username != username)
+            {
+                details.Username = username;
+                SaveToFile();
+            }
+        }
+    }
+
     private static int GenerateRandomTradeCode() => new TradeSettings().GetRandomTradeCode();
 
     private static List<Pictocodes> GenerateRandomLGCode()
@@ -324,6 +347,8 @@ public class TradeCodeStorage
 
     public class TradeCodeDetails
     {
+        public string? Username { get; set; }
+
         // Bot Logic Compatibility Fields
         public string? OT { get; set; }
         public int TID { get; set; }

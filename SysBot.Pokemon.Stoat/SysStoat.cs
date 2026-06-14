@@ -9,6 +9,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Globalization;
+using System.Reflection;
 
 namespace SysBot.Pokemon.Stoat;
 
@@ -33,7 +37,8 @@ public sealed class SysStoat<T> : IDisposable where T : PKM, new()
         "eventrequest", "er", "battlereadylist", "brl", "battlereadyrequest", "brr", "pokepaste", "pp",
         "PokePaste", "PP", "randomteam", "rt", "RandomTeam", "Rt", "specialrequestpokemon", "srp",
         "queueStatus", "qs", "queueClear", "qc", "ts", "tc", "deleteTradeCode", "dtc", "mysteryegg", "me", "id",
-        "linkcode", "link", "medals", "ml", "leaderboard", "lb", "halloffame", "hof"
+        "linkcode", "link", "medals", "ml", "leaderboard", "lb", "halloffame", "hof",
+        "about", "info", "whoami", "owner"
     };
 
     private readonly CancellationTokenSource _cts = new();
@@ -163,6 +168,8 @@ public sealed class SysStoat<T> : IDisposable where T : PKM, new()
 
             await _client.StartAsync().ConfigureAwait(false);
 
+            _ = MonitorStatusAsync(ct);
+
             await Task.Delay(-1, ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException) { }
@@ -172,14 +179,55 @@ public sealed class SysStoat<T> : IDisposable where T : PKM, new()
         }
     }
 
-    private void Client_OnReady(SelfUser selfUser)
+    private async Task MonitorStatusAsync(CancellationToken token)
+    {
+        const int Interval = 60; // seconds
+        while (!token.IsCancellationRequested)
+        {
+            try
+            {
+                string gameStatus = Hub.Config.Stoat.BotGameStatus;
+                if (string.IsNullOrEmpty(gameStatus)) gameStatus = "Trading Pokémon";
+                var json = $"{{\"status\":{{\"presence\":\"Online\",\"text\":\"{gameStatus}\"}}}}";
+                using var httpClient = new System.Net.Http.HttpClient();
+                httpClient.DefaultRequestHeaders.Add("x-bot-token", Hub.Config.Stoat.Token);
+                var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+                var apiUrl = _client.Config.ApiUrl;
+                if (!apiUrl.EndsWith("/")) apiUrl += "/";
+                var req = new System.Net.Http.HttpRequestMessage(new System.Net.Http.HttpMethod("PATCH"), apiUrl + "users/@me") { Content = content };
+                await httpClient.SendAsync(req);
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogError($"Failed to update Stoat bot presence: {ex.Message}", "SysStoat");
+            }
+            await Task.Delay(Interval * 1000, token).ConfigureAwait(false);
+        }
+    }
+
+    private async void Client_OnReady(SelfUser selfUser)
     {
         LogUtil.LogInfo("Stoat Bot Connected successfully.", "SysStoat");
+        try
+        {
+            string gameStatus = Hub.Config.Stoat.BotGameStatus;
+            if (string.IsNullOrEmpty(gameStatus)) gameStatus = "Trading Pokémon";
+            var json = $"{{\"status\":{{\"presence\":\"Online\",\"text\":\"{gameStatus}\"}}}}";
+            using var httpClient = new System.Net.Http.HttpClient();
+            httpClient.DefaultRequestHeaders.Add("x-bot-token", Hub.Config.Stoat.Token);
+            var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
+            var req = new System.Net.Http.HttpRequestMessage(new System.Net.Http.HttpMethod("PATCH"), "https://api.revolt.chat/users/@me") { Content = content };
+            await httpClient.SendAsync(req);
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogError($"Failed to set Stoat bot presence: {ex.Message}", "SysStoat");
+        }
     }
 
     private async void Client_OnMessageReceived(Message message)
     {
-        if (message is not UserMessage userMessage || message.Author.IsBot) return;
+        if (message is not UserMessage userMessage || message.Author?.IsBot == true) return;
 
         ulong channelIdNumeric = StoatHelper<T>.ConvertId(message.ChannelId);
         if (!Hub.Config.Stoat.ChannelWhitelist.Contains(channelIdNumeric) && Hub.Config.Stoat.ChannelWhitelist.List.Count > 0)
@@ -200,7 +248,7 @@ public sealed class SysStoat<T> : IDisposable where T : PKM, new()
 
         if (Hub.Config.Stoat.UserBlacklist.Contains(userIdNumeric)) return;
 
-        LogUtil.LogText($"Stoat Command received: {cmd} from {message.Author.Username}");
+        LogUtil.LogText($"Stoat Command received: {cmd} from {message.Author?.Username ?? "Unknown"}");
 
         try
         {
@@ -215,7 +263,11 @@ public sealed class SysStoat<T> : IDisposable where T : PKM, new()
                 return;
             }
 
-            if (cmd == "trade" || cmd == "t")
+            if (cmd == "about" || cmd == "info" || cmd == "whoami" || cmd == "owner")
+            {
+                await HandleAboutCommandAsync(userMessage);
+            }
+            else if (cmd == "trade" || cmd == "t")
             {
                 if (!await CheckPermissions(userMessage, Hub.Config.Stoat.RoleCanTrade)) return;
                 await HandleTradeCommandAsync(userMessage, parts.Skip(1).ToList());
@@ -822,6 +874,7 @@ public sealed class SysStoat<T> : IDisposable where T : PKM, new()
 
         ulong userIdNumeric = StoatHelper<T>.ConvertId(message.AuthorId);
         var tradeCodeStorage = new TradeCodeStorage();
+        tradeCodeStorage.UpdateUsername(userIdNumeric, message.Author.Username);
         int totalTrades = tradeCodeStorage.GetTradeCount(userIdNumeric);
 
         if (totalTrades == 0)
@@ -873,5 +926,78 @@ public sealed class SysStoat<T> : IDisposable where T : PKM, new()
                           $"*DudeBot.NET v{DudeBot.Version} | Synchronized via SQL*";
 
         await StoatHelper<T>.SendAsync(_client, message.ChannelId, response);
+    }
+
+    private async Task HandleAboutCommandAsync(UserMessage message)
+    {
+        var uptime = (DateTime.Now - Process.GetCurrentProcess().StartTime).ToString(@"dd\.hh\:mm\:ss");
+        var heapSize = Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2).ToString(CultureInfo.CurrentCulture);
+        var gameName = typeof(T).Name switch
+        {
+            nameof(PA9) => "Pokémon Legends: Z-A",
+            nameof(PK9) => "Pokémon Scarlet & Violet",
+            nameof(PK8) => "Pokémon Sword & Shield",
+            nameof(PA8) => "Pokémon Legends: Arceus",
+            nameof(PB8) => "Pokémon BDSP",
+            _ => "Pokémon LGPE"
+        };
+
+        string description = $"**A high-performance Pokemon automation bot powered by PKHeX.Core.**\n\n" +
+            $"**👑 Project Owners:**\n" +
+            $"**Havok**: Logo & Asset Creation\n" +
+            $"**Link**: Logo & Asset Creation\n\n" +
+            $"**📊 Project Info:**\n" +
+            $"**Main Developer**: [Nexus Risen](https://nexusrisen.net)\n" +
+            $"**Mode**: {gameName}\n" +
+            $"**Version**: {DudeBot.Version}\n\n" +
+            $"**💻 System Stats:**\n" +
+            $"**Uptime**: {uptime}\n" +
+            $"**Memory**: {heapSize} MiB\n\n" +
+            $"**👥 Contributors:**\n" +
+            $"**Nexus Risen**: Project Lead & Developer\n" +
+            $"**Secludedly**: Medals, Refactoring & Feature Enhancements\n" +
+            $"**Lusamine**: Research & Data Analysis\n" +
+            $"**Hexbyt3**: Core Engine Enhancements\n" +
+            $"**SantaCrab2**: Auto-Legality Mod (ALM)\n\n" +
+            $"**📦 Dependencies:**\n" +
+            $"**PKHeX.Core**: {GetVersionInfo("PKHeX.Core")}\n" +
+            $"**AutoLegality**: {GetVersionInfo("PKHeX.Core.AutoMod")}\n" +
+            $"**Base System**: [SysBot.NET](https://github.com/kwsch/SysBot.NET)\n\n" +
+            $"*OS: {RuntimeInformation.OSDescription} ({RuntimeInformation.OSArchitecture})*";
+
+        var embed = new EmbedBuilder()
+            .SetTitle("DudeBot.NET - Information")
+            .SetDescription(description)
+            .SetColor(new StoatColor("#FFD700"))
+            .SetIconUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Characters/dudebot.png")
+            .Build();
+
+        await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+    }
+
+    private static string GetVersionInfo(string assemblyName, bool includeVersion = true)
+    {
+        var assembly = AppDomain.CurrentDomain.GetAssemblies()
+            .FirstOrDefault(x => x.GetName().Name == assemblyName);
+
+        var attribute = assembly?.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+        if (attribute == null)
+            return "Unknown";
+
+        var info = attribute.InformationalVersion;
+        var split = info.Split('+');
+        if (split.Length < 2)
+            return includeVersion ? info : "Unknown";
+
+        var version = split[0];
+        var revision = split[1];
+
+        if (DateTime.TryParseExact(revision, "yyMMddHHmmss", CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var buildTime))
+        {
+            var timeStr = buildTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+            return includeVersion ? $"{version} ({timeStr})" : timeStr;
+        }
+
+        return includeVersion ? version : "Unknown";
     }
 }

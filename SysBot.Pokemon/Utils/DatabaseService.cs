@@ -55,6 +55,7 @@ public static class DatabaseService
                     Medals TEXT NOT NULL,
                     MedalCount INT DEFAULT 0,
                     TotalTrades INT DEFAULT 0,
+                    Username VARCHAR(255),
                     Gender TEXT,
                     Language TEXT,
                     Quote TEXT
@@ -84,6 +85,7 @@ public static class DatabaseService
             {
                 { "MedalCount", "INT DEFAULT 0 AFTER Medals" },
                 { "TotalTrades", "INT DEFAULT 0 AFTER MedalCount" },
+                { "Username", "VARCHAR(255) AFTER TrainerID" },
                 { "Code_SV", "TEXT AFTER SID" }, { "Code_SWSH", "TEXT AFTER Code_SV" }, { "Code_BDSP", "TEXT AFTER Code_SWSH" },
                 { "Code_LA", "TEXT AFTER Code_BDSP" }, { "Code_PLZA", "TEXT AFTER Code_LA" }, { "Code_LGPE", "TEXT AFTER Code_PLZA" },
                 { "OT_SV", "TEXT AFTER Code_LGPE" }, { "TID_SV", "TEXT AFTER OT_SV" }, { "SID_SV", "TEXT AFTER TID_SV" },
@@ -344,6 +346,7 @@ public static class DatabaseService
                     Medals = reader.IsDBNull(reader.GetOrdinal("Medals")) ? 0 : int.Parse(EncryptionUtil.Decrypt(reader.GetString("Medals"))),
                     MedalCount = reader.IsDBNull(reader.GetOrdinal("MedalCount")) ? 0 : reader.GetInt32("MedalCount"),
                     TotalTrades = reader.IsDBNull(reader.GetOrdinal("TotalTrades")) ? 0 : reader.GetInt32("TotalTrades"),
+                    Username = reader.IsDBNull(reader.GetOrdinal("Username")) ? null : reader.GetString("Username"),
                     
                     Code_SV = reader.IsDBNull(reader.GetOrdinal("Code_SV")) ? null : EncryptionUtil.Decrypt(reader.GetString("Code_SV")),
                     Code_SWSH = reader.IsDBNull(reader.GetOrdinal("Code_SWSH")) ? null : EncryptionUtil.Decrypt(reader.GetString("Code_SWSH")),
@@ -398,18 +401,18 @@ public static class DatabaseService
             using var conn = new MySqlConnection(GetConnectionString());
             conn.Open();
             string query = @"
-                INSERT INTO Users (TrainerID, TradeCount, Medals, MedalCount, TotalTrades,
+                INSERT INTO Users (TrainerID, TradeCount, Medals, MedalCount, TotalTrades, Username,
                 Code_SV, Code_SWSH, Code_BDSP, Code_LA, Code_PLZA, Code_LGPE, 
                 OT_SV, TID_SV, SID_SV, OT_SWSH, TID_SWSH, SID_SWSH, OT_BDSP, TID_BDSP, SID_BDSP,
                 OT_LA, TID_LA, SID_LA, OT_PLZA, TID_PLZA, SID_PLZA, OT_LGPE, TID_LGPE, SID_LGPE,
                 Gender, Language, Quote) 
-                VALUES (@id, @count, @medals, @mcount, @tcount,
+                VALUES (@id, @count, @medals, @mcount, @tcount, @uname,
                 @c_sv, @c_swsh, @c_bdsp, @c_la, @c_plza, @c_lgpe, 
                 @ot_sv, @tid_sv, @sid_sv, @ot_swsh, @tid_swsh, @sid_swsh, @ot_bdsp, @tid_bdsp, @sid_bdsp,
                 @ot_la, @tid_la, @sid_la, @ot_plza, @tid_plza, @sid_plza, @ot_lgpe, @tid_lgpe, @sid_lgpe,
                 @gender, @language, @quote)
                 ON DUPLICATE KEY UPDATE 
-                TradeCount=@count, Medals=@medals, MedalCount=@mcount, TotalTrades=@tcount,
+                TradeCount=@count, Medals=@medals, MedalCount=@mcount, TotalTrades=@tcount, Username=@uname,
                 Code_SV=@c_sv, Code_SWSH=@c_swsh, Code_BDSP=@c_bdsp, Code_LA=@c_la, Code_PLZA=@c_plza, Code_LGPE=@c_lgpe, 
                 OT_SV=@ot_sv, TID_SV=@tid_sv, SID_SV=@sid_sv, OT_SWSH=@ot_swsh, TID_SWSH=@tid_swsh, SID_SWSH=@sid_swsh, OT_BDSP=@ot_bdsp, TID_BDSP=@tid_bdsp, SID_BDSP=@sid_bdsp,
                 OT_LA=@ot_la, TID_LA=@tid_la, SID_LA=@sid_la, OT_PLZA=@ot_plza, TID_PLZA=@tid_plza, SID_PLZA=@sid_plza, OT_LGPE=@ot_lgpe, TID_LGPE=@tid_lgpe, SID_LGPE=@sid_lgpe,
@@ -421,6 +424,7 @@ public static class DatabaseService
             cmd.Parameters.AddWithValue("@medals", EncryptionUtil.Encrypt(details.Medals.ToString()));
             cmd.Parameters.AddWithValue("@mcount", details.MedalCount); 
             cmd.Parameters.AddWithValue("@tcount", details.TotalTrades); 
+            cmd.Parameters.AddWithValue("@uname", details.Username == null ? DBNull.Value : details.Username);
             
             cmd.Parameters.AddWithValue("@c_sv", details.Code_SV == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Code_SV));
             cmd.Parameters.AddWithValue("@c_swsh", details.Code_SWSH == null ? DBNull.Value : EncryptionUtil.Encrypt(details.Code_SWSH));
@@ -502,6 +506,7 @@ public static class DatabaseService
                 {
                     TradeCount = int.Parse(EncryptionUtil.Decrypt(reader.GetString("TradeCount"))),
                     TotalTrades = reader.IsDBNull(reader.GetOrdinal("TotalTrades")) ? 0 : reader.GetInt32("TotalTrades"),
+                    Username = reader.IsDBNull(reader.GetOrdinal("Username")) ? null : reader.GetString("Username"),
                     OT_SV = reader.IsDBNull(reader.GetOrdinal("OT_SV")) ? null : EncryptionUtil.Decrypt(reader.GetString("OT_SV")),
                     // Add other fields as needed for the leaderboard display
                 };

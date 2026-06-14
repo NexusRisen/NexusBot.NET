@@ -14,6 +14,7 @@ public static class StoatHelper<T> where T : PKM, new()
 
     public static async Task AddToQueueAsync(StoatClient client, string channelId, int code, string trainerName, T pk, string userId, string userName, List<Pictocodes>? lgcode = null, bool isHiddenTrade = false)
     {
+        new TradeCodeStorage().UpdateUsername(ConvertId(userId), userName);
         var trainer = new PokeTradeTrainerInfo(trainerName, ConvertId(userId));
         var notifier = new StoatTradeNotifier<T>(pk, trainer, code, userId, client, lgcode);
         int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
@@ -25,7 +26,10 @@ public static class StoatHelper<T> where T : PKM, new()
         var added = Info.AddToTradeQueue(trade, ConvertId(userId), false, isSudo);
 
         if (added == QueueResultAdd.Added)
+        {
             await notifier.SendInitialQueueUpdate();
+            await notifier.SendInitialQueueUpdateToChannel(channelId, userName);
+        }
         else if (added == QueueResultAdd.AlreadyInQueue)
             await SendAsync(client, channelId, $"{userName}, you are already in the queue!");
         else if (added == QueueResultAdd.QueueFull)
@@ -36,6 +40,7 @@ public static class StoatHelper<T> where T : PKM, new()
 
     public static async Task AddBatchContainerToQueueAsync(StoatClient client, string channelId, int code, string trainerName, T firstTrade, List<T> allTrades, string userId, string userName)
     {
+        new TradeCodeStorage().UpdateUsername(ConvertId(userId), userName);
         var trainer = new PokeTradeTrainerInfo(trainerName, ConvertId(userId));
         var notifier = new StoatTradeNotifier<T>(firstTrade, trainer, code, userId, client, null);
         int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
@@ -47,7 +52,10 @@ public static class StoatHelper<T> where T : PKM, new()
         var added = Info.AddToTradeQueue(trade, ConvertId(userId), false, isSudo);
 
         if (added == QueueResultAdd.Added)
+        {
             await notifier.SendInitialQueueUpdate();
+            await notifier.SendInitialQueueUpdateToChannel(channelId, userName);
+        }
         else if (added == QueueResultAdd.AlreadyInQueue)
             await SendAsync(client, channelId, $"{userName}, you are already in the queue!");
         else if (added == QueueResultAdd.QueueFull)

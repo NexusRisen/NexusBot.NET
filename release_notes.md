@@ -1,12 +1,12 @@
 # Release Notes
 
-## DudeBot.NET v6.5.5
+## DudeBot.NET v6.5.6
 
 ### New Features & Updates
-- **Auto Legality Mod (ALM) Integration**: Integrated the latest bleeding-edge version of the Auto Legality Mod from the `santacrab2/PKHeX-Plugins` repository.
-- **PKHeX.Core 26.5.5 Compatibility**: Resolved internal compilation mismatches to ensure seamless stability and binding with the latest stable `PKHeX.Core` release (version `26.5.5`).
-- **Updated Plugin Binaries**: Upgraded `PKHeX.Core.AutoMod.dll` and `AutoModPlugins.dll` inside the deployment dependencies (`SysBot.Pokemon/deps/`).
+- **Global Leaderboard Integration**: The Stoat bot has been fully integrated with the centralized Dudebot SQL database. Trade medals and usernames from Stoat now synchronize correctly with `dudebot.org/leaderboard`.
+- **Stoat About Command**: Added `/about`, `/whoami`, and `/owner` commands to the Stoat bot module, providing real-time system stats, active plugin information, and contributor details natively within Stoat chat.
 
 ### Fixes and Improvements
-- Minor patch to `ShowdownEdits.cs` ensuring backwards compatibility with specific `Experience.IsValidNatureMetLevel2` encounter checks required by newer core library versions.
-- All core legality unit tests fully pass with the updated libraries.
+- **Graceful Shutdown**: Mitigated an internal `SocketException` error trace when stopping the bot forcefully, allowing a cleaner shutdown process.
+- **Connection Diagnostics**: Fixed the connection status visualizer in the WinForms UI so that it properly displays green when actively connected to the Switch instead of remaining yellow.
+- **Cross-Platform Compatibility**: Replaced problematic emojis (like the hammer & wrench) with universally supported alternatives across all bot embeds (e.g. `💻` and `⚙️`) to ensure correct rendering on alternative chat clients.

@@ -2,6 +2,7 @@ using PKHeX.Core;
 using SysBot.Pokemon.Discord;
 using SysBot.Pokemon.Kook;
 using SysBot.Pokemon.Slack;
+using SysBot.Pokemon.Stoat;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,6 +23,7 @@ public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
     protected override void AddIntegrations()
     {
         AddDiscordBot(Hub.Config.Discord);
+        AddStoatBot(Hub.Config.Stoat);
         AddKookBot(Hub.Config.Kook);
         AddSlackBot(Hub.Config.Slack);
     }
@@ -33,6 +35,17 @@ public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
             return;
 
         var bot = new SysCord<T>(this, _config);
+        Integrations.Add(bot);
+        Task.Run(() => bot.MainAsync(token, IntegrationTokenSource.Token), IntegrationTokenSource.Token);
+    }
+
+    private void AddStoatBot(StoatSettings config)
+    {
+        var token = config.Token;
+        if (string.IsNullOrWhiteSpace(token))
+            return;
+
+        var bot = new SysStoat<T>(this, _config);
         Integrations.Add(bot);
         Task.Run(() => bot.MainAsync(token, IntegrationTokenSource.Token), IntegrationTokenSource.Token);
     }

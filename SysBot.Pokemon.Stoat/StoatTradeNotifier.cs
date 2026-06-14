@@ -40,21 +40,62 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
             {
                 var dm = await UserHelper.GetUserDMChannelAsync(_client.Rest, UserId);
                 if (dm != null)
-                    await MessageHelper.SendMessageAsync(dm, message);
+                {
+                    var embed = new EmbedBuilder()
+                        .SetColor(new StoatColor("#663399"))
+                        .SetDescription(message)
+                        .Build();
+                    await MessageHelper.SendMessageAsync(dm, string.Empty, embeds: new[] { embed });
+                }
             }
         } catch (Exception ex) { LogUtil.LogError($"Failed to send DM to Stoat user {UserId}: {ex.Message}", "StoatTradeNotifier"); }
     }
 
+    private string GetPokemonSummary()
+    {
+        if (Data.IsEgg)
+            return "**Requested Pokémon:**\n🥚 Egg\n\n";
+
+        string langCode = ((LanguageID)Data.Language).GetLanguageCode();
+        GameStrings strings = GameInfo.GetStrings(langCode);
+        var speciesName = strings.Species[Data.Species];
+        string shinyStr = Data.IsShiny ? "✨ " : "";
+        string itemStr = Data.HeldItem > 0 ? $"\n**Item:** {strings.itemlist[Data.HeldItem]}" : "";
+        string abilityStr = $"\n**Ability:** {strings.abilitylist[Data.Ability]}";
+        string natureStr = $"\n**Nature:** {strings.natures[(int)Data.Nature]}";
+        return $"**Requested Pokémon:**\n{shinyStr}{speciesName} (Lv. {Data.CurrentLevel}){itemStr}{abilityStr}{natureStr}\n\n";
+    }
+
     public Task SendInitialQueueUpdate() => SendDM("Your trade request has been queued.");
+
+    public async Task SendInitialQueueUpdateToChannel(string channelId, string userName)
+    {
+        var text = $"**User:** {userName}\n\n{GetPokemonSummary()}Your trade request has been queued.";
+        try 
+        {
+            var ch = await _client.Rest.GetChannelAsync(channelId);
+            if (ch != null)
+            {
+                string imageUrl = SysBot.Pokemon.Helpers.TradeExtensions<T>.PokeImg(Data, false, true, null);
+                var embed = new EmbedBuilder()
+                    .SetColor(new StoatColor("#663399"))
+                    .SetDescription(text)
+                    .SetImage(imageUrl)
+                    .Build();
+                await MessageHelper.SendMessageAsync(ch, string.Empty, embeds: new[] { embed });
+            }
+        } 
+        catch (Exception ex) { LogUtil.LogError($"Failed to send channel update to Stoat channel {channelId}: {ex.Message}", "StoatTradeNotifier"); }
+    }
 
     public void TradeInitialize(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info)
     {
         _ = Task.Run(() => {
             var speciesName = SpeciesName.GetSpeciesName(Data.Species, 2);
             if (Data is PB7 && LGCode != null && LGCode.Count == 3)
-                _ = SendDM($"Initializing trade for {speciesName}. Please be ready.\nCode: {LGCode[0]}, {LGCode[1]}, {LGCode[2]}");
+                _ = SendDM($"Initializing trade for {speciesName}. Please be ready.\n**Code:** {LGCode[0]}, {LGCode[1]}, {LGCode[2]}");
             else
-                _ = SendDM($"Initializing trade for {speciesName}. Code: {Code:D8}. Please be ready.");
+                _ = SendDM($"Initializing trade for {speciesName}. Please be ready.\n**Code:** {Code:D8}");
         });
     }
 

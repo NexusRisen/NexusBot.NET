@@ -17,7 +17,7 @@
     <Description>Nintendo Switch Pokémon Bot Manager</Description>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <StartupObject>SysBot.Pokemon.WinForms.Program</StartupObject>
-    <Version>6.5.5</Version>
+    <Version>6.5.6</Version>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
   <PropertyGroup>
@@ -33,6 +33,7 @@
     <ProjectReference Include="..\SysBot.Pokemon\SysBot.Pokemon.csproj" />
     <ProjectReference Include="..\SysBot.Pokemon.Z3\SysBot.Pokemon.Z3.csproj" />
     <ProjectReference Include="..\SysBot.Pokemon.Slack\SysBot.Pokemon.Slack.csproj" />
+    <ProjectReference Include="..\SysBot.Pokemon.Stoat\SysBot.Pokemon.Stoat.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PKHeX.Core">

@@ -146,7 +146,7 @@ public partial class BotController : UserControl
             }
             else
             {
-                L_Description.Text = description;
+                L_Description.Text = $"[{DateTime.Now:hh:mm:ss}] {labelTranslated}: Stopped.";
                 PB_Lamp.BackColor = Color.Transparent;
             }
             return;
@@ -165,33 +165,7 @@ public partial class BotController : UserControl
             PB_Lamp.BackColor = Color.Yellow;
             return;
         }
-        if (LastUpdateStatus == lastTime)
-            return;
-
-        // Color decay from Green based on time
-        const int threshold = 100;
-        Color good = Color.Green;
-        Color bad = Color.Red;
-
-        var delta = DateTime.Now - lastTime;
-        var seconds = delta.Seconds;
-
-        LastUpdateStatus = lastTime;
-        if (seconds > 2 * threshold)
-            return; // already changed by now
-
-        if (seconds > threshold)
-        {
-            if (PB_Lamp.BackColor == bad)
-                return; // should we notify on change instead?
-            PB_Lamp.BackColor = bad;
-        }
-        else
-        {
-            // blend from green->red, favoring green until near saturation
-            var factor = seconds / (double)threshold;
-            PB_Lamp.BackColor = Blend(bad, good, factor * factor);
-        }
+        PB_Lamp.BackColor = Color.Lime;
     }
 
     public void SendCommand(BotControlCommand cmd)
