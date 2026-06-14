@@ -160,14 +160,21 @@ public partial class SysStoat<T>
             var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
             var pkm = sav.GetLegal(template, out _);
 
-            if (pkm != null)
+            if (pkm == null)
+                continue;
+
+            pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
+
+            if (pkm.HeldItem == 0)
+                continue; // item name wasn't recognized
+
+            if (TradeRestrictions.IsUntradableHeld(pkm.Context, pkm.HeldItem))
+                continue; // item is untradable
+
+            if (pkm is T pk)
             {
-                pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
-                if (pkm.HeldItem != 0 && !TradeRestrictions.IsUntradableHeld(pkm.Context, pkm.HeldItem) && pkm is T pk && new LegalityAnalysis(pk).Valid)
-                {
-                    pk.ResetPartyStats();
-                    pkmList.Add(pk);
-                }
+                pk.ResetPartyStats();
+                pkmList.Add(pk);
             }
         }
 
@@ -314,7 +321,13 @@ public partial class SysStoat<T>
         
         if (res == LegalizationResult.Regenerated && pkm != null)
         {
-            var pk = (T)pkm;
+            pkm = EntityConverter.ConvertToType(pkm, typeof(T), out _) ?? pkm;
+            if (pkm is not T pk)
+            {
+                await StoatHelper<T>.SendAsync(_client, message.ChannelId, "I couldn't process your egg request.");
+                return;
+            }
+            pk.ResetPartyStats();
             await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author.Username, pk, message.AuthorId, message.Author.Username);
         }
         else

@@ -31,3 +31,6 @@ This update introduces a complete architectural overhaul for the **Stoat (Revolt
 * Resolved various queue retrieval bugs related to `TradeQueueInfo` positioning and object casting.
 * Resolved CS8602/CS8604 null-reference warnings inside message dispatches.
 * Addressed `StoatTradeNotifier` signature mismatching inside the core dispatch logic.
+* **Fixed `.egg` command in Stoat** — eliminated hard `(T)pkm` cast that silently threw `InvalidCastException` when the PKM entity type didn't match; now uses `EntityConverter.ConvertToType` + safe pattern check, matching Discord behavior.
+* **Fixed `.me` (mystery egg) command in Stoat** — `GetContext<T>()`, `GetPriorityOrder()`, and `GetPersonalTable()` were missing `PA8` (Legends: Arceus) and `PB7` (LGPE) entries, causing `GenerateLegalMysteryEgg` to immediately return `null` with the message "Mystery Eggs are currently disabled or could not be generated."
+* **Fixed `.it` (item trade) command in Stoat** — removed overly strict `LegalityAnalysis.Valid` check on the carrier Pokémon; now only validates that the held item was recognized (`HeldItem != 0`) and is tradeable (`!IsUntradableHeld`), matching Discord behavior.

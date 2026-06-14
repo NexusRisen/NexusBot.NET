@@ -278,24 +278,30 @@ public static class TradeModuleHelpers
     {
         "PB8" => EntityContext.Gen8b,
         "PK8" => EntityContext.Gen8,
+        "PA8" => EntityContext.Gen8a,
         "PK9" => EntityContext.Gen9,
         "PA9" => EntityContext.Gen9,
+        "PB7" => EntityContext.Gen7b,
         _ => EntityContext.None
     };
 
     private static List<GameVersion> GetPriorityOrder(EntityContext context) => context switch
     {
         EntityContext.Gen8b => [GameVersion.BD, GameVersion.SP],
-        EntityContext.Gen8 => [GameVersion.SW, GameVersion.SH],
-        EntityContext.Gen9 => [GameVersion.SL, GameVersion.VL],
+        EntityContext.Gen8  => [GameVersion.SW, GameVersion.SH],
+        EntityContext.Gen8a => [GameVersion.PLA],
+        EntityContext.Gen9  => [GameVersion.SL, GameVersion.VL],
+        EntityContext.Gen7b => [GameVersion.GP, GameVersion.GE],
         _ => []
     };
 
     private static IPersonalTable? GetPersonalTable(EntityContext context) => context switch
     {
         EntityContext.Gen8b => PersonalTable.BDSP,
-        EntityContext.Gen8 => PersonalTable.SWSH,
-        EntityContext.Gen9 => PersonalTable.SV,
+        EntityContext.Gen8  => PersonalTable.SWSH,
+        EntityContext.Gen8a => PersonalTable.LA,
+        EntityContext.Gen9  => PersonalTable.SV,
+        EntityContext.Gen7b => PersonalTable.GG,
         _ => null
     };
 }
