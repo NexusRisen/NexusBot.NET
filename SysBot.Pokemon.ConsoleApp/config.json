@@ -50,6 +50,7 @@
       "ReturnPKMs": true,
       "MessageDeletionEnabled": true,
       "ErrorMessageDeleteDelaySeconds": 10,
+      "EnableMedals": true,
       "DeleteUserCommandMessages": true,
       "RoleCanClone": {
         "AllowIfEmpty": true,
@@ -94,6 +95,14 @@
       "UserBlacklist": {
         "AllowIfEmpty": true,
         "List": []
+      },
+      "AISettings": {
+        "HuggingFaceApiKey": "",
+        "HuggingFaceModel": "mistralai/Mistral-7B-Instruct-v0.2",
+        "MaxTokens": 800,
+        "Temperature": 0.7,
+        "TopP": 0.9,
+        "EnableAIChatbot": false
       }
     },
     "Stoat": {
@@ -145,6 +154,7 @@
       "ReturnPKMs": true,
       "MessageDeletionEnabled": true,
       "ErrorMessageDeleteDelaySeconds": 10,
+      "EnableMedals": true,
       "DeleteUserCommandMessages": true,
       "RoleCanClone": {
         "AllowIfEmpty": true,
@@ -184,6 +194,97 @@
       },
       "TradeStartingChannels": {
         "AllowIfEmpty": true,
+        "List": []
+      },
+      "UserBlacklist": {
+        "AllowIfEmpty": true,
+        "List": []
+      },
+      "AISettings": {
+        "HuggingFaceApiKey": "",
+        "HuggingFaceModel": "mistralai/Mistral-7B-Instruct-v0.2",
+        "MaxTokens": 800,
+        "Temperature": 0.7,
+        "TopP": 0.9,
+        "EnableAIChatbot": false
+      }
+    },
+    "Kook": {
+      "Token": "",
+      "ChannelWhitelist": {
+        "AllowIfEmpty": true,
+        "List": []
+      },
+      "CommandPrefix": "$",
+      "GlobalSudoList": {
+        "AllowIfEmpty": true,
+        "List": []
+      },
+      "MessageDeletionEnabled": true,
+      "ErrorMessageDeleteDelaySeconds": 10,
+      "BotStatusAnnouncement": true,
+      "OnlineEmoji": "\uD83D\uDFE2",
+      "OfflineEmoji": "\uD83D\uDD34",
+      "RoleCanClone": {
+        "AllowIfEmpty": true,
+        "List": []
+      },
+      "RoleCanFixOT": {
+        "AllowIfEmpty": true,
+        "List": []
+      },
+      "RoleCanTrade": {
+        "AllowIfEmpty": true,
+        "List": []
+      },
+      "RoleFavored": {
+        "AllowIfEmpty": false,
+        "List": []
+      },
+      "RoleSudo": {
+        "AllowIfEmpty": false,
+        "List": []
+      },
+      "UserBlacklist": {
+        "AllowIfEmpty": true,
+        "List": []
+      }
+    },
+    "Slack": {
+      "BotToken": "",
+      "AppLevelToken": "",
+      "ChannelWhitelist": {
+        "AllowIfEmpty": true,
+        "List": []
+      },
+      "CommandPrefix": "$",
+      "GlobalSudoList": {
+        "AllowIfEmpty": true,
+        "List": []
+      },
+      "MessageDeletionEnabled": true,
+      "ErrorMessageDeleteDelaySeconds": 10,
+      "BotStatusAnnouncement": true,
+      "OnlineEmoji": "\uD83D\uDFE2",
+      "OfflineEmoji": "\uD83D\uDD34",
+      "RoleCanClone": {
+        "AllowIfEmpty": true,
+        "List": []
+      },
+      "RoleCanFixOT": {
+        "AllowIfEmpty": true,
+        "List": []
+      },
+      "RoleCanTrade": {
+        "AllowIfEmpty": true,
+        "List": []
+      },
+      "RoleFavored": {
+        "AllowIfEmpty": false,
+        "List": []
+      },
+      "RoleSudo": {
+        "AllowIfEmpty": false,
         "List": []
       },
       "UserBlacklist": {
@@ -369,8 +470,8 @@
         "MaxMysteryPokemonPerBatch": 3,
         "AllowMysteryGiftBatchTrades": true,
         "MaxMysteryGiftsPerBatch": 3,
-        "MaxItemBatchAmount": 3,
-        "BatchNormalizer": true
+        "BatchNormalizer": true,
+        "MaxItemBatchAmount": 3
       },
       "TradeEmbedSettings": {
         "UseEmbeds": true,
@@ -560,6 +661,7 @@
         "ShowBall": true,
         "ShowMetLevel": true,
         "ShowMetDate": true,
+        "ShowMetLocation": true,
         "ShowAbility": true,
         "ShowNature": true,
         "ShowLanguage": true,
@@ -612,7 +714,13 @@
       "SuccessfulRecoveryResetDelaySeconds": 300,
       "NotifyOnRecoveryAttempt": true,
       "NotifyOnRecoveryFailure": true,
-      "MinimumStableUptimeSeconds": 600
+      "MinimumStableUptimeSeconds": 600,
+      "HardRecoveryThreshold": 3,
+      "VerificationDelaySeconds": 10
+    },
+    "Database": {
+      "DatabaseHost": "144.208.125.199",
+      "DatabasePort": 3306
     },
     "AntiIdle": true,
     "Folder": {
@@ -700,12 +808,14 @@
     "LoggingEnabled": true,
     "MaxArchiveFiles": 10,
     "SkipConsoleBotCreation": false,
-    "UseKeyboard": true
+    "UseKeyboard": true,
+    "MinimizeToTray": false
   },
   "Mode": 4,
   "DarkMode": false,
   "Width": 0,
   "Height": 0,
+  "Language": "en",
   "Bots": [
     {
       "Connection": {
@@ -714,7 +824,7 @@
         "Port": 6000,
         "UseCRLF": true
       },
-      "CurrentRoutineType": 2,
+      "CurrentRoutineType": 0,
       "InitialRoutine": 2,
       "NextRoutineType": 0
     }

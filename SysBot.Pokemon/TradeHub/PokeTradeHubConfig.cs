@@ -22,6 +22,10 @@ public sealed class PokeTradeHubConfig : BaseConfig
 
     [Category(Integration)]
     [TypeConverter(typeof(ExpandableObjectConverter))]
+    public StoatSettings Stoat { get; set; } = new();
+
+    [Category(Integration)]
+    [TypeConverter(typeof(ExpandableObjectConverter))]
     public KookSettings Kook { get; set; } = new();
 
     [Category(Integration)]
