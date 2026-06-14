@@ -279,26 +279,24 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
             StopPeriodicUpdates();
         }
 
-        string message;
         if (TotalBatchTrades > 1)
         {
             if (BatchTradeNumber == TotalBatchTrades)
             {
-                message = $"✅ **All {TotalBatchTrades} trades completed successfully!** Thank you for trading!";
+                // All done — send final summary
+                _ = SendDM($"All {TotalBatchTrades} trades completed! Thank you for trading!");
             }
             else
             {
                 var speciesName = IsMysteryEgg ? "Mystery Egg" : SpeciesName.GetSpeciesName(Data.Species, 2);
-                message = $"✅ Trade {BatchTradeNumber}/{TotalBatchTrades} completed! ({speciesName})\n" +
-                         $"Preparing trade {BatchTradeNumber + 1}/{TotalBatchTrades}...";
+                _ = SendDM($"Trade {BatchTradeNumber}/{TotalBatchTrades} completed! ({speciesName})\nPreparing trade {BatchTradeNumber + 1}/{TotalBatchTrades}...");
             }
         }
         else
         {
-            message = Data.Species != 0 ? $"Trade finished. Enjoy!" : "Trade finished!";
+            // Rich details embed for single trades
+            EmbedHelper.SendTradeDetailsEmbedAsync(_client, UserId, Info.TrainerName, Data, IsMysteryEgg).ConfigureAwait(false);
         }
-
-        _ = SendDM(message);
     }
 
     private async Task SendDM(string message)

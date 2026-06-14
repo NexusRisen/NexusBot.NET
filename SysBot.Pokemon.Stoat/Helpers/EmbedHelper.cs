@@ -170,4 +170,77 @@ public static class EmbedHelper
             LogUtil.LogError($"Error sending trade searching embed: {ex.Message}", "SendTradeSearchingEmbedAsync");
         }
     }
+
+    public static async Task SendTradeDetailsEmbedAsync<T>(StoatClient client, string userId, string trainerMention, T pk, bool isMysteryEgg)
+        where T : PKM, new()
+    {
+        try
+        {
+            var dm = await UserHelper.GetUserDMChannelAsync(client.Rest, userId);
+            if (dm == null) return;
+
+            if (isMysteryEgg || pk.IsEgg)
+            {
+                var eggEmbed = new EmbedBuilder()
+                    .SetTitle("Trade Complete - Mystery Egg")
+                    .SetDescription($"**User:** {trainerMention}\n\nYour mystery egg has been traded! Good luck with the hatch!")
+                    .SetIconUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/mysteryegg3.png")
+                    .SetColor(new StoatColor("#FFD700"))
+                    .Build();
+                await MessageHelper.SendMessageAsync(dm, string.Empty, embeds: new[] { eggEmbed });
+                return;
+            }
+
+            var details = PokemonDetailsHelper<T>.Extract(pk);
+
+            // Build title line: e.g. "Haunter (F)" or "Shiny Haunter"
+            string shinyPrefix = details.IsSquareShiny ? "Square Shiny " : details.IsShiny ? "Shiny " : "";
+            string formSuffix = string.IsNullOrEmpty(details.FormName) ? "" : $"-{details.FormName}";
+            string genderSuffix = string.IsNullOrEmpty(details.Gender) ? "" : $" {details.Gender}";
+            string title = $"{shinyPrefix}{details.SpeciesName}{formSuffix}{genderSuffix}";
+
+            // Build description: User line + core stats block
+            var desc = new System.Text.StringBuilder();
+            desc.AppendLine($"**User:** {trainerMention}");
+            desc.AppendLine($"**Level:** {details.Level}");
+            desc.AppendLine($"**Ball:** {details.Ball}");
+            desc.AppendLine($"**Met Level:** {details.MetLevel}");
+            if (!string.IsNullOrEmpty(details.MetDate))
+                desc.AppendLine($"**Met Date:** {details.MetDate}");
+            if (!string.IsNullOrEmpty(details.MetLocation))
+                desc.AppendLine($"**Met Location:** {details.MetLocation}");
+            desc.AppendLine($"**Ability:** {details.Ability}");
+            desc.AppendLine($"**{details.Nature}**");
+            desc.AppendLine($"**Language:** {details.Language}");
+            if (!string.IsNullOrEmpty(details.HeldItem))
+                desc.AppendLine($"**Held Item:** {details.HeldItem}");
+            if (!string.IsNullOrEmpty(details.TeraType))
+                desc.AppendLine($"**Tera Type:** {details.TeraType}");
+            desc.AppendLine($"**IVs:** {details.IVsDisplay}");
+
+            // Moves section
+            if (details.Moves.Count > 0)
+            {
+                desc.AppendLine();
+                desc.AppendLine("**MOVES**");
+                foreach (var move in details.Moves)
+                    desc.AppendLine(move);
+            }
+
+            string color = details.IsSquareShiny ? "#FFD700" : details.IsShiny ? "#C0C0C0" : "#7B68EE";
+
+            var embed = new EmbedBuilder()
+                .SetTitle($"Trade Complete - {title}")
+                .SetDescription(desc.ToString().TrimEnd())
+                .SetImage(details.ImageUrl)
+                .SetColor(new StoatColor(color))
+                .Build();
+
+            await MessageHelper.SendMessageAsync(dm, string.Empty, embeds: new[] { embed });
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogError($"Error sending trade details embed: {ex.Message}", "SendTradeDetailsEmbedAsync");
+        }
+    }
 }
