@@ -169,7 +169,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
                 Description = batchDescription,
                 Footer = new EmbedFooterBuilder
                 {
-                    Text = $"Wait: {(currentETA > 0 ? $"{currentETA} min" : "<1 min")} | v{DudeBot.Version}"
+                    Text = $"Wait: {(currentETA > 0 ? $"{currentETA} min" : "<1 min")} | {DudeBot.Version}"
                 },
                 Timestamp = DateTimeOffset.Now
             }.Build();

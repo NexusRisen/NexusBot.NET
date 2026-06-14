@@ -17,6 +17,31 @@ namespace SysBot.Pokemon.Stoat;
 
 public partial class SysStoat<T>
 {
+    [StoatCommand("help", "commands", "hi", "hello")]
+    private async Task HandleHelpCommandAsync(UserMessage message, List<string> args)
+    {
+        var prefix = Hub.Config.Stoat.CommandPrefix;
+        var description = $"Welcome to DudeBot!\n\n" +
+                          $"**Core Commands**:\n" +
+                          $"`{prefix}trade` or `{prefix}t` - Trade a Pokémon using a Showdown set or attachment.\n" +
+                          $"`{prefix}batchtrade` or `{prefix}bt` - Trade multiple Pokémon at once.\n" +
+                          $"`{prefix}egg` - Generate an egg from a Showdown set.\n" +
+                          $"`{prefix}mysteryegg` or `{prefix}me` - Request a random Mystery Egg.\n" +
+                          $"`{prefix}itemtrade` or `{prefix}it` - Trade for a specific item.\n\n" +
+                          $"**Utility Commands**:\n" +
+                          $"`{prefix}queuestatus` or `{prefix}qs` - Check your queue position.\n" +
+                          $"`{prefix}queueclear` or `{prefix}qc` - Leave the queue.\n" +
+                          $"`{prefix}about` - View bot stats and uptime.\n\n" +
+                          $"For a full list of commands and detailed usage, visit our documentation: https://dudebot.org";
+
+        var embed = EmbedHelper.CreateEmbed(
+            title: "DudeBot Commands & Help",
+            description: description,
+            colorHex: "#00FF00"
+        );
+        await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+    }
+
     [StoatCommand("about", "info", "whoami", "owner")]
     private async Task HandleAboutCommandAsync(UserMessage message, List<string> args)
     {
@@ -118,7 +143,7 @@ public partial class SysStoat<T>
 
         var embed = EmbedHelper.CreateEmbed(
             title: $"**{message.Author.Username}'s Milestone Medal**",
-            description: $"{description}\n**Total Trades**: {totalTrades}\n\n*DudeBot.NET v{SysBot.Pokemon.Helpers.DudeBot.Version} | Synchronized via SQL*",
+            description: $"{description}\n**Total Trades**: {totalTrades}\n\n*DudeBot.NET {SysBot.Pokemon.Helpers.DudeBot.Version} | Synchronized via SQL*",
             colorHex: "#FFD700",
             iconUrl: "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Characters/dudebot.png"
         );
@@ -132,7 +157,7 @@ public partial class SysStoat<T>
         string response = "Check out the top trainers and the community Hall of Fame on our official website!\n\n" +
                           "🌐 **Official Hall of Fame**: https://dudebot.org/leaderboard/\n" +
                           "⚡ **Real-Time Stats**: Rankings are updated globally across all bot hosters.\n\n" +
-                          $"*DudeBot.NET v{SysBot.Pokemon.Helpers.DudeBot.Version} | Synchronized via SQL*";
+                          $"*DudeBot.NET {SysBot.Pokemon.Helpers.DudeBot.Version} | Synchronized via SQL*";
 
         var embed = EmbedHelper.CreateEmbed(
             title: "🏆 GLOBAL MEDALS LEADERBOARD",

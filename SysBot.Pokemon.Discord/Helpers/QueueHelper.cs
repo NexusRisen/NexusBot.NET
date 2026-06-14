@@ -220,7 +220,7 @@ public static class QueueHelper<T> where T : PKM, new()
             var embedBuilder = new EmbedBuilder()
                 .WithColor(embedColor)
                 .WithImageUrl(embedData.IsLocalFile ? $"attachment://{Path.GetFileName(embedData.EmbedImageUrl)}" : embedData.EmbedImageUrl)
-                .WithFooter($"Position: {(position.Position == -1 ? 1 : position.Position)} | {etaMessage} | v{DudeBot.Version}")
+                .WithFooter($"Position: {(position.Position == -1 ? 1 : position.Position)} | {etaMessage} | {DudeBot.Version}")
                 .WithAuthor(new EmbedAuthorBuilder()
                     .WithName(embedData.AuthorName)
                     .WithIconUrl(trader.GetAvatarUrl() ?? trader.GetDefaultAvatarUrl()));

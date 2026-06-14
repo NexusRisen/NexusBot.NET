@@ -140,7 +140,7 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
             {
                 var embed = new EmbedBuilder()
                     .SetTitle(TotalBatchTrades > 1 ? "Batch Trade Queued" : "Trade Request Queued")
-                    .SetDescription(batchDescription + $"\n\nWait: {(currentETA > 0 ? $"{currentETA} min" : "<1 min")} | v{DudeBot.Version}")
+                    .SetDescription(batchDescription + $"\n\nWait: {(currentETA > 0 ? $"{currentETA} min" : "<1 min")} | {DudeBot.Version}")
                     .SetColor(new StoatColor("#008000"))
                     .Build();
                 await MessageHelper.SendMessageAsync(dm, string.Empty, embeds: new[] { embed });

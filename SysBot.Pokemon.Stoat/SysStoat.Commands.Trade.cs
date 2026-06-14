@@ -285,6 +285,29 @@ public partial class SysStoat<T>
             eggName = string.Join(" ", args);
         }
 
+        if (string.IsNullOrWhiteSpace(eggName) && message.Attachments.Count > 0)
+        {
+            try 
+            {
+                var data = await SysBot.Pokemon.Helpers.NetUtil.HttpClient.GetByteArrayAsync("https://autumn.revolt.chat/attachments/" + message.Attachments[0].Id);
+                var pkmInfo = EntityFormat.GetFromBytes(data);
+                if (pkmInfo == null)
+                    eggName = System.Text.Encoding.UTF8.GetString(data);
+                else
+                {
+                    var set = new ShowdownSet(pkmInfo);
+                    eggName = set.Text;
+                }
+            } 
+            catch { }
+        }
+
+        if (string.IsNullOrWhiteSpace(eggName))
+        {
+            await StoatHelper<T>.SendAsync(_client, message.ChannelId, "Please provide a Showdown set for the egg.");
+            return;
+        }
+
         var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
         var template = AutoLegalityWrapper.GetTemplate(new ShowdownSet(eggName));
         var pkm = sav.GenerateEgg(template, out var res);
