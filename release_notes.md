@@ -1,14 +1,12 @@
 # Release Notes
 
-## DudeBot.NET v6.5.4
+## DudeBot.NET v6.5.5
 
-### New Features
-- **Stoat.chat Integration**: Added native support for Stoat.chat as a fully-featured integration. The bot can now connect and handle all major trade queues directly on Stoat.
-- **Stoat Commands**: Implemented Discord-parity commands for Stoat (`$trade`, `$medals`, `$leaderboard`, `$specialrequestpokemon`, `$linkcode`, `$link`, etc.).
-- **Stoat SQL Synchronization**: The bot now fully maps Stoat user IDs using standard DudeBot hashing, integrating directly with existing SQLite databases.
-- **Cross-Platform Account Linking**: Added `$linkcode` and `$link` to easily merge stats, Medals, and OT/SID/TID tracking across Discord, Kook, Slack, and Stoat.
+### New Features & Updates
+- **Auto Legality Mod (ALM) Integration**: Integrated the latest bleeding-edge version of the Auto Legality Mod from the `santacrab2/PKHeX-Plugins` repository.
+- **PKHeX.Core 26.5.5 Compatibility**: Resolved internal compilation mismatches to ensure seamless stability and binding with the latest stable `PKHeX.Core` release (version `26.5.5`).
+- **Updated Plugin Binaries**: Upgraded `PKHeX.Core.AutoMod.dll` and `AutoModPlugins.dll` inside the deployment dependencies (`SysBot.Pokemon/deps/`).
 
 ### Fixes and Improvements
-- Updated integration dependencies to gracefully handle missing bot tokens without crashing upon initialization.
-- Fixed `System.Text.Json` source generator type collision warnings when multiple integrations registered settings components with identical class names.
-- Internal test suite enhancements in `SysBot.Tests` for `SysStoat` logic without live connections.
+- Minor patch to `ShowdownEdits.cs` ensuring backwards compatibility with specific `Experience.IsValidNatureMetLevel2` encounter checks required by newer core library versions.
+- All core legality unit tests fully pass with the updated libraries.
