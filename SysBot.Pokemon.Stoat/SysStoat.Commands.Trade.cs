@@ -366,6 +366,36 @@ public partial class SysStoat<T>
         }
     }
 
+    [StoatCommand("mysterypokemon", "mp")]
+    private async Task HandleMysteryPokemonCommandAsync(UserMessage message, List<string> args)
+    {
+        if (!await CheckPermissions(message, Hub.Config.Stoat.RoleCanTrade)) return;
+
+        ulong userIdNumeric = StoatHelper<T>.ConvertId(message.AuthorId);
+        int code = args.Count > 0 && int.TryParse(args[0], out var c) ? c : Hub.Queues.Info.GetRandomTradeCode(userIdNumeric);
+
+        var pkm = TradeModuleHelpers.GenerateLegalMysteryPokemon<T>();
+        if (pkm == null)
+        {
+            await StoatHelper<T>.SendAsync(_client, message.ChannelId, "Mystery Pokémon are currently disabled or could not be generated.");
+            return;
+        }
+
+        var result = pkm;
+
+        var trainer = new PokeTradeTrainerInfo(message.Author.Username, userIdNumeric);
+        var notifier = new StoatTradeNotifier<T>(result, trainer, code, message.AuthorId, _client, 1, 1, true);
+        int uniqueID = TradeUtil.GenerateUniqueTradeID();
+        var detail = new PokeTradeDetail<T>(result, trainer, notifier, PokeTradeType.Specific, code, false, null, 1, 1, false, false, uniqueID);
+        var trade = new TradeEntry<T>(detail, userIdNumeric, PokeRoutineType.LinkTrade, message.Author.Username, uniqueID);
+
+        if (Hub.Queues.Info.AddToTradeQueue(trade, userIdNumeric, false, Hub.Config.Stoat.GlobalSudoList.Contains(userIdNumeric)) == QueueResultAdd.Added)
+        {
+            await notifier.SendInitialQueueUpdate();
+            await notifier.SendInitialQueueUpdateToChannel(message.ChannelId, message.Author.Username);
+        }
+    }
+
     [StoatCommand("batchtrade", "bt")]
     private async Task HandleBatchTradeCommandAsync(UserMessage message, List<string> args)
     {
