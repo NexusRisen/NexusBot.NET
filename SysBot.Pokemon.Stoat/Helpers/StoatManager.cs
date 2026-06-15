@@ -19,7 +19,7 @@ public class StoatManager(StoatSettings Config)
 
     public RemoteControlAccessList FavoredRoles => Config.RoleFavored;
 
-    public string Owner { get; internal set; }
+    public string Owner { get; internal set; } = string.Empty;
 
     public RemoteControlAccessList RolesClone => Config.RoleCanClone;
 

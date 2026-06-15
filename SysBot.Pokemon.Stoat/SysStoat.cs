@@ -172,7 +172,7 @@ public sealed partial class SysStoat<T> : IDisposable where T : PKM, new()
         }
     }
 
-    public async Task UpdateStatusAsync(string message)
+    public async Task UpdateStatusAsync(string? message)
     {
         try
         {
@@ -218,7 +218,7 @@ public sealed partial class SysStoat<T> : IDisposable where T : PKM, new()
             return;
 
         var content = userMessage.Content;
-        if (string.IsNullOrEmpty(content) && userMessage.Attachments.Count > 0)
+        if (string.IsNullOrEmpty(content) && userMessage.Attachments?.Count > 0)
         {
             // Allow processing of raw attachments with .t by injecting the trade command
             content = $"{Hub.Config.Stoat.CommandPrefix}t";

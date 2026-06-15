@@ -30,7 +30,7 @@ public partial class SysStoat<T>
     {
         if (!await CheckPermissions(message, Hub.Config.Stoat.RoleCanTrade)) return;
 
-        if (args.Count == 0 && message.Attachments.Count == 0)
+        if (args.Count == 0 && (message.Attachments == null || message.Attachments.Count == 0))
         {
             await StoatHelper<T>.SendAsync(_client, message.ChannelId, "Please provide a Showdown set or a trade code.");
             return;
@@ -63,11 +63,11 @@ public partial class SysStoat<T>
             }
         }
 
-        if (string.IsNullOrWhiteSpace(showdownSet) && message.Attachments.Count > 0)
+        if (string.IsNullOrWhiteSpace(showdownSet) && message.Attachments?.Count > 0)
         {
             try 
             {
-                var data = await SysBot.Pokemon.Helpers.NetUtil.HttpClient.GetByteArrayAsync("https://autumn.revolt.chat/attachments/" + message.Attachments[0].Id);
+                var data = await SysBot.Pokemon.Helpers.NetUtil.HttpClient.GetByteArrayAsync("https://cdn.stoatusercontent.com/attachments/" + message.Attachments[0].Id + "/" + Uri.EscapeDataString(message.Attachments[0].Filename));
                 var pkmInfo = EntityFormat.GetFromBytes(data);
                 if (pkmInfo == null)
                 {
@@ -99,7 +99,7 @@ public partial class SysStoat<T>
             return;
         }
 
-        await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author.Username, result.Pokemon, message.AuthorId, message.Author.Username, lgCode, isHiddenTrade);
+        await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author!.Username, result.Pokemon, message.AuthorId, message.Author!.Username, lgCode, isHiddenTrade);
     }
 
     [StoatCommand("itemtrade", "item", "it")]
@@ -186,9 +186,9 @@ public partial class SysStoat<T>
 
         ulong numericId = StoatHelper<T>.ConvertId(message.AuthorId);
         if (pkmList.Count == 1)
-            await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author.Username, pkmList[0], message.AuthorId, message.Author.Username);
+            await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author!.Username, pkmList[0], message.AuthorId, message.Author!.Username);
         else
-            await StoatHelper<T>.AddBatchContainerToQueueAsync(_client, message.ChannelId, code, message.Author.Username, pkmList[0], pkmList, message.AuthorId, message.Author.Username);
+            await StoatHelper<T>.AddBatchContainerToQueueAsync(_client, message.ChannelId, code, message.Author!.Username, pkmList[0], pkmList, message.AuthorId, message.Author!.Username);
     }
 
     [StoatCommand("clone", "c")]
@@ -205,15 +205,15 @@ public partial class SysStoat<T>
 
         int code = args.Count > 0 && int.TryParse(args[0], out var c) ? c : Hub.Queues.Info.GetRandomTradeCode(userIdNumeric);
         var lgcode = Hub.Queues.Info.GetRandomLGTradeCode(userIdNumeric);
-        var notifier = new StoatTradeNotifier<T>(new T(), new PokeTradeTrainerInfo(message.Author.Username, userIdNumeric), code, message.AuthorId, _client, 1, 1, false, lgcode);
+        var notifier = new StoatTradeNotifier<T>(new T(), new PokeTradeTrainerInfo(message.Author!.Username, userIdNumeric), code, message.AuthorId, _client, 1, 1, false, lgcode);
         int uniqueID = TradeUtil.GenerateUniqueTradeID();
-        var detail = new PokeTradeDetail<T>(new T(), new PokeTradeTrainerInfo(message.Author.Username, userIdNumeric), notifier, PokeTradeType.Clone, code, false, lgcode, 1, 1, false, false, uniqueID);
-        var trade = new TradeEntry<T>(detail, userIdNumeric, PokeRoutineType.Clone, message.Author.Username, uniqueID);
+        var detail = new PokeTradeDetail<T>(new T(), new PokeTradeTrainerInfo(message.Author!.Username, userIdNumeric), notifier, PokeTradeType.Clone, code, false, lgcode, 1, 1, false, false, uniqueID);
+        var trade = new TradeEntry<T>(detail, userIdNumeric, PokeRoutineType.Clone, message.Author!.Username, uniqueID);
         
         if (Hub.Queues.Info.AddToTradeQueue(trade, userIdNumeric, false, Hub.Config.Stoat.GlobalSudoList.Contains(userIdNumeric)) == QueueResultAdd.Added)
         {
             await notifier.SendInitialQueueUpdate();
-            await notifier.SendInitialQueueUpdateToChannel(message.ChannelId, message.Author.Username);
+            await notifier.SendInitialQueueUpdateToChannel(message.ChannelId, message.Author!.Username);
         }
     }
 
@@ -231,15 +231,15 @@ public partial class SysStoat<T>
 
         int code = args.Count > 0 && int.TryParse(args[0], out var c) ? c : Hub.Queues.Info.GetRandomTradeCode(userIdNumeric);
         var lgcode = Hub.Queues.Info.GetRandomLGTradeCode(userIdNumeric);
-        var notifier = new StoatTradeNotifier<T>(new T(), new PokeTradeTrainerInfo(message.Author.Username, userIdNumeric), code, message.AuthorId, _client, 1, 1, false, lgcode);
+        var notifier = new StoatTradeNotifier<T>(new T(), new PokeTradeTrainerInfo(message.Author!.Username, userIdNumeric), code, message.AuthorId, _client, 1, 1, false, lgcode);
         int uniqueID = TradeUtil.GenerateUniqueTradeID();
-        var detail = new PokeTradeDetail<T>(new T(), new PokeTradeTrainerInfo(message.Author.Username, userIdNumeric), notifier, PokeTradeType.FixOT, code, false, lgcode, 1, 1, false, false, uniqueID);
-        var trade = new TradeEntry<T>(detail, userIdNumeric, PokeRoutineType.FixOT, message.Author.Username, uniqueID);
+        var detail = new PokeTradeDetail<T>(new T(), new PokeTradeTrainerInfo(message.Author!.Username, userIdNumeric), notifier, PokeTradeType.FixOT, code, false, lgcode, 1, 1, false, false, uniqueID);
+        var trade = new TradeEntry<T>(detail, userIdNumeric, PokeRoutineType.FixOT, message.Author!.Username, uniqueID);
         
         if (Hub.Queues.Info.AddToTradeQueue(trade, userIdNumeric, false, Hub.Config.Stoat.GlobalSudoList.Contains(userIdNumeric)) == QueueResultAdd.Added)
         {
             await notifier.SendInitialQueueUpdate();
-            await notifier.SendInitialQueueUpdateToChannel(message.ChannelId, message.Author.Username);
+            await notifier.SendInitialQueueUpdateToChannel(message.ChannelId, message.Author!.Username);
         }
     }
 
@@ -271,7 +271,7 @@ public partial class SysStoat<T>
             TradeExtensions<T>.DittoTrade((T)pkm);
             var pk = (T)pkm; pk.ResetPartyStats();
             int code = Hub.Queues.Info.GetRandomTradeCode(userIdNumeric);
-            await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author.Username, pk, message.AuthorId, message.Author.Username);
+            await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author!.Username, pk, message.AuthorId, message.Author!.Username);
         }
     }
 
@@ -292,11 +292,11 @@ public partial class SysStoat<T>
             eggName = string.Join(" ", args);
         }
 
-        if (string.IsNullOrWhiteSpace(eggName) && message.Attachments.Count > 0)
+        if (string.IsNullOrWhiteSpace(eggName) && message.Attachments?.Count > 0)
         {
             try 
             {
-                var data = await SysBot.Pokemon.Helpers.NetUtil.HttpClient.GetByteArrayAsync("https://autumn.revolt.chat/attachments/" + message.Attachments[0].Id);
+                var data = await SysBot.Pokemon.Helpers.NetUtil.HttpClient.GetByteArrayAsync("https://cdn.stoatusercontent.com/attachments/" + message.Attachments[0].Id + "/" + Uri.EscapeDataString(message.Attachments[0].Filename));
                 var pkmInfo = EntityFormat.GetFromBytes(data);
                 if (pkmInfo == null)
                     eggName = System.Text.Encoding.UTF8.GetString(data);
@@ -328,7 +328,7 @@ public partial class SysStoat<T>
                 return;
             }
             pk.ResetPartyStats();
-            await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author.Username, pk, message.AuthorId, message.Author.Username);
+            await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author!.Username, pk, message.AuthorId, message.Author!.Username);
         }
         else
         {
@@ -353,16 +353,16 @@ public partial class SysStoat<T>
 
         var result = pkm;
 
-        var trainer = new PokeTradeTrainerInfo(message.Author.Username, userIdNumeric);
+        var trainer = new PokeTradeTrainerInfo(message.Author!.Username, userIdNumeric);
         var notifier = new StoatTradeNotifier<T>(result, trainer, code, message.AuthorId, _client, 1, 1, true);
         int uniqueID = TradeUtil.GenerateUniqueTradeID();
         var detail = new PokeTradeDetail<T>(result, trainer, notifier, PokeTradeType.Specific, code, false, null, 1, 1, false, false, uniqueID);
-        var trade = new TradeEntry<T>(detail, userIdNumeric, PokeRoutineType.LinkTrade, message.Author.Username, uniqueID);
+        var trade = new TradeEntry<T>(detail, userIdNumeric, PokeRoutineType.LinkTrade, message.Author!.Username, uniqueID);
 
         if (Hub.Queues.Info.AddToTradeQueue(trade, userIdNumeric, false, Hub.Config.Stoat.GlobalSudoList.Contains(userIdNumeric)) == QueueResultAdd.Added)
         {
             await notifier.SendInitialQueueUpdate();
-            await notifier.SendInitialQueueUpdateToChannel(message.ChannelId, message.Author.Username);
+            await notifier.SendInitialQueueUpdateToChannel(message.ChannelId, message.Author!.Username);
         }
     }
 
@@ -382,7 +382,7 @@ public partial class SysStoat<T>
         }
 
         var lgcode = Hub.Queues.Info.GetRandomLGTradeCode(userIdNumeric);
-        await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author.Username, pkm, message.AuthorId, message.Author.Username, lgcode, isHiddenTrade: true);
+        await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author!.Username, pkm, message.AuthorId, message.Author!.Username, lgcode, isHiddenTrade: true);
     }
 
     [StoatCommand("batchtrade", "bt")]
@@ -391,11 +391,11 @@ public partial class SysStoat<T>
         if (!await CheckPermissions(message, Hub.Config.Stoat.RoleCanTrade)) return;
 
         string content = string.Join(" ", args);
-        if (string.IsNullOrWhiteSpace(content) && message.Attachments.Count > 0)
+        if (string.IsNullOrWhiteSpace(content) && message.Attachments?.Count > 0)
         {
             try 
             {
-                var data = await SysBot.Pokemon.Helpers.NetUtil.HttpClient.GetByteArrayAsync("https://autumn.revolt.chat/attachments/" + message.Attachments[0].Id);
+                var data = await SysBot.Pokemon.Helpers.NetUtil.HttpClient.GetByteArrayAsync("https://cdn.stoatusercontent.com/attachments/" + message.Attachments[0].Id + "/" + Uri.EscapeDataString(message.Attachments[0].Filename));
                 var pkmInfo = EntityFormat.GetFromBytes(data);
                 if (pkmInfo == null)
                 {
@@ -446,7 +446,7 @@ public partial class SysStoat<T>
             return;
         }
 
-        await StoatHelper<T>.AddBatchContainerToQueueAsync(_client, message.ChannelId, code, message.Author.Username, pkmList[0], pkmList, message.AuthorId, message.Author.Username);
+        await StoatHelper<T>.AddBatchContainerToQueueAsync(_client, message.ChannelId, code, message.Author!.Username, pkmList[0], pkmList, message.AuthorId, message.Author!.Username);
     }
 
     [StoatCommand("listevents", "le")]
@@ -517,7 +517,7 @@ public partial class SysStoat<T>
         if (pk != null)
         {
             await StoatHelper<T>.SendAsync(_client, message.ChannelId, "Event request added to queue.");
-            await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, Hub.Queues.Info.GetRandomTradeCode(userIdNumeric), message.Author.Username, pk, message.AuthorId, message.Author.Username, Hub.Queues.Info.GetRandomLGTradeCode(userIdNumeric));
+            await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, Hub.Queues.Info.GetRandomTradeCode(userIdNumeric), message.Author!.Username, pk, message.AuthorId, message.Author!.Username, Hub.Queues.Info.GetRandomLGTradeCode(userIdNumeric));
         }
     }
 
@@ -589,7 +589,7 @@ public partial class SysStoat<T>
         if (pk != null)
         {
             await StoatHelper<T>.SendAsync(_client, message.ChannelId, "Battle Ready request added to queue.");
-            await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, Hub.Queues.Info.GetRandomTradeCode(userIdNumeric), message.Author.Username, pk, message.AuthorId, message.Author.Username, Hub.Queues.Info.GetRandomLGTradeCode(userIdNumeric));
+            await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, Hub.Queues.Info.GetRandomTradeCode(userIdNumeric), message.Author!.Username, pk, message.AuthorId, message.Author!.Username, Hub.Queues.Info.GetRandomLGTradeCode(userIdNumeric));
         }
     }
 
@@ -644,7 +644,7 @@ public partial class SysStoat<T>
             if (index < 1 || index > entityEvents.Length) return;
             var pk = TradeModuleHelpers.ConvertEventToPKM<T>(entityEvents[index - 1]);
             if (pk != null)
-                await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, Hub.Queues.Info.GetRandomTradeCode(userIdNumeric), message.Author.Username, pk, message.AuthorId, message.Author.Username);
+                await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, Hub.Queues.Info.GetRandomTradeCode(userIdNumeric), message.Author!.Username, pk, message.AuthorId, message.Author!.Username);
         }
     }
 }

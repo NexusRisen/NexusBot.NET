@@ -39,7 +39,7 @@ public partial class SysStoat<T>
             description: description,
             colorHex: "#00FF00"
         );
-        await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+        await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
     }
 
     [StoatCommand("about", "info", "whoami", "owner")]
@@ -87,7 +87,7 @@ public partial class SysStoat<T>
             iconUrl: "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Characters/dudebot.png"
         );
 
-        await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+        await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
     }
 
     [StoatCommand("medals", "ml")]
@@ -101,7 +101,7 @@ public partial class SysStoat<T>
 
         ulong userIdNumeric = StoatHelper<T>.ConvertId(message.AuthorId);
         var tradeCodeStorage = new TradeCodeStorage();
-        tradeCodeStorage.UpdateUsername(userIdNumeric, message.Author.Username);
+        tradeCodeStorage.UpdateUsername(userIdNumeric, message.Author!.Username);
         int totalTrades = tradeCodeStorage.GetTradeCount(userIdNumeric);
 
         if (totalTrades == 0)
@@ -111,7 +111,7 @@ public partial class SysStoat<T>
                 description: $"{message.Author.Username}, you haven't made any trades yet.\nStart trading to earn your first medal!",
                 colorHex: "#808080"
             );
-            await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { zeroEmbed });
+            await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { zeroEmbed });
             return;
         }
 
@@ -148,7 +148,7 @@ public partial class SysStoat<T>
             iconUrl: "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Characters/dudebot.png"
         );
 
-        await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+        await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
     }
 
     [StoatCommand("leaderboard", "lb", "halloffame", "hof")]
@@ -165,7 +165,7 @@ public partial class SysStoat<T>
             colorHex: "#FFD700"
         );
 
-        await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+        await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
     }
 
     [StoatCommand("queuestatus", "qs")]
@@ -179,7 +179,7 @@ public partial class SysStoat<T>
                 description: "You are not currently in the queue.",
                 colorHex: "#FF0000"
             );
-            await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+            await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
             return;
         }
 
@@ -190,7 +190,7 @@ public partial class SysStoat<T>
             description: $"You are currently {posString} out of **{totalInQueue}** in the queue.",
             colorHex: "#00FF00"
         );
-        await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embedStatus });
+        await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embedStatus });
     }
 
     [StoatCommand("queueclear", "qc", "tc")]
@@ -206,7 +206,7 @@ public partial class SysStoat<T>
                 description: "You have been removed from the queue.",
                 colorHex: "#00FF00"
             );
-            await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+            await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
         }
         else
         {
@@ -215,7 +215,7 @@ public partial class SysStoat<T>
                 description: "You are not currently in the queue or cannot be removed.",
                 colorHex: "#FF0000"
             );
-            await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+            await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
         }
     }
 
@@ -230,7 +230,7 @@ public partial class SysStoat<T>
             description: success ? "Your saved trade code has been deleted." : "You do not have a saved trade code.",
             colorHex: success ? "#00FF00" : "#FF0000"
         );
-        await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+        await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
     }
 
     [StoatCommand("linkcode", "link")]
@@ -244,12 +244,12 @@ public partial class SysStoat<T>
             if (token == "DB_OFF" || token == "ERROR")
             {
                 var embed = EmbedHelper.CreateEmbed("Account Linking", "Account linking is currently disabled or an error occurred.", "#FF0000");
-                await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+                await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
             }
             else
             {
                 var embed = EmbedHelper.CreateEmbed("Account Linking", $"<@{message.AuthorId}> Your account link token is: **{token}**\nThis token will expire in 15 minutes. Go to the other platform and run `link {token}` to link that account.", "#00FF00");
-                await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+                await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
             }
         }
         else // Treat as "link" with token
@@ -258,19 +258,19 @@ public partial class SysStoat<T>
             if (token.Length != 6)
             {
                 var embed = EmbedHelper.CreateEmbed("Account Linking", "Invalid token format. It should be 6 characters long.", "#FF0000");
-                await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+                await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
                 return;
             }
             bool success = DatabaseService.LinkAccount(userIdNumeric, token, "Stoat");
             if (success)
             {
                 var embed = EmbedHelper.CreateEmbed("Account Linking", $"<@{message.AuthorId}> successfully linked! Your stats here will now match the primary account you linked from.", "#00FF00");
-                await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+                await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
             }
             else
             {
                 var embed = EmbedHelper.CreateEmbed("Account Linking", $"<@{message.AuthorId}> failed to link account. The token may be expired, invalid, or you are trying to link to yourself.", "#FF0000");
-                await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+                await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
             }
         }
     }
@@ -287,7 +287,7 @@ public partial class SysStoat<T>
         ulong userIdNumeric = StoatHelper<T>.ConvertId(message.AuthorId);
         ulong channelIdNumeric = StoatHelper<T>.ConvertId(message.ChannelId);
         var embed = EmbedHelper.CreateEmbed("ID Information", $"User ID: {message.AuthorId} (Numeric: {userIdNumeric})\nChannel ID: {message.ChannelId} (Numeric: {channelIdNumeric})", "#00FF00");
-        await MessageHelper.SendMessageAsync(message.Channel, string.Empty, embeds: new[] { embed });
+        await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
     }
 
     private static string GetVersionInfo(string assemblyName, bool includeVersion = true)
