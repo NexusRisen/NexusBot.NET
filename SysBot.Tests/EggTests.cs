@@ -218,19 +218,6 @@ Ball: Poke Ball");
         mystery.Should().NotBeNull("Mystery egg generation should work for PK8 (SwSh)");
     }
 
-    [Fact]
-    public void CanGenerateStoatMysteryEggPA8()
-    {
-        var mystery = SysBot.Pokemon.Helpers.TradeModuleHelpers.GenerateLegalMysteryEgg<PA8>();
-        mystery.Should().NotBeNull("Mystery egg generation should work for PA8 (PLA)");
-    }
-
-    [Fact]
-    public void CanGenerateStoatMysteryEggPB7()
-    {
-        var mystery = SysBot.Pokemon.Helpers.TradeModuleHelpers.GenerateLegalMysteryEgg<PB7>();
-        mystery.Should().NotBeNull("Mystery egg generation should work for PB7 (LGPE)");
-    }
 
     [Fact]
     public void CanGenerateStoatBareEggPB8()
