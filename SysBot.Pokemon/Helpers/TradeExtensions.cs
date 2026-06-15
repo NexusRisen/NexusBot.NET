@@ -162,9 +162,7 @@ namespace SysBot.Pokemon.Helpers
 
             string baseSpecies = speciesName.ToLower()
                 .Replace(" ", "-")
-                .Replace("'", "")
-                .Replace(".", "")
-                .Replace(":", "")
+                .Replace(":", "_")
                 .Replace("é", "e");
 
             // Special cases for species names
@@ -174,7 +172,10 @@ namespace SysBot.Pokemon.Helpers
             string formSuffix = "";
             if (canGmax)
             {
-                formSuffix = "-Gigantamax";
+                if (pkm.Species == (ushort)Species.Urshifu && pkm.Form == 1)
+                    formSuffix = "-rapid-strike-Gigantamax";
+                else
+                    formSuffix = "-Gigantamax";
             }
             else if (pkm.Form > 0)
             {
@@ -184,8 +185,43 @@ namespace SysBot.Pokemon.Helpers
                     f = f.ToLower().Replace(" ", "-");
                     f = f.Replace("alolan", "alola")
                          .Replace("galarian", "galar")
-                         .Replace("hisuian", "hisui");
-                    formSuffix = "-" + f;
+                         .Replace("hisuian", "hisui")
+                         .Replace("paldean", "paldea");
+
+                    // Specific sprite repository exceptions
+                    string[] missingRepoForms = {
+                        "aegislash", "calyrex", "cramorant", "eiscue", "furfrou",
+                        "kyurem", "meloetta", "mimikyu", "morpeko", "necrozma",
+                        "zacian", "zamazenta", "scatterbug", "spewpa", "mothim", "wishiwashi"
+                    };
+                    if (missingRepoForms.Contains(baseSpecies)) f = "";
+                    
+                    if (baseSpecies == "alcremie" && f != "" && f != "gigantamax") f += "-strawberry";
+                    if (baseSpecies == "minior" && f != "") {
+                        if (f == "meteor") f = "";
+                        else f = "c-" + f;
+                    }
+                    
+                    if (baseSpecies == "ogerpon" && f.StartsWith("*")) f = "";
+                    if (baseSpecies == "pikachu" && f == "starter") f = "";
+                    if (f.StartsWith("mega")) f = "";
+                    
+                    if ((baseSpecies == "pumpkaboo" || baseSpecies == "gourgeist") && f == "jumbo") f = "super";
+                    
+                    if (baseSpecies == "basculin" && f == "white-striped") f = "white";
+                    if (baseSpecies == "terapagos" && (f == "terastal" || f == "stellar")) f = "";
+                    if (baseSpecies == "palafin" && f == "hero") f = "";
+                    if (baseSpecies == "zygarde" && f == "complete" && pkm.IsShiny) f = "100";
+                    
+                    if (!string.IsNullOrEmpty(f))
+                        formSuffix = "-" + f;
+                    
+                    // Tatsugiri Shiny Droopy repository typo workaround
+                    if (baseSpecies == "tatsugiri" && f == "droopy" && pkm.IsShiny)
+                    {
+                        baseSpecies = "tatsugiridroopy";
+                        formSuffix = "";
+                    }
                 }
             }
 
