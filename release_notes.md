@@ -1,4 +1,4 @@
-# DudeBot.NET Version 6.5.12 Release Notes
+# DudeBot.NET Version 6.5.13 Release Notes
 
 ## Overview
 This update introduces a complete architectural overhaul for the **Stoat (Revolt)** integration, migrating all commands to a new modular `CommandRegistry` system and achieving full feature and visual parity with the Discord bot.

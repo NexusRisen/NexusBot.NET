@@ -66,7 +66,7 @@ jobs:
       if: startsWith(github.ref, 'refs/tags/')
       with:
         name: DudeBot.NET ${{ github.ref_name }}
-        body_path: RELEASE_NOTES.md
+        body_path: release_notes.md
         files: |
           artifacts/dudebot-win-x64/dudebot-win-x64.zip
           artifacts/dudebot-win-x86/dudebot-win-x86.zip
