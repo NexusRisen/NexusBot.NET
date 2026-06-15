@@ -238,7 +238,7 @@ public static class EmbedHelper
             var embed = new EmbedBuilder()
                 .SetTitle($"Trade Complete [v{SysBot.Pokemon.Helpers.DudeBot.Version}] - {title}")
                 .SetDescription(desc.ToString().TrimEnd())
-                .SetImage(details.ImageUrl)
+                .SetIconUrl(details.ImageUrl)
                 .SetColor(new StoatColor(color))
                 .Build();
 
