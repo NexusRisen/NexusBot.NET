@@ -199,7 +199,7 @@ public static class EmbedHelper
 
             // Build description: User line + core stats block
             var desc = new System.Text.StringBuilder();
-            var settings = SysStoatSettings.HubConfig.Trade.TradeEmbedSettings;
+            var settings = SysStoat<T>.Runner.Config.Trade.TradeEmbedSettings;
 
             desc.AppendLine($"**User:** {trainerMention}");
             

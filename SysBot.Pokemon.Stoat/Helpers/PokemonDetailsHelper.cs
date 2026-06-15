@@ -43,7 +43,7 @@ public static class PokemonDetailsHelper<T> where T : PKM, new()
     public static PokemonDetails Extract(T pk)
     {
         var strings = GameInfo.GetStrings("en");
-        var settings = SysStoatSettings.HubConfig.Trade.TradeEmbedSettings;
+        var settings = SysStoat<T>.Runner.Config.Trade.TradeEmbedSettings;
 
         var details = new PokemonDetails
         {
