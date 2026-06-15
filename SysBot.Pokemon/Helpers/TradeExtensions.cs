@@ -153,6 +153,8 @@ namespace SysBot.Pokemon.Helpers
                 return "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/egg.png";
             }
 
+            canGmax = canGmax || (pkm is IGigantamax g && g.CanGigantamax);
+
             string shinyFolder = pkm.IsShiny ? "Shiny" : "Non-Shiny";
             var strings = GameInfo.GetStrings("en");
             string speciesName = strings.Species[pkm.Species];
@@ -176,17 +178,14 @@ namespace SysBot.Pokemon.Helpers
             }
             else if (pkm.Form > 0)
             {
-                string[] forms = FormConverter.GetFormList(pkm.Species, strings.Types, strings.forms, GameInfo.GenderSymbolASCII, pkm.Context);
-                if (pkm.Form < forms.Length)
+                string f = ShowdownParsing.GetStringFromForm(pkm.Form, strings, pkm.Species, pkm.Context) ?? string.Empty;
+                if (!string.IsNullOrEmpty(f) && f != "0" && !f.Equals("Normal", StringComparison.OrdinalIgnoreCase))
                 {
-                    string f = forms[pkm.Form].ToLower().Replace(" ", "-");
-                    if (!string.IsNullOrEmpty(f) && f != "0")
-                    {
-                        f = f.Replace("alolan", "alola")
-                             .Replace("galarian", "galar")
-                             .Replace("hisuian", "hisui");
-                        formSuffix = "-" + f;
-                    }
+                    f = f.ToLower().Replace(" ", "-");
+                    f = f.Replace("alolan", "alola")
+                         .Replace("galarian", "galar")
+                         .Replace("hisuian", "hisui");
+                    formSuffix = "-" + f;
                 }
             }
 
