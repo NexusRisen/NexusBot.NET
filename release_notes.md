@@ -1,9 +1,13 @@
-# DudeBot.NET Version 6.5.13 Release Notes
+# DudeBot.NET Version 6.5.14 Release Notes
 
 ## Overview
-This update introduces a complete architectural overhaul for the **Stoat (Revolt)** integration, migrating all commands to a new modular `CommandRegistry` system and achieving full feature and visual parity with the Discord bot.
+This update enhances the **Stoat (Revolt)** integration by adding full Pokemon stats and details to the initial "Trade Request Queued" channel message, achieving 100% parity with Discord channel embeds.
 
 ## Changes & Improvements
+
+### 🎨 Rich Trade Queue Embed (Stoat)
+* Fixed an issue where the initial `Trade Request Queued` message in Revolt channels lacked Pokémon stats and details.
+* The channel queue message now builds and displays a massive embed with full Pokémon data (Level, Ball, IVs, EVs, Held Item, Moves, Tera Type, Origin, and more), exactly matching the Discord behavior.
 
 ### ⚙️ Modular Command Architecture (Stoat)
 * Completely removed the legacy monolithic `switch` block for Revolt command handling.

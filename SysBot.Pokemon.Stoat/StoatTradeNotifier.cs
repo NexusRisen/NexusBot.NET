@@ -162,18 +162,56 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
             var ch = await _client.Rest.GetChannelAsync(channelId);
             if (ch != null)
             {
-                string imageUrl = TradeExtensions<T>.PokeImg(Data, false, true, null);
                 var position = Hub.Queues.Info.CheckPosition(_traderID, _uniqueTradeID, PokeRoutineType.LinkTrade);
                 var currentPosition = position.Position < 1 ? 1 : position.Position;
 
-                var text = $"**User:** {userName}\n\nYour trade request has been queued.\n**Queue Position**: {currentPosition}";
+                var details = PokemonDetailsHelper<T>.Extract(Data);
+                string formSuffix = string.IsNullOrEmpty(details.FormName) ? "" : $"-{details.FormName}";
+                string title = $"{details.SpecialSymbols}{details.SpeciesName}{formSuffix}";
+
+                var desc = new System.Text.StringBuilder();
+                var settings = SysStoat<T>.Runner.Config.Trade.TradeEmbedSettings;
+
+                desc.AppendLine($"**User:** {userName}");
+                desc.AppendLine($"**Queue Position:** {currentPosition}");
+                desc.AppendLine();
                 
+                if (settings.ShowScale && !string.IsNullOrEmpty(details.Scale))
+                    desc.AppendLine($"**Scale:** {details.Scale}");
+                if (settings.ShowLevel) desc.AppendLine($"**Level:** {details.Level}");
+                if (settings.ShowBall) desc.AppendLine($"**Ball:** {details.Ball}");
+                if (settings.ShowMetLevel) desc.AppendLine($"**Met Level:** {details.MetLevel}");
+                if (settings.ShowMetDate && !string.IsNullOrEmpty(details.MetDate))
+                    desc.AppendLine($"**Met Date:** {details.MetDate}");
+                if (settings.ShowMetLocation && !string.IsNullOrEmpty(details.MetLocation))
+                    desc.AppendLine($"**Met Location:** {details.MetLocation}");
+                if (settings.ShowAbility) desc.AppendLine($"**Ability:** {details.Ability}");
+                if (settings.ShowNature) desc.AppendLine($"**{details.Nature}**");
+                if (settings.ShowLanguage) desc.AppendLine($"**Language:** {details.Language}");
+                if (!string.IsNullOrEmpty(details.HeldItem))
+                    desc.AppendLine($"**Held Item:** {details.HeldItem}");
+                if (settings.ShowTeraType && !string.IsNullOrEmpty(details.TeraType))
+                    desc.AppendLine($"**Tera Type:** {details.TeraType}");
+                if (settings.ShowIVs) desc.AppendLine($"**IVs:** {details.IVsDisplay}");
+                if (settings.ShowEVs) desc.AppendLine($"**EVs:** {details.EVsDisplay}");
+
+                if (details.Moves.Count > 0)
+                {
+                    desc.AppendLine();
+                    desc.AppendLine("**MOVES**");
+                    foreach (var move in details.Moves)
+                        desc.AppendLine(move);
+                }
+
+                string color = details.IsSquareShiny ? "#FFD700" : details.IsShiny ? "#C0C0C0" : "#7B68EE";
+
                 var embed = new EmbedBuilder()
-                    .SetTitle("Trade Request Queued")
-                    .SetColor(new StoatColor("#663399"))
-                    .SetDescription(text)
-                    .SetImage(imageUrl)
+                    .SetTitle($"Trade Queued - {title}")
+                    .SetColor(new StoatColor(color))
+                    .SetDescription(desc.ToString().TrimEnd())
+                    .SetIconUrl(details.ImageUrl)
                     .Build();
+
                 await MessageHelper.SendMessageAsync(ch, string.Empty, embeds: new[] { embed });
             }
         } 
