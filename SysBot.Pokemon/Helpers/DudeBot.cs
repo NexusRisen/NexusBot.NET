@@ -3,7 +3,7 @@ namespace SysBot.Pokemon.Helpers
     public static class DudeBot
     {
         public static string Name { get; set; } = "DudeBot";
-        public static string Version => "6.5.15";
+        public static string Version => "6.5.16";
         public const string ConfigPath = "config.json";
     }
 }

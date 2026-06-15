@@ -172,35 +172,33 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
                 var desc = new System.Text.StringBuilder();
                 var settings = SysStoat<T>.Runner.Config.Trade.TradeEmbedSettings;
 
-                desc.AppendLine($"**User:** {userName}");
-                desc.AppendLine($"**Queue Position:** {currentPosition}");
-                desc.AppendLine();
+                desc.Append($"**User:** {userName}\n");
+                desc.Append($"**Queue Position:** {currentPosition}\n\n");
                 
                 if (settings.ShowScale && !string.IsNullOrEmpty(details.Scale))
-                    desc.AppendLine($"**Scale:** {details.Scale}");
-                if (settings.ShowLevel) desc.AppendLine($"**Level:** {details.Level}");
-                if (settings.ShowBall) desc.AppendLine($"**Ball:** {details.Ball}");
-                if (settings.ShowMetLevel) desc.AppendLine($"**Met Level:** {details.MetLevel}");
+                    desc.Append($"**Scale:** {details.Scale}\n");
+                if (settings.ShowLevel) desc.Append($"**Level:** {details.Level}\n");
+                if (settings.ShowBall) desc.Append($"**Ball:** {details.Ball}\n");
+                if (settings.ShowMetLevel) desc.Append($"**Met Level:** {details.MetLevel}\n");
                 if (settings.ShowMetDate && !string.IsNullOrEmpty(details.MetDate))
-                    desc.AppendLine($"**Met Date:** {details.MetDate}");
+                    desc.Append($"**Met Date:** {details.MetDate}\n");
                 if (settings.ShowMetLocation && !string.IsNullOrEmpty(details.MetLocation))
-                    desc.AppendLine($"**Met Location:** {details.MetLocation}");
-                if (settings.ShowAbility) desc.AppendLine($"**Ability:** {details.Ability}");
-                if (settings.ShowNature) desc.AppendLine($"**{details.Nature}**");
-                if (settings.ShowLanguage) desc.AppendLine($"**Language:** {details.Language}");
+                    desc.Append($"**Met Location:** {details.MetLocation}\n");
+                if (settings.ShowAbility) desc.Append($"**Ability:** {details.Ability}\n");
+                if (settings.ShowNature) desc.Append($"**{details.Nature}**\n");
+                if (settings.ShowLanguage) desc.Append($"**Language:** {details.Language}\n");
                 if (!string.IsNullOrEmpty(details.HeldItem))
-                    desc.AppendLine($"**Held Item:** {details.HeldItem}");
+                    desc.Append($"**Held Item:** {details.HeldItem}\n");
                 if (settings.ShowTeraType && !string.IsNullOrEmpty(details.TeraType))
-                    desc.AppendLine($"**Tera Type:** {details.TeraType}");
-                if (settings.ShowIVs) desc.AppendLine($"**IVs:** {details.IVsDisplay}");
-                if (settings.ShowEVs) desc.AppendLine($"**EVs:** {details.EVsDisplay}");
+                    desc.Append($"**Tera Type:** {details.TeraType}\n");
+                if (settings.ShowIVs) desc.Append($"**IVs:** {details.IVsDisplay}\n");
+                if (settings.ShowEVs) desc.Append($"**EVs:** {details.EVsDisplay}\n");
 
                 if (details.Moves.Count > 0)
                 {
-                    desc.AppendLine();
-                    desc.AppendLine("**MOVES**");
+                    desc.Append("\n**MOVES**\n");
                     foreach (var move in details.Moves)
-                        desc.AppendLine(move);
+                        desc.Append(move).Append("\n");
                 }
 
                 string color = details.IsSquareShiny ? "#FFD700" : details.IsShiny ? "#C0C0C0" : "#7B68EE";
@@ -209,7 +207,7 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
                     .SetTitle($"Trade Queued - {title}")
                     .SetColor(new StoatColor(color))
                     .SetDescription(desc.ToString().TrimEnd())
-                    .SetIconUrl(details.ImageUrl)
+                    .SetImage(details.ImageUrl)
                     .Build();
 
                 await MessageHelper.SendMessageAsync(ch, string.Empty, embeds: new[] { embed });
