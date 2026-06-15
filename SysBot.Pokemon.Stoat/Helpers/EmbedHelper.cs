@@ -193,11 +193,9 @@ public static class EmbedHelper
 
             var details = PokemonDetailsHelper<T>.Extract(pk);
 
-            // Build title line: e.g. "Haunter (F)" or "Shiny Haunter"
-            string shinyPrefix = details.IsSquareShiny ? "Square Shiny " : details.IsShiny ? "Shiny " : "";
+            // Build title line: e.g. "★ Haunter-Gmax (F)"
             string formSuffix = string.IsNullOrEmpty(details.FormName) ? "" : $"-{details.FormName}";
-            string genderSuffix = string.IsNullOrEmpty(details.Gender) ? "" : $" {details.Gender}";
-            string title = $"{shinyPrefix}{details.SpeciesName}{formSuffix}{genderSuffix}";
+            string title = $"{details.SpecialSymbols}{details.SpeciesName}{formSuffix}";
 
             // Build description: User line + core stats block
             var desc = new System.Text.StringBuilder();
@@ -205,6 +203,8 @@ public static class EmbedHelper
 
             desc.AppendLine($"**User:** {trainerMention}");
             
+            if (settings.ShowScale && !string.IsNullOrEmpty(details.Scale))
+                desc.AppendLine($"**Scale:** {details.Scale}");
             if (settings.ShowLevel) desc.AppendLine($"**Level:** {details.Level}");
             if (settings.ShowBall) desc.AppendLine($"**Ball:** {details.Ball}");
             if (settings.ShowMetLevel) desc.AppendLine($"**Met Level:** {details.MetLevel}");
