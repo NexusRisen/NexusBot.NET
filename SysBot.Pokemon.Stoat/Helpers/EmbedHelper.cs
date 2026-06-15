@@ -201,22 +201,26 @@ public static class EmbedHelper
 
             // Build description: User line + core stats block
             var desc = new System.Text.StringBuilder();
+            var settings = SysStoatSettings.HubConfig.Trade.TradeEmbedSettings;
+
             desc.AppendLine($"**User:** {trainerMention}");
-            desc.AppendLine($"**Level:** {details.Level}");
-            desc.AppendLine($"**Ball:** {details.Ball}");
-            desc.AppendLine($"**Met Level:** {details.MetLevel}");
-            if (!string.IsNullOrEmpty(details.MetDate))
+            
+            if (settings.ShowLevel) desc.AppendLine($"**Level:** {details.Level}");
+            if (settings.ShowBall) desc.AppendLine($"**Ball:** {details.Ball}");
+            if (settings.ShowMetLevel) desc.AppendLine($"**Met Level:** {details.MetLevel}");
+            if (settings.ShowMetDate && !string.IsNullOrEmpty(details.MetDate))
                 desc.AppendLine($"**Met Date:** {details.MetDate}");
-            if (!string.IsNullOrEmpty(details.MetLocation))
+            if (settings.ShowMetLocation && !string.IsNullOrEmpty(details.MetLocation))
                 desc.AppendLine($"**Met Location:** {details.MetLocation}");
-            desc.AppendLine($"**Ability:** {details.Ability}");
-            desc.AppendLine($"**{details.Nature}**");
-            desc.AppendLine($"**Language:** {details.Language}");
+            if (settings.ShowAbility) desc.AppendLine($"**Ability:** {details.Ability}");
+            if (settings.ShowNature) desc.AppendLine($"**{details.Nature}**");
+            if (settings.ShowLanguage) desc.AppendLine($"**Language:** {details.Language}");
             if (!string.IsNullOrEmpty(details.HeldItem))
                 desc.AppendLine($"**Held Item:** {details.HeldItem}");
-            if (!string.IsNullOrEmpty(details.TeraType))
+            if (settings.ShowTeraType && !string.IsNullOrEmpty(details.TeraType))
                 desc.AppendLine($"**Tera Type:** {details.TeraType}");
-            desc.AppendLine($"**IVs:** {details.IVsDisplay}");
+            if (settings.ShowIVs) desc.AppendLine($"**IVs:** {details.IVsDisplay}");
+            if (settings.ShowEVs) desc.AppendLine($"**EVs:** {details.EVsDisplay}");
 
             // Moves section
             if (details.Moves.Count > 0)

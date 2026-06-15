@@ -34,6 +34,7 @@ public static class PokemonDetailsHelper<T> where T : PKM, new()
         public string TeraType { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
         public bool IsEgg { get; set; }
+        public string EVsDisplay { get; set; } = string.Empty;
         public string HeldItem { get; set; } = string.Empty;
     }
 
@@ -89,6 +90,9 @@ public static class PokemonDetailsHelper<T> where T : PKM, new()
 
         // IVs
         details.IVsDisplay = GetIVsDisplay(pk);
+
+        // EVs
+        details.EVsDisplay = GetEVsDisplay(pk);
 
         // Met date
         details.MetDate = pk.MetDate.HasValue
@@ -150,6 +154,24 @@ public static class PokemonDetailsHelper<T> where T : PKM, new()
             parts.Add($"{ivs[idx]} {labels[i]}");
         }
         return string.Join(" / ", parts);
+    }
+
+    private static string GetEVsDisplay(T pk)
+    {
+        Span<int> evs = stackalloc int[6];
+        pk.GetEVs(evs);
+
+        int[] displayOrder = [0, 1, 2, 4, 5, 3];
+        string[] labels = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"];
+
+        var parts = new List<string>();
+        for (int i = 0; i < displayOrder.Length; i++)
+        {
+            int idx = displayOrder[i];
+            if (evs[idx] > 0)
+                parts.Add($"{evs[idx]} {labels[i]}");
+        }
+        return parts.Count > 0 ? string.Join(" / ", parts) : "None";
     }
 
     private static List<string> GetMoveNames(T pk, GameStrings strings)

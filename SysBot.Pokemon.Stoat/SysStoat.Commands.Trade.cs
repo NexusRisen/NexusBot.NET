@@ -381,19 +381,8 @@ public partial class SysStoat<T>
             return;
         }
 
-        var result = pkm;
-
-        var trainer = new PokeTradeTrainerInfo(message.Author.Username, userIdNumeric);
-        var notifier = new StoatTradeNotifier<T>(result, trainer, code, message.AuthorId, _client, 1, 1, true);
-        int uniqueID = TradeUtil.GenerateUniqueTradeID();
-        var detail = new PokeTradeDetail<T>(result, trainer, notifier, PokeTradeType.Specific, code, false, null, 1, 1, false, false, uniqueID);
-        var trade = new TradeEntry<T>(detail, userIdNumeric, PokeRoutineType.LinkTrade, message.Author.Username, uniqueID);
-
-        if (Hub.Queues.Info.AddToTradeQueue(trade, userIdNumeric, false, Hub.Config.Stoat.GlobalSudoList.Contains(userIdNumeric)) == QueueResultAdd.Added)
-        {
-            await notifier.SendInitialQueueUpdate();
-            await notifier.SendInitialQueueUpdateToChannel(message.ChannelId, message.Author.Username);
-        }
+        var lgcode = Hub.Queues.Info.GetRandomLGTradeCode(userIdNumeric);
+        await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, code, message.Author.Username, pkm, message.AuthorId, message.Author.Username, lgcode, isHiddenTrade: true);
     }
 
     [StoatCommand("batchtrade", "bt")]
