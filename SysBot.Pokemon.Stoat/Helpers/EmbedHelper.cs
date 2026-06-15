@@ -201,6 +201,8 @@ public static class EmbedHelper
             var desc = new System.Text.StringBuilder();
             var settings = SysStoat<T>.Runner.Config.Trade.TradeEmbedSettings;
 
+            SysBot.Base.LogUtil.LogInfo($"TradeEmbedSettings -> UseEmbeds: {settings.UseEmbeds}, ShowLevel: {settings.ShowLevel}, Level: {details.Level}, Moves Count: {details.Moves.Count}", "Stoat Embed");
+
             desc.AppendLine($"**User:** {trainerMention}");
             
             if (settings.ShowScale && !string.IsNullOrEmpty(details.Scale))
@@ -234,7 +236,7 @@ public static class EmbedHelper
             string color = details.IsSquareShiny ? "#FFD700" : details.IsShiny ? "#C0C0C0" : "#7B68EE";
 
             var embed = new EmbedBuilder()
-                .SetTitle($"Trade Complete - {title}")
+                .SetTitle($"Trade Complete [v{SysBot.Pokemon.Helpers.DudeBot.Version}] - {title}")
                 .SetDescription(desc.ToString().TrimEnd())
                 .SetImage(details.ImageUrl)
                 .SetColor(new StoatColor(color))

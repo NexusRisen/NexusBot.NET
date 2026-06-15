@@ -185,4 +185,61 @@ Ball: Poke Ball");
         pk9.Nickname.Should().Be("Egg", "unhatched eggs should be nicknamed 'Egg' in English");
         pk9.IsNicknamed.Should().BeTrue("eggs should have the nickname flag set");
     }
+
+    [Fact]
+    public void CanGenerateStoatMysteryEgg()
+    {
+        var mystery = SysBot.Pokemon.Helpers.TradeModuleHelpers.GenerateLegalMysteryEgg<PK9>();
+        mystery.Should().NotBeNull("Mystery egg generation should work for PK9");
+    }
+
+    [Fact]
+    public void CanGenerateStoatBareEgg()
+    {
+        var sav = AutoLegalityWrapper.GetTrainerInfo<PK9>();
+        var template = AutoLegalityWrapper.GetTemplate(new ShowdownSet("pichu"));
+        var egg = sav.GenerateEgg(template, out var result);
+        
+        result.Should().Be(LegalizationResult.Regenerated);
+        egg.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void CanGenerateStoatMysteryEggPB8()
+    {
+        var mystery = SysBot.Pokemon.Helpers.TradeModuleHelpers.GenerateLegalMysteryEgg<PB8>();
+        mystery.Should().NotBeNull("Mystery egg generation should work for PB8 (BDSP)");
+    }
+
+    [Fact]
+    public void CanGenerateStoatMysteryEggPK8()
+    {
+        var mystery = SysBot.Pokemon.Helpers.TradeModuleHelpers.GenerateLegalMysteryEgg<PK8>();
+        mystery.Should().NotBeNull("Mystery egg generation should work for PK8 (SwSh)");
+    }
+
+    [Fact]
+    public void CanGenerateStoatMysteryEggPA8()
+    {
+        var mystery = SysBot.Pokemon.Helpers.TradeModuleHelpers.GenerateLegalMysteryEgg<PA8>();
+        mystery.Should().NotBeNull("Mystery egg generation should work for PA8 (PLA)");
+    }
+
+    [Fact]
+    public void CanGenerateStoatMysteryEggPB7()
+    {
+        var mystery = SysBot.Pokemon.Helpers.TradeModuleHelpers.GenerateLegalMysteryEgg<PB7>();
+        mystery.Should().NotBeNull("Mystery egg generation should work for PB7 (LGPE)");
+    }
+
+    [Fact]
+    public void CanGenerateStoatBareEggPB8()
+    {
+        var sav = AutoLegalityWrapper.GetTrainerInfo<PB8>();
+        var template = AutoLegalityWrapper.GetTemplate(new ShowdownSet("turtwig"));
+        var egg = sav.GenerateEgg(template, out var result);
+        
+        result.Should().Be(LegalizationResult.Regenerated);
+        egg.Should().NotBeNull();
+    }
 }
