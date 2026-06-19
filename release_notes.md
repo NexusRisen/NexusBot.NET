@@ -1,16 +1,18 @@
-# DudeBot.NET Version 6.5.18 Release Notes
+# DudeBot.NET Release Notes
 
-## Overview
-This release focuses on providing a massive visual upgrade to the sprite generation logic, bringing flawless support for image links generated against the `NexusRisen/Nexus-Risen-Edition-Sprite-Images` repository.
+## [Unreleased]
 
-## Changes & Improvements
+### Added
+- **Stoat Integration**: Added a new Stoat integration module (`SysBot.Pokemon.Stoat`) for enhanced remote control and automation functionality.
+- **New UI Themes**: Major aesthetic overhaul in the WinForms application, introducing several new themes:
+  - **Cyberpunk Theme**: A neon-lit, high-contrast aesthetic.
+  - **Dracula Theme**: Based on the popular dark programming color palette.
+  - **Gengar Theme**: Deep ghostly purples and reds mirroring Gengar's authentic colors.
+  - **Pikachu Theme**: Electric yellows, reds, and browns representing Pikachu's authentic colors.
 
-### 🖼️ Sprite Sync & Reliability
-* **Punctuation Matching:** Fixed critical broken links by preserving correct punctuation (`'`, `.`, `_`) for species like Farfetch'd, Sirfetch'd, Mr. Mime, and Type: Null, allowing their exact repository filenames to be targeted.
-* **Form Image Fallbacks:** The sprite generator detects Pokémon that lack individual form sprites in the repository (e.g. Aegislash-Blade, Cramorant's gulps, and many more). These safely fall back to the Pokémon's base image instead of returning broken 404 images.
-* **Complex Form Mappings:** Implemented specific mapping rules for edge-case forms like Alcremie and Minior. Alcremie swirl forms correctly append the repository's required sweet modifier (`-strawberry`), and Minior core forms map accurately to the repo's `c-color` structure.
-* **Mega Evolution Support:** Automatically handles parsing and routing Mega Evolutions safely back to their base species images, as the repository does not maintain Mega form sprites.
-* **Naming Standardization:** Safely handles naming mismatches (e.g., mapping Pumpkaboo and Gourgeist's `Jumbo` to `Super`) and correctly handles Ogerpon Tera mask forms without breaking image paths.
+### Changed
+- **Theme Refinements**: Refined the existing "Dark Theme" and "Modern Theme" with modernized, sleeker color palettes.
+- **Documentation**: Updated `README.md` to reflect current integrations, notably adding Stoat and removing Slack.
 
-## Impact
-Zero 404 broken image links across all 1025 Pokémon species, both shiny and non-shiny, regardless of form or generation context!
+### Removed
+- **Slack Integration**: Completely removed the Slack integration (`SysBot.Pokemon.Slack`) and its associated commands/configuration to focus on the active chat platforms.

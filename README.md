@@ -60,7 +60,7 @@ Automated trading and encounter bots for all modern Nintendo Switch Pokémon tit
 Full remote control and interaction support across multiple platforms:
 - **Discord Integration**: Comprehensive interface for remote interaction, queue management, and visual trade reports using [Discord.Net](https://github.com/discord-net/Discord.Net).
 - **Kook Integration**: Native support for the Kook platform (KaiHeiLa) using [Kook.Net](https://github.com/gehongyan/Kook.Net). Features full parity with Discord, including native Kook Card paginated event listings, Battle Ready database requests, and hidden trades for a seamless experience in the Chinese community.
-- **Slack Integration**: Full enterprise-grade Slack integration utilizing [SlackNet](https://github.com/soxtoby/SlackNet) and Socket Mode. Supports the complete suite of commands, queuing, and hidden trading features for maximum parity with Discord.
+- **Stoat Integration**: Seamlessly connect and interact with your bots using the Stoat messaging platform.
 - **Twitch Integration**: Automated queue management and interaction for live streamers via [TwitchLib](https://github.com/TwitchLib/TwitchLib).
 - **YouTube Integration**: Direct interaction with YouTube Live chat for automated distribution using [Google.Apis.YouTube.v3](https://github.com/googleapis/google-api-dotnet-client).
 
@@ -145,7 +145,7 @@ DudeBot.NET features a state-of-the-art **AI Chatbot** powered by [Hugging Face]
 | **SysBot.Pokemon.WinForms** | User-friendly GUI launcher for managing and configuring Pokémon bots. |
 | **SysBot.Pokemon.Discord** | Comprehensive Discord interface for remote interaction and queue management. |
 | **SysBot.Pokemon.Kook** | Native Kook platform interface with rich CardBuilder support for the Chinese community. |
-| **SysBot.Pokemon.Slack** | Comprehensive Slack integration via Socket Mode, bringing full parity to workspaces. |
+| **SysBot.Pokemon.Stoat** | Native Stoat platform interface for queue management and operations. |
 | **SysBot.Pokemon.ConsoleApp** | Lightweight console interface for headless bot operations. |
 | **SysBot.Tests** | Extensive unit test suite (50+) ensuring logic stability and correctness. |
 
