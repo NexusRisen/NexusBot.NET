@@ -181,6 +181,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _client.Ready -= LoadLoggingAndEcho;
         _client.MessageReceived -= HandleMessageAsync;
         _client.JoinedGuild -= HandleJoinedGuild;
+        _client.InteractionCreated -= HandleInteractionAsync;
 
         try
         {
@@ -412,6 +413,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _client.Ready += LoadLoggingAndEcho;
         _client.MessageReceived += HandleMessageAsync;
         _client.JoinedGuild += HandleJoinedGuild;
+        _client.InteractionCreated += HandleInteractionAsync;
     }
 
     private Task SetDudeBotNameAsync()
@@ -767,6 +769,50 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         {
             await Log(new LogMessage(LogSeverity.Error, "Command", $"Error executing command: {ex.Message}", ex)).ConfigureAwait(false);
             return false;
+        }
+    }
+
+    private async Task HandleInteractionAsync(SocketInteraction interaction)
+    {
+        try
+        {
+            if (interaction is SocketMessageComponent component && component.Data.CustomId == "report_issue_btn")
+            {
+                var mb = new ModalBuilder()
+                    .WithTitle("Report an Issue")
+                    .WithCustomId("report_issue_modal")
+                    .AddTextInput("Title", "title", TextInputStyle.Short, placeholder: "Brief summary of the issue", required: true)
+                    .AddTextInput("Description", "description", TextInputStyle.Paragraph, placeholder: "Detailed description of the issue", required: true);
+
+                await component.RespondWithModalAsync(mb.Build());
+            }
+            else if (interaction is SocketModal modal && modal.Data.CustomId == "report_issue_modal")
+            {
+                // Respond immediately since GitHub API might take some time
+                await modal.DeferAsync(ephemeral: true);
+
+                var titleText = modal.Data.Components.First(x => x.CustomId == "title").Value;
+                var descriptionText = modal.Data.Components.First(x => x.CustomId == "description").Value;
+
+                var ghSettings = Hub.Config.GitHub;
+                var owner = string.IsNullOrWhiteSpace(ghSettings.RepositoryOwner) ? "NexusRisen" : ghSettings.RepositoryOwner;
+                var repo = string.IsNullOrWhiteSpace(ghSettings.RepositoryName) ? "DudeBot.NET" : ghSettings.RepositoryName;
+
+                var title = Uri.EscapeDataString(titleText);
+                var body = Uri.EscapeDataString($"**Submitted by:** {interaction.User.Username} ({interaction.User.Id})\n\n{descriptionText}");
+                var url = $"https://github.com/{owner}/{repo}/issues/new?title={title}&body={body}";
+
+                var builder = new ComponentBuilder()
+                    .WithButton("Submit to GitHub", style: ButtonStyle.Link, url: url);
+
+                await modal.FollowupAsync("Your issue is ready! Click the button below to review and submit it to GitHub:", components: builder.Build(), ephemeral: true);
+            }
+        }
+        catch (Exception ex)
+        {
+            await Log(new LogMessage(LogSeverity.Error, "Interaction", $"Error handling interaction: {ex.Message}", ex)).ConfigureAwait(false);
+            if (!interaction.HasResponded)
+                await interaction.RespondAsync("An error occurred while processing your request.", ephemeral: true);
         }
     }
 

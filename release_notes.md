@@ -1,8 +1,9 @@
 # DudeBot.NET Release Notes
 
-## [Unreleased]
+## [7.0.0]
 
 ### Added
+- **Issue Reporting**: Added a new "Report Issue" button to the WinForms UI and a `$report` command to the Discord bot that allows users to seamlessly pre-fill and submit bug reports to the GitHub repository.
 - **Stoat Integration**: Added a new Stoat integration module (`SysBot.Pokemon.Stoat`) for enhanced remote control and automation functionality.
 - **New UI Themes**: Major aesthetic overhaul in the WinForms application, introducing several new themes:
   - **Cyberpunk Theme**: A neon-lit, high-contrast aesthetic.

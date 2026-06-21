@@ -35,6 +35,7 @@ namespace SysBot.Pokemon.WinForms
             P_Sidebar = new Panel();
             B_HideTray = new Button();
             B_Credits = new Button();
+            B_ReportIssue = new Button();
             B_NavLogs = new Button();
             B_NavHub = new Button();
             B_NavBots = new Button();
@@ -135,6 +136,7 @@ namespace SysBot.Pokemon.WinForms
             // 
             P_Sidebar.Controls.Add(B_HideTray);
             P_Sidebar.Controls.Add(B_Credits);
+            P_Sidebar.Controls.Add(B_ReportIssue);
             P_Sidebar.Controls.Add(B_NavLogs);
             P_Sidebar.Controls.Add(B_NavHub);
             P_Sidebar.Controls.Add(B_NavBots);
@@ -203,6 +205,25 @@ namespace SysBot.Pokemon.WinForms
             B_NavLogs.TextImageRelation = TextImageRelation.ImageBeforeText;
             B_NavLogs.UseVisualStyleBackColor = true;
             B_NavLogs.Click += B_NavLogs_Click;
+            // 
+            // B_ReportIssue
+            // 
+            B_ReportIssue.Dock = DockStyle.Top;
+            B_ReportIssue.FlatAppearance.BorderSize = 0;
+            B_ReportIssue.FlatStyle = FlatStyle.Flat;
+            B_ReportIssue.Font = new Font("Segoe UI Semibold", 11F, FontStyle.Bold);
+            B_ReportIssue.ForeColor = Color.Gainsboro;
+            B_ReportIssue.ImageAlign = ContentAlignment.MiddleLeft;
+            B_ReportIssue.Location = new Point(0, 285);
+            B_ReportIssue.Name = "B_ReportIssue";
+            B_ReportIssue.Padding = new Padding(15, 0, 0, 0);
+            B_ReportIssue.Size = new Size(180, 50);
+            B_ReportIssue.TabIndex = 7;
+            B_ReportIssue.Text = "  Report Issue";
+            B_ReportIssue.TextAlign = ContentAlignment.MiddleLeft;
+            B_ReportIssue.TextImageRelation = TextImageRelation.ImageBeforeText;
+            B_ReportIssue.UseVisualStyleBackColor = true;
+            B_ReportIssue.Click += B_ReportIssue_Click;
             // 
             // B_NavHub
             // 
@@ -798,6 +819,7 @@ namespace SysBot.Pokemon.WinForms
         private System.Windows.Forms.ComboBox CB_Routine;
         private System.Windows.Forms.NumericUpDown NUD_Port;
         private System.Windows.Forms.Button B_New;
+        private System.Windows.Forms.Button B_ReportIssue;
         private System.Windows.Forms.FlowLayoutPanel FLP_Bots;
         private System.Windows.Forms.ComboBox CB_Protocol;
         private System.Windows.Forms.Button B_Restart;

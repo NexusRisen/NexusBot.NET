@@ -710,4 +710,10 @@ public sealed partial class Main : Form
         TC_Main.SelectedIndex = 3;
         L_Title.Text = UILocalizer.Translate("Tab_Credits", Config.Language).ToUpper();
     }
+
+    private void B_ReportIssue_Click(object sender, EventArgs e)
+    {
+        using var form = new ReportIssueForm(Config.Hub.GitHub);
+        form.ShowDialog(this);
+    }
 }

@@ -358,3 +358,7 @@ MigrationBackup/
 .env
 .env.*
 
+# Application Config
+config.json
+*.json.bak
+*.json.tmp
