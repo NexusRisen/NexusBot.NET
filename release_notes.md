@@ -19,3 +19,4 @@
 
 ### Fixed
 - **Thread Pool Starvation**: Fixed a severe deadlock vulnerability during high concurrency operations where `AutoLegalityWrapper` blocked thread pool threads while waiting for long-running processes.
+- **Crash Prevention**: Implemented global exception handlers for UI threads and background tasks to prevent the program from terminating during unexpected errors.

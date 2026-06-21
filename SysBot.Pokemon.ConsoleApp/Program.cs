@@ -3,6 +3,7 @@ using SysBot.Base;
 using SysBot.Pokemon.Z3;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -26,6 +27,19 @@ public static class Program
 
     private static void Main(string[] args)
     {
+        AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+        {
+            var ex = (Exception)e.ExceptionObject;
+            LogUtil.LogError(ex.Message, "UnhandledException");
+            LogUtil.LogInfo("SysBot", "An unexpected error occurred but the program will attempt to continue.");
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, e) =>
+        {
+            e.SetObserved();
+            LogUtil.LogError(e.Exception.Message, "UnobservedTaskException");
+        };
+
         LogUtil.LogInfo("SysBot", "Starting up...");
 
         if (args.Length > 1)

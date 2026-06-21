@@ -4,6 +4,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SysBot.Pokemon.WinForms;
@@ -32,6 +33,24 @@ static class Program
         Application.SetHighDpiMode(HighDpiMode.SystemAware);
 #endif
        
+        Application.ThreadException += (sender, args) =>
+        {
+            MessageBox.Show($"An unexpected error occurred: {args.Exception.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        };
+
+        TaskScheduler.UnobservedTaskException += (sender, args) =>
+        {
+            args.SetObserved();
+            MessageBox.Show($"A background task error occurred: {args.Exception.Message}", "Task Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        };
+
+        AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
+        {
+            var ex = (Exception)args.ExceptionObject;
+            MessageBox.Show($"A fatal error occurred: {ex.Message}", "Fatal Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        };
+
+        Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
 
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
