@@ -16,3 +16,6 @@
 
 ### Removed
 - **Slack Integration**: Completely removed the Slack integration (`SysBot.Pokemon.Slack`) and its associated commands/configuration to focus on the active chat platforms.
+
+### Fixed
+- **Thread Pool Starvation**: Fixed a severe deadlock vulnerability during high concurrency operations where `AutoLegalityWrapper` blocked thread pool threads while waiting for long-running processes.

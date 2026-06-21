@@ -241,7 +241,7 @@ public static class AutoLegalityWrapper
 
     public static PKM GetLegal(this ITrainerInfo sav, IBattleTemplate set, out string res)
     {
-        var task = Task.Run(() => sav.GetLegalFromSet(set));
+        var task = Task.Factory.StartNew(() => sav.GetLegalFromSet(set), CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         if (task.Wait(TimeSpan.FromSeconds(30)))
         {
             var result = task.Result;
