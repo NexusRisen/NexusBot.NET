@@ -12,12 +12,8 @@ namespace SysBot.Pokemon.WinForms
         private System.Windows.Forms.Label lblTitle;
         private System.Windows.Forms.Label lblDescription;
 
-        private readonly GitHubSettings _githubSettings;
-
-        public ReportIssueForm(GitHubSettings githubSettings)
+        public ReportIssueForm()
         {
-            _githubSettings = githubSettings;
-
             InitializeComponent();
         }
 
@@ -53,8 +49,8 @@ namespace SysBot.Pokemon.WinForms
                 return;
             }
 
-            var owner = string.IsNullOrWhiteSpace(_githubSettings.RepositoryOwner) ? "NexusRisen" : _githubSettings.RepositoryOwner;
-            var repo = string.IsNullOrWhiteSpace(_githubSettings.RepositoryName) ? "DudeBot.NET" : _githubSettings.RepositoryName;
+            var owner = "NexusRisen";
+            var repo = "DudeBot.NET";
 
             var title = Uri.EscapeDataString(tbTitle.Text);
             var body = Uri.EscapeDataString(tbDescription.Text);

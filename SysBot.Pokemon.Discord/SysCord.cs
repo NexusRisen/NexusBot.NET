@@ -794,9 +794,8 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                 var titleText = modal.Data.Components.First(x => x.CustomId == "title").Value;
                 var descriptionText = modal.Data.Components.First(x => x.CustomId == "description").Value;
 
-                var ghSettings = Hub.Config.GitHub;
-                var owner = string.IsNullOrWhiteSpace(ghSettings.RepositoryOwner) ? "NexusRisen" : ghSettings.RepositoryOwner;
-                var repo = string.IsNullOrWhiteSpace(ghSettings.RepositoryName) ? "DudeBot.NET" : ghSettings.RepositoryName;
+                var owner = "NexusRisen";
+                var repo = "DudeBot.NET";
 
                 var title = Uri.EscapeDataString(titleText);
                 var body = Uri.EscapeDataString($"**Submitted by:** {interaction.User.Username} ({interaction.User.Id})\n\n{descriptionText}");

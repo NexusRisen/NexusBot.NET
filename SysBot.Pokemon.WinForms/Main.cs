@@ -713,7 +713,7 @@ public sealed partial class Main : Form
 
     private void B_ReportIssue_Click(object sender, EventArgs e)
     {
-        using var form = new ReportIssueForm(Config.Hub.GitHub);
+        using var form = new ReportIssueForm();
         form.ShowDialog(this);
     }
 }

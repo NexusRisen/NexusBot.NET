@@ -1,23 +1,7 @@
 # DudeBot.NET Release Notes
 
-## [7.0.0]
-
-### Added
-- **Issue Reporting**: Added a new "Report Issue" button to the WinForms UI and a `$report` command to the Discord bot that allows users to seamlessly pre-fill and submit bug reports to the GitHub repository.
-- **Stoat Integration**: Added a new Stoat integration module (`SysBot.Pokemon.Stoat`) for enhanced remote control and automation functionality.
-- **New UI Themes**: Major aesthetic overhaul in the WinForms application, introducing several new themes:
-  - **Cyberpunk Theme**: A neon-lit, high-contrast aesthetic.
-  - **Dracula Theme**: Based on the popular dark programming color palette.
-  - **Gengar Theme**: Deep ghostly purples and reds mirroring Gengar's authentic colors.
-  - **Pikachu Theme**: Electric yellows, reds, and browns representing Pikachu's authentic colors.
-
-### Changed
-- **Theme Refinements**: Refined the existing "Dark Theme" and "Modern Theme" with modernized, sleeker color palettes.
-- **Documentation**: Updated `README.md` to reflect current integrations, notably adding Stoat and removing Slack.
+## [7.0.1]
 
 ### Removed
-- **Slack Integration**: Completely removed the Slack integration (`SysBot.Pokemon.Slack`) and its associated commands/configuration to focus on the active chat platforms.
+- **GitHub Settings**: Removed GitHub settings configuration from the application. The internal issue reporter now defaults to the main repository.
 
-### Fixed
-- **Thread Pool Starvation**: Fixed a severe deadlock vulnerability during high concurrency operations where `AutoLegalityWrapper` blocked thread pool threads while waiting for long-running processes.
-- **Crash Prevention**: Implemented global exception handlers for UI threads and background tasks to prevent the program from terminating during unexpected errors.
