@@ -341,10 +341,16 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
 
     public QueueResultAdd AddToTradeQueue(TradeEntry<T> trade, ulong userID, bool allowMultiple = false, bool sudo = false)
     {
+        return AddToTradeQueue(trade, userID, allowMultiple, sudo ? RequestSignificance.Owner : RequestSignificance.None);
+    }
+
+    public QueueResultAdd AddToTradeQueue(TradeEntry<T> trade, ulong userID, bool allowMultiple, RequestSignificance sig)
+    {
         lock (_sync)
         {
+            bool isSudo = sig == RequestSignificance.Owner;
             // Check if user is already in queue (sudo users bypass this check entirely)
-            if (!sudo)
+            if (!isSudo)
             {
                 // Get ALL existing entries for this user (not just the first one)
                 var existingEntries = UsersInQueue.Where(z => z.UserID == userID).ToList();
@@ -373,7 +379,7 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
             }
 
             // Check if queue is full (unless user is sudo)
-            if (!sudo && UsersInQueue.Count >= Hub.Config.Queues.MaxQueueCount)
+            if (!isSudo && UsersInQueue.Count >= Hub.Config.Queues.MaxQueueCount)
                 return QueueResultAdd.QueueFull;
 
             // Blocked item validation - check if Pokemon has blocked held item using PKHeX's ItemRestrictions
@@ -408,9 +414,15 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
             if (Hub.Config.Legality.ResetHOMETracker && trade.Trade.TradeData is IHomeTrack t)
                 t.Tracker = 0;
 
-            // Sudo users get Tier1 (highest priority)
-            // Both favored and regular users get TierFree - favoritism is handled by queue positioning logic
-            var priority = sudo ? PokeTradePriorities.Tier1 : PokeTradePriorities.TierFree;
+            var priority = sig switch
+            {
+                RequestSignificance.Owner => PokeTradePriorities.Tier1,
+                RequestSignificance.Tier1 => PokeTradePriorities.Tier1,
+                RequestSignificance.Tier2 => PokeTradePriorities.Tier2,
+                RequestSignificance.Tier3 => PokeTradePriorities.Tier3,
+                RequestSignificance.Tier4 => PokeTradePriorities.Tier4,
+                _ => PokeTradePriorities.TierFree
+            };
 
             var queue = Hub.Queues.GetQueue(trade.Type);
 

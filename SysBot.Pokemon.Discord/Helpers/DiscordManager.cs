@@ -123,8 +123,21 @@ public class DiscordManager(DiscordSettings Config)
         foreach (var r in roles)
         {
             if (SudoRoles.Contains(r))
-                result = RequestSignificance.Favored;
-            if (FavoredRoles.Contains(r))
+                result = RequestSignificance.Owner;
+                
+            if (Config.RoleTier1.Contains(r))
+                return RequestSignificance.Tier1;
+
+            if (Config.RoleTier2.Contains(r) && result < RequestSignificance.Tier2)
+                result = RequestSignificance.Tier2;
+
+            if (Config.RoleTier3.Contains(r) && result < RequestSignificance.Tier3)
+                result = RequestSignificance.Tier3;
+
+            if (Config.RoleTier4.Contains(r) && result < RequestSignificance.Tier4)
+                result = RequestSignificance.Tier4;
+                
+            if (FavoredRoles.Contains(r) && result < RequestSignificance.Favored)
                 result = RequestSignificance.Favored;
         }
         return result;

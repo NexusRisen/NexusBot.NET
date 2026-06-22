@@ -18,6 +18,8 @@ public class DiscordSettings
 
     private const string Users = nameof(Users);
 
+    private const string Favoritism = nameof(Favoritism);
+
     private const string AICategory = "AI Settings";
 
     public enum EmbedColorOption
@@ -163,8 +165,20 @@ public class DiscordSettings
     [Category(Roles), Description("Users with this role are allowed to enter the Trade queue."), DisplayName("Role can Trade")]
     public RemoteControlAccessList RoleCanTrade { get; set; } = new() { AllowIfEmpty = true };
 
-    [Category(Roles), Description("Users with this role are allowed to join the queue with a better position."), DisplayName("Favored Roles")]
+    [Category(Operation), Description("Users with this role are allowed to join the queue with a better position."), DisplayName("Favored Roles")]
     public RemoteControlAccessList RoleFavored { get; set; } = new() { AllowIfEmpty = false };
+
+    [Category(Operation), Description("Users with this role are given Tier 1 Queue Priority (Highest)."), DisplayName("Role Tier 1")]
+    public RemoteControlAccessList RoleTier1 { get; set; } = new() { AllowIfEmpty = false };
+
+    [Category(Operation), Description("Users with this role are given Tier 2 Queue Priority."), DisplayName("Role Tier 2")]
+    public RemoteControlAccessList RoleTier2 { get; set; } = new() { AllowIfEmpty = false };
+
+    [Category(Operation), Description("Users with this role are given Tier 3 Queue Priority."), DisplayName("Role Tier 3")]
+    public RemoteControlAccessList RoleTier3 { get; set; } = new() { AllowIfEmpty = false };
+
+    [Category(Operation), Description("Users with this role are given Tier 4 Queue Priority."), DisplayName("Role Tier 4")]
+    public RemoteControlAccessList RoleTier4 { get; set; } = new() { AllowIfEmpty = false };
 
     // Whitelists
     [Category(Roles), Description("Users with this role are allowed to remotely control the console (if running as Remote Control Bot."), DisplayName("User Remote Control")]
@@ -231,4 +245,5 @@ public class DiscordSettings
 
         public override string ToString() => "Announcement Settings";
     }
+
 }

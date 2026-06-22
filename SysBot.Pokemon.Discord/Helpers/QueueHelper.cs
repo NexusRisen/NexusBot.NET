@@ -137,8 +137,7 @@ public static class QueueHelper<T> where T : PKM, new()
         var trade = new TradeEntry<T>(detail, userID, PokeRoutineType.LinkTrade, name, uniqueTradeID);
         var hub = SysCord<T>.Runner.Hub;
         var Info = hub.Queues.Info;
-        var isSudo = sig == RequestSignificance.Owner;
-        var added = Info.AddToTradeQueue(trade, userID, false, isSudo);
+        var added = Info.AddToTradeQueue(trade, userID, false, sig);
 
         // Start queue position updates for Discord notification
         if (added != QueueResultAdd.AlreadyInQueue && added != QueueResultAdd.NotAllowedItem && notifier is DiscordTradeNotifier<T> discordNotifier)
@@ -323,7 +322,7 @@ public static class QueueHelper<T> where T : PKM, new()
         var trade = new TradeEntry<T>(detail, userID, PokeRoutineType.Batch, name, uniqueTradeID: uniqueTradeID);
         var hub = SysCord<T>.Runner.Hub;
         var Info = hub.Queues.Info;
-        var added = Info.AddToTradeQueue(trade, userID, false, sig == RequestSignificance.Owner);
+        var added = Info.AddToTradeQueue(trade, userID, false, sig);
 
         // Send trade code once
         await EmbedHelper.SendTradeCodeEmbedAsync(trader, code).ConfigureAwait(false);

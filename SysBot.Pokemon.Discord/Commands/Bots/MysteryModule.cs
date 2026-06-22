@@ -282,7 +282,7 @@ namespace SysBot.Pokemon.Discord
             var trade = new TradeEntry<T>(detail, context.User.Id, PokeRoutineType.Batch, context.User.Username, uniqueTradeID);
             var hub = SysCord<T>.Runner.Hub;
             var Info = hub.Queues.Info;
-            var added = Info.AddToTradeQueue(trade, context.User.Id, false, sig == RequestSignificance.Owner);
+            var added = Info.AddToTradeQueue(trade, context.User.Id, false, sig);
 
             // Send trade code once
             await EmbedHelper.SendTradeCodeEmbedAsync(context.User, batchTradeCode).ConfigureAwait(false);
