@@ -1,6 +1,7 @@
 using PKHeX.Core;
 using SysBot.Pokemon.Discord;
 using SysBot.Pokemon.Kook;
+using SysBot.Base;
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,9 +35,37 @@ public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
         if (string.IsNullOrWhiteSpace(token))
             return;
 
-        var bot = new SysCord<T>(this, _config);
-        Integrations.Add(bot);
-        Task.Run(() => bot.MainAsync(token, IntegrationTokenSource.Token), IntegrationTokenSource.Token);
+        Task.Run(async () =>
+        {
+            while (!IntegrationTokenSource.Token.IsCancellationRequested)
+            {
+                var bot = new SysCord<T>(this, _config);
+                lock (Integrations)
+                    Integrations.Add(bot);
+                
+                try
+                {
+                    await bot.MainAsync(token, IntegrationTokenSource.Token);
+                }
+                catch (System.Exception ex)
+                {
+                    LogUtil.LogText($"SysCord encountered a critical error: {ex.Message}");
+                }
+                finally
+                {
+                    lock (Integrations)
+                        Integrations.Remove(bot);
+                    
+                    bot.Dispose();
+
+                    if (!IntegrationTokenSource.Token.IsCancellationRequested)
+                    {
+                        LogUtil.LogText("Rebuilding SysCord in 5 seconds...");
+                        try { await Task.Delay(5000, IntegrationTokenSource.Token); } catch { }
+                    }
+                }
+            }
+        }, IntegrationTokenSource.Token);
     }
 
     private void AddStoatBot(StoatSettings config)

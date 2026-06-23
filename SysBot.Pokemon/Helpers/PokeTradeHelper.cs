@@ -68,22 +68,37 @@ public static class PokeTradeHelper<T> where T : PKM, new()
         string result;
 
         // Generate egg or normal pokemon based on isEgg flag
+        var regenTemplate = new RegenTemplate(set);
         if (isEgg)
         {
-            // Create a proper RegenTemplate from the ShowdownSet
-            var regenTemplate = new RegenTemplate(set);
-
             // Generate egg using ALM
             pkm = sav.GenerateEgg(regenTemplate, out var eggResult);
             result = eggResult.ToString();
-
-            if (pkm != null && APILegality.AllowTrainerOverride && regenTemplate.Regen.Trainer != null)
-                pkm.SetAllTrainerData(regenTemplate.Regen.Trainer);
         }
         else
         {
             // Use normal template for regular Pokémon
             pkm = sav.GetLegal(template, out result);
+        }
+
+        if (pkm != null)
+        {
+            if (APILegality.AllowTrainerOverride && regenTemplate.Regen.Trainer != null)
+                pkm.SetAllTrainerData(regenTemplate.Regen.Trainer);
+
+            // Re-apply Ball customization as ALM can override it
+            if (regenTemplate.Regen.Extra.Ball != Ball.None && regenTemplate.Regen.Extra.Ball != Ball.Poke)
+                pkm.Ball = (byte)regenTemplate.Regen.Extra.Ball;
+
+            // Re-apply batch commands after ALM generation
+            if (APILegality.AllowBatchCommands && regenTemplate.Regen.HasBatchSettings)
+            {
+                var b = regenTemplate.Regen.Batch;
+                EntityBatchEditor.ScreenStrings(b.Filters);
+                EntityBatchEditor.ScreenStrings(b.Instructions);
+                EntityBatchEditor.Instance.TryModifyIsSuccess(pkm, b.Filters, b.Instructions);
+                pkm.ApplyPostBatchFixes();
+            }
         }
 
         if (pkm == null)

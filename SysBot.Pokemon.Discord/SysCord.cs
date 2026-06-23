@@ -671,11 +671,26 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
     private async Task MonitorStatusAsync(CancellationToken token)
     {
         const int Interval = 20; // seconds
+        int unhealthySeconds = 0;
 
         // Check datetime for update
         UserStatus state = UserStatus.Idle;
         while (!token.IsCancellationRequested)
         {
+            if (_client.ConnectionState != ConnectionState.Connected)
+            {
+                unhealthySeconds += Interval;
+                if (unhealthySeconds >= 120)
+                {
+                    LogUtil.LogText("SysCord: Gateway unhealthy for 2 minutes. Exiting MonitorStatusAsync to force client rebuild.");
+                    return; // Return so MainAsync finishes and supervisor loop recreates the client.
+                }
+            }
+            else
+            {
+                unhealthySeconds = 0;
+            }
+
             var time = DateTime.Now;
             var lastLogged = LogUtil.LastLogged;
             if (Hub.Config.Discord.BotColorStatusTradeOnly)
