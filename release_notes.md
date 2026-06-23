@@ -1,6 +1,6 @@
 # DudeBot.NET Release Notes
 
-## [Unreleased]
+## [7.0.2]
 
 ### Added
 - **Multi-Tier Queue Favoritism:** Implemented a new multi-tiered role prioritization system (`Tier 1` through `Tier 4`, along with `Favored`). This allows server administrators to have fine-grained control over queue skipping priorities for their users.
