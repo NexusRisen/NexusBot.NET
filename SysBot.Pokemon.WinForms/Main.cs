@@ -109,11 +109,8 @@ public sealed partial class Main : Form
         // Create default folders if they do not exist even if a config file is present
         var dump = Config.Hub.Folder.DumpFolder;
         var distri = Config.Hub.Folder.DistributeFolder;
-        var home = Config.Hub.Folder.HOMEReadyPKMFolder;
-        var events = Config.Hub.Folder.EventsFolder;
         var trainer = Config.Hub.Legality.GeneratePathTrainerInfo;
-
-        if ((!Directory.Exists(dump)) || (!Directory.Exists(distri)) || (!Directory.Exists(home)) || (!Directory.Exists(events)) || (!Directory.Exists(trainer)))
+        if ((!Directory.Exists(dump)) || (!Directory.Exists(distri)) || (!Directory.Exists(trainer)))
         {
             Config.Hub.Folder.CreateDefaults(Program.WorkingDirectory);
             Config.Hub.Legality.CreateDefaults(Program.WorkingDirectory);

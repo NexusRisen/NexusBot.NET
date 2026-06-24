@@ -339,14 +339,10 @@ public class TradeSettings : IBotStateSettings, ICountSettings
     {
         public override string ToString() => "Request Folders Settings";
 
-        [Category("RequestFolders"), Description("Path to your Events Folder. Create a new folder called 'events' and copy the path here."), DisplayName("Events Folder Path")]
-        public string EventsFolder { get; set; } = string.Empty;
 
         [Category("RequestFolders"), Description("Path to your BattleReady Folder. Create a new folder called 'battleready' and copy the path here."), DisplayName("Battle-Ready Folder Path")]
         public string BattleReadyPKMFolder { get; set; } = string.Empty;
 
-        [Category("RequestFolders"), Description("Path to your HOME-Ready Folder. Create a new folder called 'homeready' and copy the path here."), DisplayName("HOME-Ready Folder Path")]
-        public string HOMEReadyPKMFolder { get; set; } = string.Empty;
     }
 
     [Category(Miscellaneous), Description("Turns off the screen of all the connected Switches during operation"), DisplayName("Screen off")]

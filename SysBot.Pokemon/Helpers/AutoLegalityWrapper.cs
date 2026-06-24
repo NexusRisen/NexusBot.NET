@@ -24,6 +24,12 @@ public static class AutoLegalityWrapper
     private static void InitializeAutoLegality(LegalitySettings cfg)
     {
         InitializeCoreStrings();
+        
+        if (string.IsNullOrWhiteSpace(cfg.MGDBPath))
+            cfg.MGDBPath = "MGDB";
+            
+        SysBot.Pokemon.Helpers.MGDBUpdater.UpdateMGDBAsync(cfg.MGDBPath).GetAwaiter().GetResult();
+        
         // Updated to convert the string to a ReadOnlySpan<string> array as required by the method signature.   
         EncounterEvent.RefreshMGDB([cfg.MGDBPath]);
         InitializeTrainerDatabase(cfg);

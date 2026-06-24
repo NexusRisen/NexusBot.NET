@@ -18,11 +18,6 @@ public class FolderSettings : IDumper
     [Category(Files), Description("Destination folder: where all received PKM files are dumped to.")]
     public string DumpFolder { get; set; } = string.Empty;
 
-    [Category("Files"), Description("Path to your Events Folder."), DisplayName("ListEvents Folder Path")]
-    public string EventsFolder { get; set; } = string.Empty;
-
-    [Category(Files), Description("Directory where your HOME Tracked Pokémon are located."), DisplayName("HOME-Ready Folder")]
-    public string HOMEReadyPKMFolder { get; set; } = string.Empty;
 
     public void CreateDefaults(string path)
     {
@@ -39,16 +34,6 @@ public class FolderSettings : IDumper
             Directory.CreateDirectory(DistributeFolder);
         }
 
-        EventsFolder = string.IsNullOrWhiteSpace(EventsFolder) ? Path.Combine(path, "events") : EventsFolder;
-        if (!Directory.Exists(EventsFolder))
-        {
-            Directory.CreateDirectory(EventsFolder);
-        }
 
-        HOMEReadyPKMFolder = string.IsNullOrWhiteSpace(HOMEReadyPKMFolder) ? Path.Combine(path, "homeready") : HOMEReadyPKMFolder;
-        if (!Directory.Exists(HOMEReadyPKMFolder))
-        {
-            Directory.CreateDirectory(HOMEReadyPKMFolder);
-        }
     }
 }

@@ -674,34 +674,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         await ReplyAsync("These are the users who are currently waiting:", embed: embed.Build()).ConfigureAwait(false);
     }
 
-    [Command("listevents")]
-    [Alias("le")]
-    [Summary("Lists available event files, filtered by a specific letter or substring, and sends the list via DM.")]
-    public Task ListEventsAsync([Remainder] string args = "")
-        => ListHelpers<T>.HandleListCommandAsync(
-            Context,
-            SysCord<T>.Runner.Config.Folder.EventsFolder,
-            "events",
-            "er",
-            args
-        );
 
-    #endregion
-
-    #region Request Commands
-
-    [Command("eventrequest")]
-    [Alias("er")]
-    [Summary("Downloads event attachments from the specified EventsFolder and adds to trade queue.")]
-    [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
-    public Task EventRequestAsync(int index)
-        => ListHelpers<T>.HandleRequestCommandAsync(
-            Context,
-            SysCord<T>.Runner.Config.Folder.EventsFolder,
-            index,
-            "event",
-            "le"
-        );
 
     #endregion
 
