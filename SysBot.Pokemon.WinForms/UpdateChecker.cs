@@ -11,14 +11,14 @@ namespace SysBot.Pokemon.WinForms
     public class UpdateChecker
     {
         private const string RepositoryOwner = "NexusRisen";
-        private const string RepositoryName = "DudeBot.NET";
+        private const string RepositoryName = "NexusBot.NET";
 
         public static async Task<(bool UpdateAvailable, bool UpdateRequired, string NewVersion)> CheckForUpdatesAsync()
         {
             ReleaseInfo? latestRelease = await FetchLatestReleaseAsync();
 
             string cleanLatest = latestRelease?.TagName?.TrimStart('v', 'V') ?? string.Empty;
-            string cleanCurrent = DudeBot.Version.TrimStart('v', 'V');
+            string cleanCurrent = NexusBot.Version.TrimStart('v', 'V');
 
             bool updateAvailable = latestRelease != null && cleanLatest != cleanCurrent;
             bool updateRequired = latestRelease?.Prerelease == false && IsUpdateRequired(latestRelease?.Body);
@@ -49,7 +49,7 @@ namespace SysBot.Pokemon.WinForms
                 return null;
 
             string arch = Environment.Is64BitProcess ? "x64" : "x86";
-            string targetName = $"dudebot-{arch}.exe";
+            string targetName = $"nexusbot-{arch}.exe";
 
             return latestRelease.Assets
                 .FirstOrDefault(a => a.Name?.Equals(targetName, StringComparison.OrdinalIgnoreCase) == true)
@@ -62,7 +62,7 @@ namespace SysBot.Pokemon.WinForms
             using var client = new HttpClient();
             try
             {
-                client.DefaultRequestHeaders.Add("User-Agent", "DudeBot");
+                client.DefaultRequestHeaders.Add("User-Agent", "NexusBot");
 
                 string releasesUrl = $"https://api.github.com/repos/{RepositoryOwner}/{RepositoryName}/releases/latest";
                 HttpResponseMessage response = await client.GetAsync(releasesUrl);

@@ -21,10 +21,10 @@ public partial class SysStoat<T>
     private async Task HandleHelpCommandAsync(UserMessage message, List<string> args)
     {
         var prefix = Hub.Config.Stoat.CommandPrefix;
-        var description = $"Welcome to DudeBot!\n\n" +
+        var description = $"Welcome to NexusBot!\n\n" +
                           $"**Core Commands**:\n" +
-                          $"`{prefix}trade` or `{prefix}t` - Trade a Pokémon using a Showdown set or attachment.\n" +
-                          $"`{prefix}batchtrade` or `{prefix}bt` - Trade multiple Pokémon at once.\n" +
+                          $"`{prefix}trade` or `{prefix}t` - Trade a PokÃ©mon using a Showdown set or attachment.\n" +
+                          $"`{prefix}batchtrade` or `{prefix}bt` - Trade multiple PokÃ©mon at once.\n" +
                           $"`{prefix}egg` - Generate an egg from a Showdown set.\n" +
                           $"`{prefix}mysteryegg` or `{prefix}me` - Request a random Mystery Egg.\n" +
                           $"`{prefix}itemtrade` or `{prefix}it` - Trade for a specific item.\n\n" +
@@ -32,10 +32,10 @@ public partial class SysStoat<T>
                           $"`{prefix}queuestatus` or `{prefix}qs` - Check your queue position.\n" +
                           $"`{prefix}queueclear` or `{prefix}qc` - Leave the queue.\n" +
                           $"`{prefix}about` - View bot stats and uptime.\n\n" +
-                          $"For a full list of commands and detailed usage, visit our documentation: https://dudebot.org";
+                          $"For a full list of commands and detailed usage, visit our documentation: https://nexusbot.org";
 
         var embed = EmbedHelper.CreateEmbed(
-            title: "DudeBot Commands & Help",
+            title: "NexusBot Commands & Help",
             description: description,
             colorHex: "#00FF00"
         );
@@ -49,42 +49,39 @@ public partial class SysStoat<T>
         var heapSize = Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2).ToString(CultureInfo.CurrentCulture);
         var gameName = typeof(T).Name switch
         {
-            nameof(PA9) => "Pokémon Legends: Z-A",
-            nameof(PK9) => "Pokémon Scarlet & Violet",
-            nameof(PK8) => "Pokémon Sword & Shield",
-            nameof(PA8) => "Pokémon Legends: Arceus",
-            nameof(PB8) => "Pokémon BDSP",
-            _ => "Pokémon LGPE"
+            nameof(PA9) => "PokÃ©mon Legends: Z-A",
+            nameof(PK9) => "PokÃ©mon Scarlet & Violet",
+            nameof(PK8) => "PokÃ©mon Sword & Shield",
+            nameof(PA8) => "PokÃ©mon Legends: Arceus",
+            nameof(PB8) => "PokÃ©mon BDSP",
+            _ => "PokÃ©mon LGPE"
         };
 
         string description = $"**A high-performance Pokemon automation bot powered by PKHeX.Core.**\n\n" +
-            $"**👑 Project Owners:**\n" +
-            $"**Havok**: Logo & Asset Creation\n" +
-            $"**Link**: Logo & Asset Creation\n\n" +
-            $"**📊 Project Info:**\n" +
+            $"**ðŸ“Š Project Info:**\n" +
             $"**Main Developer**: [Nexus Risen](https://nexusrisen.net)\n" +
             $"**Mode**: {gameName}\n" +
-            $"**Version**: {SysBot.Pokemon.Helpers.DudeBot.Version}\n\n" +
-            $"**💻 System Stats:**\n" +
+            $"**Version**: {SysBot.Pokemon.Helpers.NexusBot.Version}\n\n" +
+            $"**ðŸ’» System Stats:**\n" +
             $"**Uptime**: {uptime}\n" +
             $"**Memory**: {heapSize} MiB\n\n" +
-            $"**👥 Contributors:**\n" +
+            $"**ðŸ‘¥ Contributors:**\n" +
             $"**Nexus Risen**: Project Lead & Developer\n" +
             $"**Secludedly**: Medals, Refactoring & Feature Enhancements\n" +
             $"**Lusamine**: Research & Data Analysis\n" +
             $"**Hexbyt3**: Core Engine Enhancements\n" +
             $"**SantaCrab2**: Auto-Legality Mod (ALM)\n\n" +
-            $"**📦 Dependencies:**\n" +
+            $"**ðŸ“¦ Dependencies:**\n" +
             $"**PKHeX.Core**: {GetVersionInfo("PKHeX.Core")}\n" +
             $"**AutoLegality**: {GetVersionInfo("PKHeX.Core.AutoMod")}\n" +
             $"**Base System**: [SysBot.NET](https://github.com/kwsch/SysBot.NET)\n\n" +
             $"*OS: {RuntimeInformation.OSDescription} ({RuntimeInformation.OSArchitecture})*";
 
         var embed = EmbedHelper.CreateEmbed(
-            title: "DudeBot.NET - Information",
+            title: "NexusBot.NET - Information",
             description: description,
             colorHex: "#FFD700",
-            iconUrl: "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Characters/dudebot.png"
+            iconUrl: "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Characters/nexusbot.png"
         );
 
         await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
@@ -107,7 +104,7 @@ public partial class SysStoat<T>
         if (totalTrades == 0)
         {
             var zeroEmbed = EmbedHelper.CreateEmbed(
-                title: "🏅 Milestone Medal",
+                title: "ðŸ… Milestone Medal",
                 description: $"{message.Author.Username}, you haven't made any trades yet.\nStart trading to earn your first medal!",
                 colorHex: "#808080"
             );
@@ -126,26 +123,26 @@ public partial class SysStoat<T>
             300 => "You've reached 300 trades!\n**Status:** Ace Trainer.",
             350 => "You've reached 350 trades!\n**Status:** Veteran Trainer.",
             400 => "You've reached 400 trades!\n**Status:** Expert Trainer.",
-            450 => "You've reached 450 trades!\n**Status:** Pokémon Trader.",
-            500 => "You've reached 500 trades!\n**Status:** Pokémon Professor.",
-            550 => "You've reached 550 trades!\n**Status:** Pokémon Champion.",
-            600 => "You've reached 600 trades!\n**Status:** Pokémon Specialist.",
-            650 => "You've reached 650 trades!\n**Status:** Pokémon Hero.",
-            700 => "You've reached 700 trades!\n**Status:** Pokémon Elite.",
-            750 => "You've reached 750 trades!\n**Status:** Pokémon Legend.",
+            450 => "You've reached 450 trades!\n**Status:** PokÃ©mon Trader.",
+            500 => "You've reached 500 trades!\n**Status:** PokÃ©mon Professor.",
+            550 => "You've reached 550 trades!\n**Status:** PokÃ©mon Champion.",
+            600 => "You've reached 600 trades!\n**Status:** PokÃ©mon Specialist.",
+            650 => "You've reached 650 trades!\n**Status:** PokÃ©mon Hero.",
+            700 => "You've reached 700 trades!\n**Status:** PokÃ©mon Elite.",
+            750 => "You've reached 750 trades!\n**Status:** PokÃ©mon Legend.",
             800 => "You've reached 800 trades!\n**Status:** Region Master.",
-            850 => "You've reached 850 trades!\n**Status:** Pokémon Master.",
+            850 => "You've reached 850 trades!\n**Status:** PokÃ©mon Master.",
             900 => "You've reached 900 trades!\n**Status:** World Famous.",
             950 => "You've reached 950 trades!\n**Status:** Master Trader.",
-            1000 => "You've reached 1000 trades!\n**Status:** Pokémon God.",
+            1000 => "You've reached 1000 trades!\n**Status:** PokÃ©mon God.",
             _ => $"Congratulations on reaching {totalTrades} trades! Keep it going!"
         };
 
         var embed = EmbedHelper.CreateEmbed(
             title: $"**{message.Author.Username}'s Milestone Medal**",
-            description: $"{description}\n**Total Trades**: {totalTrades}\n\n*DudeBot.NET {SysBot.Pokemon.Helpers.DudeBot.Version} | Synchronized via SQL*",
+            description: $"{description}\n**Total Trades**: {totalTrades}\n\n*NexusBot.NET {SysBot.Pokemon.Helpers.NexusBot.Version} | Synchronized via SQL*",
             colorHex: "#FFD700",
-            iconUrl: "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Characters/dudebot.png"
+            iconUrl: "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Characters/nexusbot.png"
         );
 
         await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
@@ -155,12 +152,12 @@ public partial class SysStoat<T>
     private async Task HandleLeaderboardCommandAsync(UserMessage message, List<string> args)
     {
         string response = "Check out the top trainers and the community Hall of Fame on our official website!\n\n" +
-                          "🌐 **Official Hall of Fame**: https://dudebot.org/leaderboard/\n" +
-                          "⚡ **Real-Time Stats**: Rankings are updated globally across all bot hosters.\n\n" +
-                          $"*DudeBot.NET {SysBot.Pokemon.Helpers.DudeBot.Version} | Synchronized via SQL*";
+                          "ðŸŒ **Official Hall of Fame**: https://nexusbot.org/leaderboard/\n" +
+                          "âš¡ **Real-Time Stats**: Rankings are updated globally across all bot hosters.\n\n" +
+                          $"*NexusBot.NET {SysBot.Pokemon.Helpers.NexusBot.Version} | Synchronized via SQL*";
 
         var embed = EmbedHelper.CreateEmbed(
-            title: "🏆 GLOBAL MEDALS LEADERBOARD",
+            title: "ðŸ† GLOBAL MEDALS LEADERBOARD",
             description: response,
             colorHex: "#FFD700"
         );

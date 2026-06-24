@@ -26,7 +26,7 @@ public static class LanguageHelper
     public static string GetLocalizedSpeciesLog(PKM pkm)
     {
         if (pkm == null)
-            return "(Invalid Pokémon)";
+            return "(Invalid PokÃ©mon)";
 
         var langID = (LanguageID)pkm.Language;
         var langName = GetLanguageName(langID);
@@ -57,15 +57,15 @@ public static class LanguageHelper
                 // Handle common language names
                 var explicitLang = languageValue.ToLowerInvariant() switch
                 {
-                    "japanese" or "jpn" or "日本語" => LanguageID.Japanese,
+                    "japanese" or "jpn" or "æ—¥æœ¬èªž" => LanguageID.Japanese,
                     "english" or "eng" => LanguageID.English,
                     "french" or "fre" or "fra" => LanguageID.French,
                     "italian" or "ita" => LanguageID.Italian,
                     "german" or "ger" or "deu" => LanguageID.German,
                     "spanish" or "spa" or "esp" => LanguageID.Spanish,
                     "spanish-latam" or "spanishl" or "es-419" or "latam" => LanguageID.SpanishL,
-                    "korean" or "kor" or "한국어" => LanguageID.Korean,
-                    "chinese" or "chs" or "中文" => LanguageID.ChineseS,
+                    "korean" or "kor" or "í•œêµ­ì–´" => LanguageID.Korean,
+                    "chinese" or "chs" or "ä¸­æ–‡" => LanguageID.ChineseS,
                     "cht" => LanguageID.ChineseT,
                     _ => LanguageID.None
                 };
@@ -137,7 +137,7 @@ public static class LanguageHelper
         // Basic promotional keyword filtering
         var lower = otName.ToLowerInvariant();
         if (lower.Contains(".com") || lower.Contains(".co") || lower.Contains("discord") || lower.Contains(".gg/"))
-            otName = "DudeBot.Net";
+            otName = "NexusBot.Net";
 
         // Remove control characters and handle multi-byte characters correctly
         var textElements = System.Globalization.StringInfo.GetTextElementEnumerator(otName);

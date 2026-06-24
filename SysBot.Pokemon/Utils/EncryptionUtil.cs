@@ -8,7 +8,7 @@ namespace SysBot.Pokemon;
 public static class EncryptionUtil
 {
     // Primary key for AES-256 data encryption (Trade Codes, Medals)
-    private static readonly byte[] Key = Encoding.UTF8.GetBytes("DudeBot_Secure_Key_2026_!@#$%^&*"); 
+    private static readonly byte[] Key = Encoding.UTF8.GetBytes("NexusBot_Secure_Key_2026_!@#$%^&*"); 
     private static readonly byte[] IV = Encoding.UTF8.GetBytes("DB_IV_1234567890"); 
 
     // Secondary obfuscation key for Connection Strings (Internal use)

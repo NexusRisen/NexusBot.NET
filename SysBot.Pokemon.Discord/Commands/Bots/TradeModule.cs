@@ -53,13 +53,13 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     public async Task ShowLeaderboardCommand()
     {
         var embed = new EmbedBuilder()
-            .WithTitle("🏆 GLOBAL MEDALS LEADERBOARD")
+            .WithTitle("ðŸ† GLOBAL MEDALS LEADERBOARD")
             .WithDescription("Check out the top trainers and the community Hall of Fame on our official website!")
-            .AddField("🌐 Official Hall of Fame", "https://dudebot.org/leaderboard/")
-            .AddField("⚡ Real-Time Stats", "Rankings are updated globally across all bot hosters.")
+            .AddField("ðŸŒ Official Hall of Fame", "https://nexusbot.org/leaderboard/")
+            .AddField("âš¡ Real-Time Stats", "Rankings are updated globally across all bot hosters.")
             .WithColor(Color.Blue)
             .WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/1000.png")
-            .WithFooter($"DudeBot.NET {DudeBot.Version} | Synchronized via SQL")
+            .WithFooter($"NexusBot.NET {NexusBot.Version} | Synchronized via SQL")
             .Build();
 
         await ReplyAsync(embed: embed).ConfigureAwait(false);
@@ -70,7 +70,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("trade")]
     [Alias("t")]
-    [Summary("Makes the bot trade you a Pokémon converted from the provided Showdown Set.")]
+    [Summary("Makes the bot trade you a PokÃ©mon converted from the provided Showdown Set.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public Task TradeAsync([Summary("Showdown Set")][Remainder] string content)
     {
@@ -81,14 +81,14 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("trade")]
     [Alias("t")]
-    [Summary("Makes the bot trade you a Pokémon converted from the provided Showdown Set.")]
+    [Summary("Makes the bot trade you a PokÃ©mon converted from the provided Showdown Set.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public Task TradeAsync([Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
         => ProcessTradeAsync(code, content);
 
     [Command("trade")]
     [Alias("t")]
-    [Summary("Makes the bot trade you the provided Pokémon file.")]
+    [Summary("Makes the bot trade you the provided PokÃ©mon file.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public Task TradeAsyncAttach([Summary("Trade Code")] int code, [Summary("Ignore AutoOT")] bool ignoreAutoOT = false)
     {
@@ -119,7 +119,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("hidetrade")]
     [Alias("ht")]
-    [Summary("Makes the bot trade you a Pokémon without showing trade embed details.")]
+    [Summary("Makes the bot trade you a PokÃ©mon without showing trade embed details.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public Task HideTradeAsync([Summary("Showdown Set")][Remainder] string content)
     {
@@ -130,7 +130,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("hidetrade")]
     [Alias("ht")]
-    [Summary("Makes the bot trade you a Pokémon without showing trade embed details.")]
+    [Summary("Makes the bot trade you a PokÃ©mon without showing trade embed details.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public Task HideTradeAsync([Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
         => ProcessTradeAsync(code, content, isHiddenTrade: true);
@@ -200,7 +200,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("egg")]
     [Alias("Egg")]
-    [Summary("Trades a single egg generated from the provided Pokémon name.")]
+    [Summary("Trades a single egg generated from the provided PokÃ©mon name.")]
     public async Task TradeEgg([Remainder] string egg)
     {
         var userID = Context.User.Id;
@@ -210,7 +210,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("egg")]
     [Alias("Egg")]
-    [Summary("Trades a single egg generated from the provided Pokémon name.")]
+    [Summary("Trades a single egg generated from the provided PokÃ©mon name.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public async Task TradeEggAsync([Summary("Trade Code")] int code, [Summary("Showdown Set")][Remainder] string content)
     {
@@ -361,7 +361,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("fixOT")]
     [Alias("fix", "f")]
-    [Summary("Fixes OT and Nickname of a Pokémon you show via Link Trade if an advert is detected.")]
+    [Summary("Fixes OT and Nickname of a PokÃ©mon you show via Link Trade if an advert is detected.")]
     [RequireQueueRole(nameof(DiscordManager.RolesFixOT))]
     public async Task FixAdOT()
     {
@@ -379,7 +379,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("fixOT")]
     [Alias("fix", "f")]
-    [Summary("Fixes OT and Nickname of a Pokémon you show via Link Trade if an advert is detected.")]
+    [Summary("Fixes OT and Nickname of a PokÃ©mon you show via Link Trade if an advert is detected.")]
     [RequireQueueRole(nameof(DiscordManager.RolesFixOT))]
     public async Task FixAdOT([Summary("Trade Code")] int code)
     {
@@ -482,7 +482,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         // Ad Name Check
         if (TradeExtensions<T>.HasAdName(pk, out string ad))
         {
-            await Helpers<T>.ReplyAndDeleteAsync(Context, "Detected Adname in the Pokémon's name or trainer name, which is not allowed.", 5);
+            await Helpers<T>.ReplyAndDeleteAsync(Context, "Detected Adname in the PokÃ©mon's name or trainer name, which is not allowed.", 5);
             return;
         }
         var sig = Context.User.GetFavor();
@@ -495,7 +495,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("itemTrade")]
     [Alias("it", "item")]
-    [Summary("Makes the bot trade you a Pokémon holding the requested item.")]
+    [Summary("Makes the bot trade you a PokÃ©mon holding the requested item.")]
     public async Task ItemTrade([Remainder] string item)
     {
         var userID = Context.User.Id;
@@ -512,7 +512,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("itemTrade")]
     [Alias("it", "item")]
-    [Summary("Makes the bot trade you a Pokémon holding the requested item.")]
+    [Summary("Makes the bot trade you a PokÃ©mon holding the requested item.")]
     public async Task ItemTrade([Summary("Trade Code")] int code, [Remainder] string item)
     {
         var userID = Context.User.Id;
@@ -709,7 +709,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
     [Command("batchTrade")]
     [Alias("bt")]
-    [Summary("Makes the bot trade multiple Pokémon from the provided list.")]
+    [Summary("Makes the bot trade multiple PokÃ©mon from the provided list.")]
     [RequireQueueRole(nameof(DiscordManager.RolesTrade))]
     public async Task BatchTradeAsync([Summary("List of Showdown Sets separated by '---'")][Remainder] string content = "")
     {
@@ -790,7 +790,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
                 if (batchPokemonList.Count == 0 && errors.Count == 0)
                 {
-                    await Context.Channel.SendMessageAsync($"{Context.User.Mention} No valid Pokémon or Showdown sets were found in your request.");
+                    await Context.Channel.SendMessageAsync($"{Context.User.Mention} No valid PokÃ©mon or Showdown sets were found in your request.");
                     return;
                 }
 

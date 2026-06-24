@@ -1,10 +1,10 @@
-# 🤖 DudeBot.NET
+# 🤖 NexusBot.NET
 
 [![License](https://img.shields.io/badge/License-AGPLv3-blue.svg)](LICENSE)
 [![.NET Version](https://img.shields.io/badge/.NET-Modern-purple.svg)](https://dotnet.microsoft.com/download)
-[![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://github.com/NexusRisen/DudeBot.NET)
+[![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey.svg)](https://github.com/NexusRisen/NexusBot.NET)
 
-**DudeBot.NET** is a high-performance, feature-rich fork of SysBot.NET, designed for advanced remote control automation of Nintendo Switch Pokémon games. Developed and maintained by **Nexus Risen**, it provides a robust framework for automated distribution, encounter hunting, and collection management.
+**NexusBot.NET** is a high-performance, feature-rich fork of SysBot.NET, designed for advanced remote control automation of Nintendo Switch Pokémon games. Developed and maintained by **Nexus Risen**, it provides a robust framework for automated distribution, encounter hunting, and collection management.
 
 ---
 
@@ -72,10 +72,10 @@ Full remote control and interaction support across multiple platforms:
 
 ### 🌐 SQL Synchronization & Ecosystem
 ![SQL Sync](pictures/Settings.png)
-DudeBot.NET introduces a revolutionary **SQL Synchronization API**, transforming standalone bots into a unified global network.
+NexusBot.NET introduces a revolutionary **SQL Synchronization API**, transforming standalone bots into a unified global network.
 - **Global User Profiles**: Trade counts, medals, and trainer information (OT/TID/SID) are securely synced across all bot instances globally via a remote MySQL database.
 - **Real-Time Network Statistics**: Each bot instance sends a heartbeat every minute, allowing the community to track active bots and game coverage in real-time.
-- **Unified Hall of Fame**: A fully functional global ranking system that tracks the top trainers across the entire DudeBot.NET ecosystem.
+- **Unified Hall of Fame**: A fully functional global ranking system that tracks the top trainers across the entire NexusBot.NET ecosystem.
 - **Advanced Data Integrity**: Sensitive user data is encrypted using AES-256 before storage, ensuring privacy while maintaining cross-instance persistence.
 - **Community Analytics**: High-performance SQL sorting enables real-time analytics for community-wide trade metrics and performance tracking.
 
@@ -91,8 +91,8 @@ DudeBot.NET introduces a revolutionary **SQL Synchronization API**, transforming
 - **Item Batching**: The `itemTrade` (`$it`) command now supports requesting up to 3 items at once, automatically generating a batch trade for efficiency.
 
 ### 🧠 AI Chatbot Integration
-DudeBot.NET features a state-of-the-art **AI Chatbot** powered by [Hugging Face](https://huggingface.co/) and the OpenAI-compatible Chat Completions API.
-- **Natural Language Requests**: Request Pokémon using normal conversation (e.g., "@DudeBot can I have a competitive Mewtwo?").
+NexusBot.NET features a state-of-the-art **AI Chatbot** powered by [Hugging Face](https://huggingface.co/) and the OpenAI-compatible Chat Completions API.
+- **Natural Language Requests**: Request Pokémon using normal conversation (e.g., "@NexusBot can I have a competitive Mewtwo?").
 - **Conversation Memory**: The bot now remembers the last 10 messages, allowing for follow-up questions and refined requests (e.g., "Actually, make it Shiny").
 - **Automated Queueing**: The AI generates legal Showdown sets and, upon your confirmation, adds them directly to the trade queue.
 - **Robust Legality Guard**: All AI-suggested Pokémon are verified by the internal PKHeX engine. If a set is illegal, the bot automatically asks the AI to fix it using error feedback.
@@ -100,7 +100,7 @@ DudeBot.NET features a state-of-the-art **AI Chatbot** powered by [Hugging Face]
 - **AI Commands**: 
   - `$ai` - Interactive help guide for AI features.
   - `$clearAI` - Instantly reset your conversation history.
-- **Learn More**: See the [AI Chatbot Wiki](https://github.com/NexusRisen/DudeBot.NET/wiki/AI-Chatbot) for setup instructions.
+- **Learn More**: See the [AI Chatbot Wiki](https://github.com/NexusRisen/NexusBot.NET/wiki/AI-Chatbot) for setup instructions.
 
 ### 📊 Enhanced Discord Experience
 - **Visual Embeds**: Multi-column layouts for clean and professional data visualization.
@@ -153,7 +153,7 @@ DudeBot.NET features a state-of-the-art **AI Chatbot** powered by [Hugging Face]
 
 ## 📦 Dependencies
 
-DudeBot.NET leverages several powerful open-source libraries:
+NexusBot.NET leverages several powerful open-source libraries:
 - **Core Engine**: Powered by a custom fork of [PKHeX.Core](https://github.com/kwsch/PKHeX/) by [@hexbyt3](https://github.com/hexbyt3/PKHeXth).
 - **Automation**: [sys-botbase](https://github.com/olliz0r/sys-botbase) for console communication.
 - **Legality**: Integrated [Auto-Legality Mod](https://github.com/architdate/PKHeX-Plugins/) (using [@santacrab2](https://github.com/santacrab2)'s fork).
@@ -163,7 +163,7 @@ DudeBot.NET leverages several powerful open-source libraries:
 
 ## 👨‍💻 Development
 
-DudeBot.NET is actively developed by Nexus Risen and a dedicated team of contributors. The project follows a [Steering Committee](.github/GOVERNANCE.md) governance model and a community [Code of Conduct](.github/CODE_OF_CONDUCT.md).
+NexusBot.NET is actively developed by Nexus Risen and a dedicated team of contributors. The project follows a [Steering Committee](.github/GOVERNANCE.md) governance model and a community [Code of Conduct](.github/CODE_OF_CONDUCT.md).
 
 See the full list of [Contributors](CONTRIBUTORS).
 
@@ -182,11 +182,12 @@ See the full list of [Contributors](CONTRIBUTORS).
 
 Need help setting up your instance or troubleshooting an issue?
 - 📖 **[Support Guide](.github/SUPPORT.md)**: Find all the ways to get help.
-- 📚 **[Official Wiki](https://github.com/NexusRisen/DudeBot.NET/wiki)**: Detailed setup and feature guides.
+- 📚 **[Official Wiki](https://github.com/NexusRisen/NexusBot.NET/wiki)**: Detailed setup and feature guides.
 
-> **Note**: This bot is a fork of SysBot.NET. Please do not contact the PKHeX Development Project for support regarding DudeBot.NET.
+> **Note**: This bot is a fork of SysBot.NET. Please do not contact the PKHeX Development Project for support regarding NexusBot.NET.
 
 ---
 
 ## 📜 License
-DudeBot.NET is licensed under the **AGPLv3**. See [LICENSE](LICENSE) for more details.
+NexusBot.NET is licensed under the **AGPLv3**. See [LICENSE](LICENSE) for more details.
+

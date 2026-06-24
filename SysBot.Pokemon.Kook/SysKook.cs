@@ -111,7 +111,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         if (!SysKookSettings.Settings.BotStatusAnnouncement)
             return;
 
-        var botName = string.IsNullOrEmpty(Hub.Config.BotName) ? "DudeBot" : Hub.Config.BotName;
+        var botName = string.IsNullOrEmpty(Hub.Config.BotName) ? "NexusBot" : Hub.Config.BotName;
         var emoji = isOnline ? SysKookSettings.Settings.OnlineEmoji : SysKookSettings.Settings.OfflineEmoji;
         var fullStatusMessage = $"{emoji} **Status**: {botName} is {status}!";
 
@@ -674,7 +674,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         {
             var sets = ParseShowdownSets(await SysBot.Pokemon.Helpers.NetUtil.HttpClient.GetStringAsync(args[0]));
             if (sets.Count == 0) return;
-            await message.Channel.SendTextAsync($"Found {sets.Count} Pokémon. Processing...");
+            await message.Channel.SendTextAsync($"Found {sets.Count} PokÃ©mon. Processing...");
             _ = Task.Run(async () => {
                 foreach (var s in sets) {
                     var res = await KookHelper<T>.ProcessShowdownSetAsync(string.Join("\n", s.GetSetLines()));

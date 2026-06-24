@@ -124,8 +124,8 @@ public sealed partial class Main : Form
         LoadControls();
         LogUtil.LogInfo($"Controls loaded: {sw.ElapsedMilliseconds}ms", "Form");
 
-        Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "DudeBot.NET" : Config.Hub.BotName)} {DudeBot.Version} ({Config.Mode})";
-        L_Version.Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "DudeBot.NET" : Config.Hub.BotName)} {DudeBot.Version}";
+        Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "NexusBot.NET" : Config.Hub.BotName)} {NexusBot.Version} ({Config.Mode})";
+        L_Version.Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "NexusBot.NET" : Config.Hub.BotName)} {NexusBot.Version}";
         _ = Task.Run(BotMonitor);
         InitUtil.InitializeStubs(Config.Mode);
         
@@ -374,7 +374,7 @@ public sealed partial class Main : Form
         }
     }
 
-    private void CB_Mode_SelectedIndexChanged(object? sender, EventArgs e)
+    private async void CB_Mode_SelectedIndexChanged(object? sender, EventArgs e)
     {
         if (_isFormLoading || _isUpdatingUI) return; // Check to avoid processing during form loading or UI updates
 
@@ -385,10 +385,20 @@ public sealed partial class Main : Form
 
             Config.Mode = newMode;
             SaveCurrentConfig();
-            UpdateRunnerAndUI();
-
+            
+            // Immediately update UI visuals so the app doesn't appear "frozen" while the bots are stopping/starting
             UpdateBackgroundImage(newMode);
             UpdateDropdownTranslations(Config.Language);
+            
+            _isUpdatingUI = true;
+            try
+            {
+                await UpdateRunnerAndUIAsync();
+            }
+            finally
+            {
+                _isUpdatingUI = false;
+            }
         }
     }
 
@@ -423,28 +433,57 @@ public sealed partial class Main : Form
         }
     }
 
-    private void UpdateRunnerAndUI()
+    private async Task UpdateRunnerAndUIAsync()
     {
         if (RunningEnvironment != null)
         {
-            RunningEnvironment.StopAll();
-            RunningEnvironment.Dispose();
+            var oldEnv = RunningEnvironment;
+            // Fire and forget the disposal so we don't block the UI update with long timeout waits
+            _ = Task.Run(() =>
+            {
+                try { oldEnv.StopAll(); } catch { }
+                try { oldEnv.Dispose(); } catch { }
+            });
         }
-        RunningEnvironment = GetRunner(Config);
-        foreach (var c in FLP_Bots.Controls.OfType<BotController>())
+        
+        // Prepare list of bot controllers and their configs on the UI thread
+        var controllers = FLP_Bots.Controls.OfType<BotController>().ToList();
+        var states = controllers.Select(c => c.State).ToList();
+
+        // Create bots and runner in background since runner initialization connects to the database synchronously
+        IPokeBotRunner runner = null!;
+        var newBots = new List<PokeRoutineExecutorBase>();
+        await Task.Run(() =>
         {
-            c.Initialize(RunningEnvironment, c.State);
-            try
+            runner = GetRunner(Config);
+            foreach (var state in states)
             {
-                var newBot = RunningEnvironment.CreateBotFromConfig(c.State);
-                RunningEnvironment.Add(newBot);
+                try
+                {
+                    var newBot = runner.CreateBotFromConfig(state);
+                    newBots.Add(newBot);
+                }
+                catch (Exception ex)
+                {
+                    LogUtil.LogError($"Failed to re-add bot {state.Connection} to new environment: {ex.Message}", "Form");
+                }
             }
-            catch (Exception ex)
-            {
-                LogUtil.LogError($"Failed to re-add bot {c.State.Connection} to new environment: {ex.Message}", "Form");
-            }
+        });
+
+        RunningEnvironment = runner;
+
+        // Initialize UI and add bots on the UI thread
+        for (int i = 0; i < controllers.Count; i++)
+        {
+            controllers[i].Initialize(RunningEnvironment, states[i]);
         }
-        Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "DudeBot.NET" : Config.Hub.BotName)} {DudeBot.Version} ({Config.Mode})";
+        
+        foreach (var bot in newBots)
+        {
+            RunningEnvironment.Add(bot);
+        }
+
+        Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "NexusBot.NET" : Config.Hub.BotName)} {NexusBot.Version} ({Config.Mode})";
     }
 
     private void B_Start_Click(object sender, EventArgs e)

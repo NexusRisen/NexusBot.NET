@@ -39,8 +39,8 @@ public class SqlTests
 
     private string GetConnectionStringManually(DatabaseSettings settings)
     {
-        string db = "genacnhc_dudebot";
-        string user = "genacnhc_dudebot";
+        string db = "genacnhc_nexusbot";
+        string user = "genacnhc_nexusbot";
         string pass = "Nodna@9087";
         string host = settings.DatabaseHost;
         

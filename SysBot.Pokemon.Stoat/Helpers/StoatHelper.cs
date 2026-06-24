@@ -78,7 +78,7 @@ public static class StoatHelper<T> where T : PKM, new()
         } catch { }
     }
 
-    // Convert string Stoat ID to a unique ulong for DudeBot internal queue tracking
+    // Convert string Stoat ID to a unique ulong for NexusBot internal queue tracking
     public static ulong ConvertId(string stoatId)
     {
         ulong result = 0;

@@ -20,7 +20,7 @@ namespace SysBot.Pokemon.Discord
 
         [Command("mysteryegg")]
         [Alias("me")]
-        [Summary("Trades an egg generated from a random Pokémon.")]
+        [Summary("Trades an egg generated from a random PokÃ©mon.")]
         public async Task TradeMysteryEggAsync()
         {
             // LGPE does not support eggs/breeding
@@ -145,7 +145,7 @@ namespace SysBot.Pokemon.Discord
 
         [Command("mysterypokemon")]
         [Alias("mp")]
-        [Summary("Trades a random legal Pokémon.")]
+        [Summary("Trades a random legal PokÃ©mon.")]
         public async Task TradeMysteryPokemonAsync()
         {
             var userID = Context.User.Id;
@@ -171,13 +171,13 @@ namespace SysBot.Pokemon.Discord
 
         [Command("batchMysteryPokemon")]
         [Alias("bmp")]
-        [Summary("Trades multiple Mystery Pokémon at once.")]
-        public async Task BatchMysteryPokemonAsync([Summary("Number of Pokémon")] int count = 2)
+        [Summary("Trades multiple Mystery PokÃ©mon at once.")]
+        public async Task BatchMysteryPokemonAsync([Summary("Number of PokÃ©mon")] int count = 2)
         {
             var batchSettings = SysCord<T>.Runner.Config.Trade.BatchSettings;
             if (!batchSettings.AllowMysteryPokemonBatchTrades)
             {
-                await ReplyAsync("Batch Mystery Pokémon are currently disabled by the bot administrator.").ConfigureAwait(false);
+                await ReplyAsync("Batch Mystery PokÃ©mon are currently disabled by the bot administrator.").ConfigureAwait(false);
                 return;
             }
 
@@ -194,11 +194,11 @@ namespace SysBot.Pokemon.Discord
             if (count < 1 || count > maxPkms)
             {
                 await Helpers<T>.ReplyAndDeleteAsync(Context,
-                    $"Invalid number of Pokémon. Please specify between 1 and {maxPkms} Pokémon.", 5);
+                    $"Invalid number of PokÃ©mon. Please specify between 1 and {maxPkms} PokÃ©mon.", 5);
                 return;
             }
 
-            var processingMessage = await Context.Channel.SendMessageAsync($"{Context.User.Mention} Generating {count} Mystery Pokémon...");
+            var processingMessage = await Context.Channel.SendMessageAsync($"{Context.User.Mention} Generating {count} Mystery PokÃ©mon...");
 
             _ = Task.Run(async () =>
             {
@@ -226,24 +226,24 @@ namespace SysBot.Pokemon.Discord
                     // Check if we generated any pokemon
                     if (batchList.Count == 0)
                     {
-                        await Context.Channel.SendMessageAsync($"{Context.User.Mention} Failed to generate any Mystery Pokémon. Please try again.");
+                        await Context.Channel.SendMessageAsync($"{Context.User.Mention} Failed to generate any Mystery PokÃ©mon. Please try again.");
                         return;
                     }
 
                     // Warn if some failed
                     if (failedCount > 0)
                     {
-                        await Context.Channel.SendMessageAsync($"{Context.User.Mention} Warning: Failed to generate {failedCount} Pokémon. Proceeding with {batchList.Count} Pokémon.");
+                        await Context.Channel.SendMessageAsync($"{Context.User.Mention} Warning: Failed to generate {failedCount} PokÃ©mon. Proceeding with {batchList.Count} PokÃ©mon.");
                     }
 
                     // Add batch to queue
                     var batchTradeCode = Info.GetRandomTradeCode(userID);
-                    await ProcessBatchMysteryItems(Context, batchList, batchTradeCode, count, "Mystery Pokémon", "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Extras/mystery_box.png");
+                    await ProcessBatchMysteryItems(Context, batchList, batchTradeCode, count, "Mystery PokÃ©mon", "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Extras/mystery_box.png");
                 }
                 catch (Exception ex)
                 {
                     try { await processingMessage.DeleteAsync(); } catch { }
-                    await Context.Channel.SendMessageAsync($"{Context.User.Mention} An error occurred while processing your batch Mystery Pokémon request. Please try again.");
+                    await Context.Channel.SendMessageAsync($"{Context.User.Mention} An error occurred while processing your batch Mystery PokÃ©mon request. Please try again.");
                     Base.LogUtil.LogError($"Batch Mystery Pokemon processing error: {ex.Message}", nameof(BatchMysteryPokemonAsync));
                 }
             });
@@ -329,9 +329,9 @@ namespace SysBot.Pokemon.Discord
             var embedBuilder = new EmbedBuilder()
                 .WithColor(global::Discord.Color.Gold)
                 .WithTitle($"\u2728 {typeName} {itemNumber} of {totalItems}")
-                .WithDescription($"A mysterious {typeName.ToLower()} containing a random Pokémon!")
+                .WithDescription($"A mysterious {typeName.ToLower()} containing a random PokÃ©mon!")
                 .WithImageUrl(imageUrl)
-                .WithFooter($"Batch Trade {itemNumber} of {totalItems}" + (itemNumber == 1 ? $" | Position: {queuePosition}" : $"\nDudeBot.NET {DudeBot.Version}"))
+                .WithFooter($"Batch Trade {itemNumber} of {totalItems}" + (itemNumber == 1 ? $" | Position: {queuePosition}" : $"\nNexusBot.NET {NexusBot.Version}"))
                 .WithAuthor(new EmbedAuthorBuilder()
                     .WithName($"{typeName} for {context.User.Username}")
                     .WithIconUrl(context.User.GetAvatarUrl() ?? context.User.GetDefaultAvatarUrl())
@@ -365,7 +365,7 @@ namespace SysBot.Pokemon.Discord
             var mysteryPk = TradeModuleHelpers.GenerateLegalMysteryPokemon<T>();
             if (mysteryPk == null)
             {
-                await ReplyAsync("Failed to generate a legal mystery Pokémon. Please try again later.").ConfigureAwait(false);
+                await ReplyAsync("Failed to generate a legal mystery PokÃ©mon. Please try again later.").ConfigureAwait(false);
                 return;
             }
 

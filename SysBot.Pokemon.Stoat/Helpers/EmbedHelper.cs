@@ -120,7 +120,7 @@ public static class EmbedHelper
             var dm = await UserHelper.GetUserDMChannelAsync(client.Rest, userId);
             if (dm != null)
             {
-                var description = $"**Pokémon:** {(isMysteryEgg ? "Mystery Egg" : speciesName)}\n**Code:** `{code:0000 0000}`";
+                var description = $"**PokÃ©mon:** {(isMysteryEgg ? "Mystery Egg" : speciesName)}\n**Code:** `{code:0000 0000}`";
                 if (!string.IsNullOrEmpty(message))
                 {
                     description += $"\n\n{message}";
@@ -193,7 +193,7 @@ public static class EmbedHelper
 
             var details = PokemonDetailsHelper<T>.Extract(pk);
 
-            // Build title line: e.g. "★ Haunter-Gmax (F)"
+            // Build title line: e.g. "â˜… Haunter-Gmax (F)"
             string formSuffix = string.IsNullOrEmpty(details.FormName) ? "" : $"-{details.FormName}";
             string title = $"{details.SpecialSymbols}{details.SpeciesName}{formSuffix}";
 
@@ -236,7 +236,7 @@ public static class EmbedHelper
             string color = details.IsSquareShiny ? "#FFD700" : details.IsShiny ? "#C0C0C0" : "#7B68EE";
 
             var embed = new EmbedBuilder()
-                .SetTitle($"Trade Complete [v{SysBot.Pokemon.Helpers.DudeBot.Version}] - {title}")
+                .SetTitle($"Trade Complete [v{SysBot.Pokemon.Helpers.NexusBot.Version}] - {title}")
                 .SetDescription(desc.ToString().TrimEnd())
                 .SetIconUrl(details.ImageUrl)
                 .SetColor(new StoatColor(color))

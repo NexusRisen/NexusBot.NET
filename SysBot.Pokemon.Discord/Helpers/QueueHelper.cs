@@ -61,18 +61,18 @@ public static class QueueHelper<T> where T : PKM, new()
             300 => "You've reached 300 trades!\n**Status:** Ace Trainer.",
             350 => "You've reached 350 trades!\n**Status:** Veteran Trainer.",
             400 => "You've reached 400 trades!\n**Status:** Expert Trainer.",
-            450 => "You've reached 450 trades!\n**Status:** Pokémon Trader.",
-            500 => "You've reached 500 trades!\n**Status:** Pokémon Professor.",
-            550 => "You've reached 550 trades!\n**Status:** Pokémon Champion.",
-            600 => "You've reached 600 trades!\n**Status:** Pokémon Specialist.",
-            650 => "You've reached 650 trades!\n**Status:** Pokémon Hero.",
-            700 => "You've reached 700 trades!\n**Status:** Pokémon Elite.",
-            750 => "You've reached 750 trades!\n**Status:** Pokémon Legend.",
+            450 => "You've reached 450 trades!\n**Status:** PokÃ©mon Trader.",
+            500 => "You've reached 500 trades!\n**Status:** PokÃ©mon Professor.",
+            550 => "You've reached 550 trades!\n**Status:** PokÃ©mon Champion.",
+            600 => "You've reached 600 trades!\n**Status:** PokÃ©mon Specialist.",
+            650 => "You've reached 650 trades!\n**Status:** PokÃ©mon Hero.",
+            700 => "You've reached 700 trades!\n**Status:** PokÃ©mon Elite.",
+            750 => "You've reached 750 trades!\n**Status:** PokÃ©mon Legend.",
             800 => "You've reached 800 trades!\n**Status:** Region Master.",
-            850 => "You've reached 850 trades!\n**Status:** Pokémon Master.",
+            850 => "You've reached 850 trades!\n**Status:** PokÃ©mon Master.",
             900 => "You've reached 900 trades!\n**Status:** World Famous.",
             950 => "You've reached 950 trades!\n**Status:** Master Trader.",
-            1000 => "You've reached 1000 trades!\n**Status:** Pokémon God.",
+            1000 => "You've reached 1000 trades!\n**Status:** PokÃ©mon God.",
             _ => $"Congratulations on reaching {tradeCount} trades! Keep it going!"
         };
     }
@@ -219,7 +219,7 @@ public static class QueueHelper<T> where T : PKM, new()
             var embedBuilder = new EmbedBuilder()
                 .WithColor(embedColor)
                 .WithImageUrl(embedData.IsLocalFile ? $"attachment://{Path.GetFileName(embedData.EmbedImageUrl)}" : embedData.EmbedImageUrl)
-                .WithFooter($"Position: {(position.Position == -1 ? 1 : position.Position)} | {etaMessage} | {DudeBot.Version}")
+                .WithFooter($"Position: {(position.Position == -1 ? 1 : position.Position)} | {etaMessage} | {NexusBot.Version}")
                 .WithAuthor(new EmbedAuthorBuilder()
                     .WithName(embedData.AuthorName)
                     .WithIconUrl(trader.GetAvatarUrl() ?? trader.GetDefaultAvatarUrl()));
@@ -381,9 +381,9 @@ public static class QueueHelper<T> where T : PKM, new()
         }
 
         // Send initial batch summary message
-        await context.Channel.SendMessageAsync($"{trader.Mention} - Added batch trade with {totalBatchTrades} Pokémon to the queue! Position: {position.Position}. Estimated: {baseEta:F1} min(s).").ConfigureAwait(false);
+        await context.Channel.SendMessageAsync($"{trader.Mention} - Added batch trade with {totalBatchTrades} PokÃ©mon to the queue! Position: {position.Position}. Estimated: {baseEta:F1} min(s).").ConfigureAwait(false);
 
-        // Create and send embeds for each Pokémon in the batch
+        // Create and send embeds for each PokÃ©mon in the batch
         if (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.UseEmbeds)
         {
             for (int i = 0; i < allTrades.Count; i++)
@@ -391,7 +391,7 @@ public static class QueueHelper<T> where T : PKM, new()
                 var pk = allTrades[i];
                 var batchTradeNumber = i + 1;
 
-                // Extract details for this Pokémon
+                // Extract details for this PokÃ©mon
                 var embedData = DetailsExtractor<T>.ExtractPokemonDetails(
                     pk, trader, false, false, false, false, false, true, batchTradeNumber, totalBatchTrades
                 );

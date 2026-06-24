@@ -6,7 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
     <ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
-    <AssemblyName>dudebot</AssemblyName>
+    <AssemblyName>nexusbot</AssemblyName>
     <SelfContained>false</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
     <DebugType>pdbonly</DebugType>
@@ -14,7 +14,7 @@
   </PropertyGroup>
   <PropertyGroup>
     <PackageId>SysBot.Pokemon.WinForms</PackageId>
-    <Description>Nintendo Switch Pokémon Bot Manager</Description>
+    <Description>Nintendo Switch PokÃ©mon Bot Manager</Description>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <StartupObject>SysBot.Pokemon.WinForms.Program</StartupObject>
     <Version>6.5.18</Version>

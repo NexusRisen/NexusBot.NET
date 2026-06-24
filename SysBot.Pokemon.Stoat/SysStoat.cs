@@ -83,7 +83,7 @@ public sealed partial class SysStoat<T> : IDisposable where T : PKM, new()
         if (!SysStoatSettings.Settings.ChannelStatus)
             return;
 
-        var botName = string.IsNullOrEmpty(Hub.Config.BotName) ? "DudeBot" : Hub.Config.BotName;
+        var botName = string.IsNullOrEmpty(Hub.Config.BotName) ? "NexusBot" : Hub.Config.BotName;
         var emoji = isOnline ? SysStoatSettings.Settings.OnlineEmoji : SysStoatSettings.Settings.OfflineEmoji;
         var fullStatusMessage = $"{emoji} **Status**: {botName} is {status}!";
 
@@ -177,7 +177,7 @@ public sealed partial class SysStoat<T> : IDisposable where T : PKM, new()
         try
         {
             if (_client == null || _client.Token == null) return;
-            string gameStatus = message ?? Hub.Config.Stoat.BotGameStatus ?? "Trading Pokémon";
+            string gameStatus = message ?? Hub.Config.Stoat.BotGameStatus ?? "Trading PokÃ©mon";
             var json = $"{{\"status\":{{\"presence\":\"Online\",\"text\":\"{gameStatus}\"}}}}";
             using var httpClient = new System.Net.Http.HttpClient();
             httpClient.DefaultRequestHeaders.Add("x-bot-token", Hub.Config.Stoat.Token);

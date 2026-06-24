@@ -18,14 +18,14 @@ public static class PKHeXContextHelper
         context.AppendLine("ALM can automatically legalize any Pokemon if you provide a valid Showdown set.");
         context.AppendLine("To force specific attributes that might be illegal otherwise, use Overrides:");
         context.AppendLine("- Use `~` for RegenTemplate overrides (e.g., `~Level: 50`, `~Shiny: Yes`, `~TeraType: Stellar`).");
-        context.AppendLine("- Use `.` for Batch commands (e.g., `.OT=DudeBot`, `.TID=123456`).");
+        context.AppendLine("- Use `.` for Batch commands (e.g., `.OT=NexusBot`, `.TID=123456`).");
         context.AppendLine("- Example: `~Ball: Luxury Ball` ensures the Pokemon is in a Luxury Ball.");
         context.AppendLine("");
 
         var speciesList = DetectSpecies(userRequest);
         if (speciesList.Count > 0)
         {
-            context.AppendLine("### RELEVANT POKÉMON DATA (FROM PKHEX.CORE)");
+            context.AppendLine("### RELEVANT POKÃ‰MON DATA (FROM PKHEX.CORE)");
             foreach (var species in speciesList)
             {
                 var info = GetSpeciesInfo(species);
@@ -70,7 +70,7 @@ public static class PKHeXContextHelper
         {
             var sb = new StringBuilder();
             var name = GameInfo.Strings.Species[speciesId];
-            sb.AppendLine($"Pokémon: {name}");
+            sb.AppendLine($"PokÃ©mon: {name}");
 
             // Accessing PersonalTable for Gen 9
             var personal = PersonalTable.SV[speciesId];

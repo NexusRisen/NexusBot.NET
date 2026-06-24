@@ -50,7 +50,7 @@ namespace SysBot.Pokemon.WinForms
             }
 
             var owner = "NexusRisen";
-            var repo = "DudeBot.NET";
+            var repo = "NexusBot.NET";
 
             var title = Uri.EscapeDataString(tbTitle.Text);
             var body = Uri.EscapeDataString(tbDescription.Text);

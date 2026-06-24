@@ -109,7 +109,7 @@ namespace SysBot.Pokemon.WinForms
             // 
             trayIcon.ContextMenuStrip = trayMenu;
             trayIcon.Icon = Resources.icon;
-            trayIcon.Text = "DudeBot.NET";
+            trayIcon.Text = "NexusBot.NET";
             trayIcon.MouseDoubleClick += trayIcon_MouseDoubleClick;
             // 
             // trayMenu
@@ -420,7 +420,7 @@ namespace SysBot.Pokemon.WinForms
             L_Version.Name = "L_Version";
             L_Version.Size = new Size(82, 15);
             L_Version.TabIndex = 0;
-            L_Version.Text = "DudeBot.NET";
+            L_Version.Text = "NexusBot.NET";
             // 
             // PB_Logo
             // 
@@ -687,7 +687,7 @@ namespace SysBot.Pokemon.WinForms
             L_CreditsDevName.Name = "L_CreditsDevName";
             L_CreditsDevName.Size = new Size(662, 40);
             L_CreditsDevName.TabIndex = 3;
-            L_CreditsDevName.Text = "Nexus Risen, Developer of DudeBot.NET";
+            L_CreditsDevName.Text = "Nexus Risen, Developer of NexusBot.NET";
             L_CreditsDevName.TextAlign = ContentAlignment.TopCenter;
             // 
             // L_CreditsDevTitle
@@ -709,7 +709,8 @@ namespace SysBot.Pokemon.WinForms
             L_CreditsOwnersNames.Name = "L_CreditsOwnersNames";
             L_CreditsOwnersNames.Size = new Size(662, 50);
             L_CreditsOwnersNames.TabIndex = 9;
-            L_CreditsOwnersNames.Text = "Havok, Logo & Asset Creation\r\nLink, Logo & Asset Creation";
+            L_CreditsOwnersNames.Text = "";
+            L_CreditsOwnersNames.Visible = false;
             L_CreditsOwnersNames.TextAlign = ContentAlignment.TopCenter;
             // 
             // L_CreditsOwnersTitle
@@ -720,7 +721,8 @@ namespace SysBot.Pokemon.WinForms
             L_CreditsOwnersTitle.Name = "L_CreditsOwnersTitle";
             L_CreditsOwnersTitle.Size = new Size(662, 35);
             L_CreditsOwnersTitle.TabIndex = 8;
-            L_CreditsOwnersTitle.Text = "Project Owners";
+            L_CreditsOwnersTitle.Text = "";
+            L_CreditsOwnersTitle.Visible = false;
             L_CreditsOwnersTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // L_CreditsMainTitle
@@ -731,7 +733,7 @@ namespace SysBot.Pokemon.WinForms
             L_CreditsMainTitle.Name = "L_CreditsMainTitle";
             L_CreditsMainTitle.Size = new Size(662, 60);
             L_CreditsMainTitle.TabIndex = 1;
-            L_CreditsMainTitle.Text = "DudeBot.NET";
+            L_CreditsMainTitle.Text = "NexusBot.NET";
             L_CreditsMainTitle.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // PB_CreditsLogo
@@ -759,7 +761,7 @@ namespace SysBot.Pokemon.WinForms
             MinimumSize = new Size(866, 600);
             Name = "Main";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "SysBot: Pokémon";
+            Text = "SysBot: PokÃ©mon";
             FormClosing += Main_FormClosing;
             P_Sidebar.ResumeLayout(false);
             P_LangArea.ResumeLayout(false);

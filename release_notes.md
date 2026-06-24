@@ -1,11 +1,11 @@
-# DudeBot.NET Release Notes
+# NexusBot.NET Release Notes
 
 ## [7.0.2]
 
 ### Added
 - **Multi-Tier Queue Favoritism:** Implemented a new multi-tiered role prioritization system (`Tier 1` through `Tier 4`, along with `Favored`). This allows server administrators to have fine-grained control over queue skipping priorities for their users.
 - **Operation Configuration:** Favoritism role tiers are now fully supported and can be directly configured under the **Operation** category inside the Discord Integration Settings via the WinForms GUI.
-- **Scale Information for Eggs:** The Pokémon embed display now accurately extracts and lists the Scale property inside the "Origin & Physical" field for eggs in Scarlet/Violet.
+- **Scale Information for Eggs:** The PokÃ©mon embed display now accurately extracts and lists the Scale property inside the "Origin & Physical" field for eggs in Scarlet/Violet.
 - **HighDPI & UI Updates:** Added HighDPI text/control scaling settings and integrated system dark mode detection for improved UI responsiveness and crispness.
 
 ### Changed
@@ -18,5 +18,5 @@
 - Refactored `RequestSignificance` and `QueueHelper` logic to automatically calculate queue position and bump user requests ahead of lower-tier users based on their assigned Discord roles.
 
 ### Fixed
-- **ALM Customization Overrides:** Fixed a bug causing the bot to occasionally ignore requested batch commands and Pokéball customizations during Egg generation or ALM-led processing. Custom preferences are now properly reapplied post-generation.
+- **ALM Customization Overrides:** Fixed a bug causing the bot to occasionally ignore requested batch commands and PokÃ©ball customizations during Egg generation or ALM-led processing. Custom preferences are now properly reapplied post-generation.
 - **Discord Gateway Recovery:** Implemented a robust supervision loop for the Discord client to automatically dispose and reconstruct the client when encountering terminal gateway/connection failures. This prevents the bot from becoming permanently deadlocked offline.

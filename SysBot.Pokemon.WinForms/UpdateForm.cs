@@ -327,11 +327,11 @@ namespace SysBot.Pokemon.WinForms
         private static async Task<string> StartDownloadProcessAsync(string downloadUrl, IProgress<int> progress)
         {
             Main.IsUpdating = true;
-            string tempPath = Path.Combine(Path.GetTempPath(), $"dudebot_{Guid.NewGuid()}.exe");
+            string tempPath = Path.Combine(Path.GetTempPath(), $"nexusbot_{Guid.NewGuid()}.exe");
 
             using (var client = new HttpClient())
             {
-                client.DefaultRequestHeaders.Add("User-Agent", "DudeBot");
+                client.DefaultRequestHeaders.Add("User-Agent", "NexusBot");
                 
                 using (var response = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead))
                 {
@@ -368,10 +368,10 @@ namespace SysBot.Pokemon.WinForms
             {
                 string currentExePath = Application.ExecutablePath;
                 string applicationDirectory = Path.GetDirectoryName(currentExePath) ?? "";
-                string targetExePath = Path.Combine(applicationDirectory, "dudebot.exe");
-                string backupPath = Path.Combine(applicationDirectory, "dudebot.exe.backup");
+                string targetExePath = Path.Combine(applicationDirectory, "nexusbot.exe");
+                string backupPath = Path.Combine(applicationDirectory, "nexusbot.exe.backup");
 
-                string batchPath = Path.Combine(Path.GetTempPath(), "UpdateDudeBot.bat");
+                string batchPath = Path.Combine(Path.GetTempPath(), "UpdateNexusBot.bat");
                 
                 string cleanupCommand = !currentExePath.Equals(targetExePath, StringComparison.OrdinalIgnoreCase) 
                     ? $"del \"{currentExePath}\"" 
@@ -380,7 +380,7 @@ namespace SysBot.Pokemon.WinForms
                 string batchContent = @$"
 @echo off
 timeout /t 2 /nobreak >nul
-echo Updating DudeBot...
+echo Updating NexusBot...
 
 if exist ""{targetExePath}"" (
     if exist ""{backupPath}"" (

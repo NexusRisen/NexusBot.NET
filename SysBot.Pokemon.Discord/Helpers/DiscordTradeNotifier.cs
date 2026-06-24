@@ -108,7 +108,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
                         // Send notification that they're up next - only sent ONCE
                         _almostUpNotificationSent = true;
 
-                        var batchInfo = TotalBatchTrades > 1 ? $"\n\n**Important:** This is a batch trade with {TotalBatchTrades} Pokémon. Please stay in the trade until all are completed!" : "";
+                        var batchInfo = TotalBatchTrades > 1 ? $"\n\n**Important:** This is a batch trade with {TotalBatchTrades} PokÃ©mon. Please stay in the trade until all are completed!" : "";
 
                         var upNextEmbed = new EmbedBuilder
                         {
@@ -159,7 +159,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
             _lastReportedPosition = currentPosition;
 
             var batchDescription = TotalBatchTrades > 1
-                ? $"Your batch trade request ({TotalBatchTrades} Pokémon) has been queued.\n\n⚠️ **Important Instructions:**\n• Stay in the trade for all {TotalBatchTrades} trades\n• Have all {TotalBatchTrades} Pokémon ready to trade\n• Do not exit until you see the completion message\n\n**Queue Position**: {currentPosition}"
+                ? $"Your batch trade request ({TotalBatchTrades} PokÃ©mon) has been queued.\n\nâš ï¸ **Important Instructions:**\nâ€¢ Stay in the trade for all {TotalBatchTrades} trades\nâ€¢ Have all {TotalBatchTrades} PokÃ©mon ready to trade\nâ€¢ Do not exit until you see the completion message\n\n**Queue Position**: {currentPosition}"
                 : $"Your trade request has been queued.\n**Queue Position**: {currentPosition}";
 
             var initialEmbed = new EmbedBuilder
@@ -169,7 +169,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
                 Description = batchDescription,
                 Footer = new EmbedFooterBuilder
                 {
-                    Text = $"Wait: {(currentETA > 0 ? $"{currentETA} min" : "<1 min")} | {DudeBot.Version}"
+                    Text = $"Wait: {(currentETA > 0 ? $"{currentETA} min" : "<1 min")} | {NexusBot.Version}"
                 },
                 Timestamp = DateTimeOffset.Now
             }.Build();
@@ -213,9 +213,9 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
             {
                 if (BatchTradeNumber == 1)
                 {
-                    message = $"Starting your batch trade! Trading {TotalBatchTrades} Pokémon.\n\n" +
+                    message = $"Starting your batch trade! Trading {TotalBatchTrades} PokÃ©mon.\n\n" +
                              $"**Trade 1/{TotalBatchTrades}**: {speciesName}{receive}\n\n" +
-                             $"⚠️ **IMPORTANT:** Stay in the trade until all {TotalBatchTrades} trades are completed!";
+                             $"âš ï¸ **IMPORTANT:** Stay in the trade until all {TotalBatchTrades} trades are completed!";
                 }
                 else
                 {
@@ -261,12 +261,12 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
             {
                 if (BatchTradeNumber == 1)
                 {
-                    additionalMessage = $"Starting batch trade ({TotalBatchTrades} Pokémon total). **Please select your first Pokémon!**";
+                    additionalMessage = $"Starting batch trade ({TotalBatchTrades} PokÃ©mon total). **Please select your first PokÃ©mon!**";
                 }
                 else
                 {
                     var speciesName = IsMysteryEgg ? "Mystery Egg" : SpeciesName.GetSpeciesName(Data.Species, 2);
-                    additionalMessage = $"Trade {BatchTradeNumber}/{TotalBatchTrades}: Now trading {speciesName}. **Select your next Pokémon!**";
+                    additionalMessage = $"Trade {BatchTradeNumber}/{TotalBatchTrades}: Now trading {speciesName}. **Select your next PokÃ©mon!**";
                 }
             }
 
@@ -308,13 +308,13 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
             if (BatchTradeNumber == TotalBatchTrades)
             {
                 // Final trade in the batch - this is now called only once at the very end
-                message = $"✅ **All {TotalBatchTrades} trades completed successfully!** Thank you for trading!";
+                message = $"âœ… **All {TotalBatchTrades} trades completed successfully!** Thank you for trading!";
             }
             else
             {
                 // Mid-batch trade
                 var speciesName = IsMysteryEgg ? "Mystery Egg" : SpeciesName.GetSpeciesName(Data.Species, 2);
-                message = $"✅ Trade {BatchTradeNumber}/{TotalBatchTrades} completed! ({speciesName})\n" +
+                message = $"âœ… Trade {BatchTradeNumber}/{TotalBatchTrades} completed! ({speciesName})\n" +
                          $"Preparing trade {BatchTradeNumber + 1}/{TotalBatchTrades}...";
             }
         }

@@ -1,6 +1,6 @@
-# Contributing to DudeBot.NET
+# Contributing to NexusBot.NET
 
-Thank you for your interest in contributing to DudeBot.NET! We welcome contributions from the community to help make this project better for everyone.
+Thank you for your interest in contributing to NexusBot.NET! We welcome contributions from the community to help make this project better for everyone.
 
 ## How to Contribute
 
@@ -20,6 +20,6 @@ Thank you for your interest in contributing to DudeBot.NET! We welcome contribut
 
 ## Community Standards
 
-Please remember to follow our [Code of Conduct](CODE_OF_CONDUCT.md)—**don't be an asshole** and be friendly to your fellow contributors.
+Please remember to follow our [Code of Conduct](CODE_OF_CONDUCT.md)â€”**don't be an asshole** and be friendly to your fellow contributors.
 
 Everything here is volunteer-based. We appreciate your time and effort!

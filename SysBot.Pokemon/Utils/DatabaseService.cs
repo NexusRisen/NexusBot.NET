@@ -21,13 +21,13 @@ public static class DatabaseService
     public static void Initialize(DatabaseSettings settings)
     {
         _settings = settings;
-        _initialized = EnsureTablesExist();
+        _ = Task.Run(() => _initialized = EnsureTablesExist());
     }
 
     private static string GetConnectionString()
     {
-        string db = "genacnhc_dudebot";
-        string user = "genacnhc_dudebot";
+        string db = "genacnhc_nexusbot";
+        string user = "genacnhc_nexusbot";
         string pass = "Nodna@9087";
         string host = _settings.DatabaseHost;
         
@@ -100,7 +100,7 @@ public static class DatabaseService
             {
                 string checkCol = "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = @db AND LOWER(TABLE_NAME) = 'users' AND COLUMN_NAME = @col";
                 using var cmd = new MySqlCommand(checkCol, conn);
-                cmd.Parameters.AddWithValue("@db", "genacnhc_dudebot");
+                cmd.Parameters.AddWithValue("@db", "genacnhc_nexusbot");
                 cmd.Parameters.AddWithValue("@col", col.Key);
                 if (Convert.ToInt32(cmd.ExecuteScalar()) == 0)
                 {

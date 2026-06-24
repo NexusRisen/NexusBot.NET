@@ -177,7 +177,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _commands.Log -= Log;
         _client.PresenceUpdated -= Client_PresenceUpdated;
         _client.Disconnected -= OnDisconnected;
-        _client.Ready -= SetDudeBotNameAsync;
+        _client.Ready -= SetNexusBotNameAsync;
         _client.Ready -= LoadLoggingAndEcho;
         _client.MessageReceived -= HandleMessageAsync;
         _client.JoinedGuild -= HandleJoinedGuild;
@@ -296,7 +296,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         if (!SysCordSettings.Settings.BotEmbedStatus)
             return;
 
-        var botName = string.IsNullOrEmpty(SysCordSettings.HubConfig.BotName) ? DudeBot.Name : SysCordSettings.HubConfig.BotName;
+        var botName = string.IsNullOrEmpty(SysCordSettings.HubConfig.BotName) ? NexusBot.Name : SysCordSettings.HubConfig.BotName;
         var fullStatusMessage = $"**Status**: {botName} is {status}!";
         var thumbnailUrl = status == "Online"
             ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Status/botgo.png"
@@ -384,7 +384,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
     {
         var assembly = Assembly.GetExecutingAssembly();
 
-        _client.Ready += SetDudeBotNameAsync;
+        _client.Ready += SetNexusBotNameAsync;
 
         await _commands.AddModulesAsync(assembly, _services).ConfigureAwait(false);
         foreach (var t in assembly.DefinedTypes.Where(z => z.IsSubclassOf(typeof(ModuleBase<SocketCommandContext>)) && z.IsGenericType))
@@ -416,9 +416,9 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         _client.InteractionCreated += HandleInteractionAsync;
     }
 
-    private Task SetDudeBotNameAsync()
+    private Task SetNexusBotNameAsync()
     {
-        DudeBot.Name = _client.CurrentUser.Username;
+        NexusBot.Name = _client.CurrentUser.Username;
         return Task.CompletedTask;
     }
 
@@ -509,10 +509,10 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
         var responses = new List<string>
         {
-            "You're welcome! ❤️",
+            "You're welcome! â¤ï¸",
             "No problem at all!",
             "Anytime, glad to help!",
-            "It's my pleasure! ❤️",
+            "It's my pleasure! â¤ï¸",
             "Not a problem! You're welcome!",
             "Always here to help!",
             "Glad I could assist!",
@@ -810,7 +810,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                 var descriptionText = modal.Data.Components.First(x => x.CustomId == "description").Value;
 
                 var owner = "NexusRisen";
-                var repo = "DudeBot.NET";
+                var repo = "NexusBot.NET";
 
                 var title = Uri.EscapeDataString(titleText);
                 var body = Uri.EscapeDataString($"**Submitted by:** {interaction.User.Username} ({interaction.User.Id})\n\n{descriptionText}");
@@ -855,7 +855,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         {
             await msg.Channel.TriggerTypingAsync();
 
-            var botName = _client.CurrentUser?.Username ?? DudeBot.Name;
+            var botName = _client.CurrentUser?.Username ?? NexusBot.Name;
             var legalityContext = AI.PKHeXContextHelper.GetLegalityContext(userRequest);
             var useAutoOT = Hub.Config.Legality.UseTradePartnerInfo;
             var otFallback = useAutoOT ? "match your trainer info (Auto OT)" : "use the default bot OT/TID/SID";

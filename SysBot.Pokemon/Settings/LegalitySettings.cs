@@ -18,7 +18,7 @@ public class LegalitySettings
         EncounterTypeGroup.Trade,
     ];
 
-    private string DefaultTrainerName = "DudeBot.Net";
+    private string DefaultTrainerName = "NexusBot.Net";
     private const string Generate = nameof(Generate);
     private const string Misc = nameof(Misc);
     public override string ToString() => "Legality Generating Settings";
@@ -27,7 +27,7 @@ public class LegalitySettings
     [Category(Generate), Description("MGDB directory path for Wonder Cards.")]
     public string MGDBPath { get; set; } = string.Empty;
 
-    [Category(Misc), Description("Apply valid Pokémon with the trainer's OT/SID/TID (AutoOT)"), DisplayName("Use Auto-OT")]
+    [Category(Misc), Description("Apply valid PokÃ©mon with the trainer's OT/SID/TID (AutoOT)"), DisplayName("Use Auto-OT")]
     public bool UseTradePartnerInfo { get; set; } = true;
 
     [Category(Generate), Description("Allow users to submit custom trainer data in Showdown sets, overrides the bot's OT, TID, SID & OT Gender."), DisplayName("Allow Trainer Data Input")]
@@ -58,16 +58,16 @@ public class LegalitySettings
     [Category(Generate), Description("Default language for PKM files that don't match any of the provided PKM files.")]
     public LanguageID GenerateLanguage { get; set; } = LanguageID.English;
 
-    [Category(Generate), Description("Method of searching for encounters when generating Pokémon. \"NativeOnly\" searches current game pair only, \"NewestFirst\" searches from most recent game, and \"PriorityOrder\" uses the order designated in the \"PriorityOrder\" setting.")]
+    [Category(Generate), Description("Method of searching for encounters when generating PokÃ©mon. \"NativeOnly\" searches current game pair only, \"NewestFirst\" searches from most recent game, and \"PriorityOrder\" uses the order designated in the \"PriorityOrder\" setting.")]
     public GameVersionPriorityType GameVersionPriority { get; set; } = GameVersionPriorityType.NativeOnly;
 
     [Category(Generate), Description("The order of GameVersions ALM will attempt to legalize from.")]
     public List<GameVersion> PriorityOrder { get; set; } = [.. DefaultPriorityOrder];
 
-    [Category(Generate), Description("Set all possible legal ribbons for any generated Pokémon.")]
+    [Category(Generate), Description("Set all possible legal ribbons for any generated PokÃ©mon.")]
     public bool SetAllLegalRibbons { get; set; } = false;
 
-    [Category(Generate), Description("Set a matching ball (based on color) for any generated Pokémon.")]
+    [Category(Generate), Description("Set a matching ball (based on color) for any generated PokÃ©mon.")]
     public bool SetMatchingBalls { get; set; } = true;
 
     [Category(Generate), Description("Force the specified ball if legal.")]
@@ -76,23 +76,23 @@ public class LegalitySettings
     [Category(Generate), Description("Assumes level 50 sets are level 100 competitive sets."), DisplayName("Set lvl 50 to 100")]
     public bool ForceLevel100for50 { get; set; } = false;
 
-    [Category(Generate), Description("Requires HOME tracker when trading Pokémon that had to have traveled between the Switch games."), DisplayName("Require HOME Tracker for transfers")]
+    [Category(Generate), Description("Requires HOME tracker when trading PokÃ©mon that had to have traveled between the Switch games."), DisplayName("Require HOME Tracker for transfers")]
     public bool EnableHOMETrackerCheck { get; set; } = true;
 
-    [Category(Generate), Description("Prevents trading Pokémon that require a HOME Tracker, even if the file has one already."), DisplayName("Disallow Non-Native Pokémon")]
+    [Category(Generate), Description("Prevents trading PokÃ©mon that require a HOME Tracker, even if the file has one already."), DisplayName("Disallow Non-Native PokÃ©mon")]
     public bool DisallowNonNatives { get; set; } = false;
 
-    [Category(Generate), Description("Prevents trading Pokémon that already have a HOME Tracker."), DisplayName("Disallow HOME Tracked Pokémon")]
+    [Category(Generate), Description("Prevents trading PokÃ©mon that already have a HOME Tracker."), DisplayName("Disallow HOME Tracked PokÃ©mon")]
     public bool DisallowTracked { get; set; } = false;
 
-    [Category(Generate), Description("The order in which Pokémon encounter types are attempted.")]
+    [Category(Generate), Description("The order in which PokÃ©mon encounter types are attempted.")]
     public List<EncounterTypeGroup> PrioritizeEncounters { get; set; } = [.. DefaultPrioritizeEncounters];
 
     [Browsable(false)]
-    [Category(Generate), Description("Adds Battle Version for games that support it (SWSH only) for using past-gen Pokémon in online competitive play.")]
+    [Category(Generate), Description("Adds Battle Version for games that support it (SWSH only) for using past-gen PokÃ©mon in online competitive play.")]
     public bool SetBattleVersion { get; set; }
 
-    [Category(Generate), Description("Bot will create an Easter Egg Pokémon if provided an illegal set.")]
+    [Category(Generate), Description("Bot will create an Easter Egg PokÃ©mon if provided an illegal set.")]
     public bool EnableEasterEggs { get; set; } = false;
 
     [Category(Generate), Description("Allow users to submit further customization with Batch Editor commands.")]
