@@ -1,5 +1,17 @@
 # NexusBot.NET Release Notes
 
+## [7.0.3]
+
+### Added
+- **Self-Contained Deployment:** The application is now built as a Self-Contained executable, bundling the .NET 10 runtime natively. This removes the need for external runtime installations.
+
+### Changed
+- **Rebranding:** Completely rebranded from "DudeBot" to "NexusBot" across the UI, namespaces, configuration files, and documentation.
+- **Credits Update:** Cleaned up the credits menu and Info command to reflect the new project structure.
+
+### Fixed
+- **UI Responsiveness:** Fixed a significant UI blocking issue when switching bot modes in the WinForms GUI. Database initialization is now handled asynchronously in the background.
+
 ## [7.0.2]
 
 ### Added
