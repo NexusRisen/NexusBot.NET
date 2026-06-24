@@ -7,7 +7,8 @@
     <ApplicationHighDpiMode>SystemAware</ApplicationHighDpiMode>
     <ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
     <AssemblyName>nexusbot</AssemblyName>
-    <SelfContained>false</SelfContained>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
     <DebugType>pdbonly</DebugType>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
