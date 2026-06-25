@@ -1,1 +1,0 @@
-using Kook; class Program { static async System.Threading.Tasks.Task Main(IMessageChannel channel) { await channel.SendFileAsync(" foo.txt\, \foo.txt\); } }
