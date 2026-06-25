@@ -18,7 +18,7 @@ public class LegalitySettings
         EncounterTypeGroup.Trade,
     ];
 
-    private string DefaultTrainerName = "NexusBot.Net";
+    private string DefaultTrainerName = "NexusBot.NET";
     private const string Generate = nameof(Generate);
     private const string Misc = nameof(Misc);
     public override string ToString() => "Legality Generating Settings";

@@ -28,19 +28,33 @@ namespace SysBot.Pokemon.Helpers
 
                 // Check latest commit
                 var response = await client.GetAsync(RepoApiUrl);
-                if (!response.IsSuccessStatusCode)
-                    return;
-
-                var json = await response.Content.ReadAsStringAsync();
-                var doc = JsonDocument.Parse(json);
-                var latestCommit = doc.RootElement.GetProperty("sha").GetString();
+                string latestCommit = null;
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    var doc = JsonDocument.Parse(json);
+                    latestCommit = doc.RootElement.GetProperty("sha").GetString();
+                }
+                else
+                {
+                    Console.WriteLine($"Could not check for MGDB updates (GitHub API returned {response.StatusCode}).");
+                }
 
                 string versionFile = Path.Combine(mgdbPath, VersionFileName);
-                if (File.Exists(versionFile))
+                bool hasSubdirs = Directory.GetDirectories(mgdbPath).Length > 0;
+
+                if (latestCommit != null && File.Exists(versionFile) && hasSubdirs)
                 {
                     var currentCommit = await File.ReadAllTextAsync(versionFile);
                     if (currentCommit == latestCommit)
                         return; // Up to date
+                }
+                else if (latestCommit == null && hasSubdirs)
+                {
+                    // Rate limited but we have files, assume we're good to avoid re-downloading constantly
+                    Console.WriteLine("Local MGDB files exist. Skipping download.");
+                    return;
                 }
 
                 // Download zip

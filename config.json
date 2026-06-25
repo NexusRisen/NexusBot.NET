@@ -627,7 +627,7 @@
       "UseTradePartnerInfo": true,
       "AllowTrainerDataOverride": true,
       "GeneratePathTrainerInfo": "",
-      "GenerateOT": "NexusBot.Net",
+      "GenerateOT": "NexusBot.NET",
       "GenerateTID16": 12345,
       "GenerateSID16": 54321,
       "GenerateLanguage": 2,
