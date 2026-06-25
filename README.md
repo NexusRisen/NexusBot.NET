@@ -14,40 +14,15 @@
 - [🏗️ Project Structure](#️-project-structure)
 - [📦 Dependencies](#-dependencies)
 - [👨‍💻 Development](#-development)
-- [👥 Contributors](CONTRIBUTORS)
+- [👥 Contributors](#-contributors)
 - [🤝 Support](#-support)
 - [📜 License](#-license)
-
----
-
-## 👥 Contributors
-
-Thanks to these wonderful people:
-
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<table>
-  <tr>
-    <td align="center"><a href="https://github.com/kwsch"><img src="https://github.com/kwsch.png" width="100px;" alt=""/><br /><sub><b>kwsch</b></sub></a><br /><a href="#code" title="Code">💻</a> <a href="#maintenance" title="Maintenance">🚧</a></td>
-    <td align="center"><a href="https://nexusrisen.net"><img src="https://github.com/NexusRisen.png" width="100px;" alt=""/><br /><sub><b>Nexus Risen</b></sub></a><br /><a href="#code" title="Code">💻</a> <a href="#design" title="Design">🎨</a> <a href="#maintenance" title="Maintenance">🚧</a></td>
-    <td align="center"><a href="https://github.com/Lusamine"><img src="https://github.com/Lusamine.png" width="100px;" alt=""/><br /><sub><b>Lusamine</b></sub></a><br /><a href="#research" title="Research">🔬</a> <a href="#data" title="Data">📊</a></td>
-    <td align="center"><a href="https://github.com/hexbyt3"><img src="https://github.com/hexbyt3.png" width="100px;" alt=""/><br /><sub><b>Hexbyt3</b></sub></a><br /><a href="#code" title="Code">💻</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/Secludedly"><img src="https://github.com/Secludedly.png" width="100px;" alt=""/><br /><sub><b>Secludedly</b></sub></a><br /><a href="#code" title="Code">💻</a> <a href="#maintenance" title="Maintenance">🚧</a></td>
-    <td align="center"><a href="https://github.com/santacrab2"><img src="https://github.com/santacrab2.png" width="100px;" alt=""/><br /><sub><b>SantaCrab2</b></sub></a><br /><a href="#code" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/link2026"><img src="https://github.com/link2026.png" width="100px;" alt=""/><br /><sub><b>Link</b></sub></a><br /><a href="#design" title="Design">🎨</a></td>
-    <td align="center"><a href="https://github.com/Havokx89"><img src="https://github.com/Havokx89.png" width="100px;" alt=""/><br /><sub><b>Havok</b></sub></a><br /><a href="#design" title="Design">🎨</a></td>
-  </tr>
-</table>
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ---
 
 ## 🌟 Key Features
 
 ### 🎮 Multi-Game Support
-![Bots](pictures/Bot.png)
 Automated trading and encounter bots for all modern Nintendo Switch Pokémon titles:
 - **Pokémon Legends: Z-A (PLZA)**: Full support for the latest generation.
 - **Pokémon Scarlet & Violet (SV)**: Including Tera Type handling and Scale information.
@@ -56,7 +31,7 @@ Automated trading and encounter bots for all modern Nintendo Switch Pokémon tit
 - **Pokémon Sword & Shield (SWSH)**: Comprehensive support for all distribution types.
 - **Pokémon Let's Go, Pikachu! & Eevee! (LGPE)**: Legacy support for Kanto-based distributions.
 
-### 🌐 Multi-Platform Integrations
+### 🔗 Multi-Platform Integrations
 Full remote control and interaction support across multiple platforms:
 - **Discord Integration**: Comprehensive interface for remote interaction, queue management, and visual trade reports using [Discord.Net](https://github.com/discord-net/Discord.Net).
 - **Kook Integration**: Native support for the Kook platform (KaiHeiLa) using [Kook.Net](https://github.com/gehongyan/Kook.Net). Features full parity with Discord, including native Kook Card paginated event listings, Battle Ready database requests, and hidden trades for a seamless experience in the Chinese community.
@@ -64,27 +39,13 @@ Full remote control and interaction support across multiple platforms:
 - **Twitch Integration**: Automated queue management and interaction for live streamers via [TwitchLib](https://github.com/TwitchLib/TwitchLib).
 - **YouTube Integration**: Direct interaction with YouTube Live chat for automated distribution using [Google.Apis.YouTube.v3](https://github.com/googleapis/google-api-dotnet-client).
 
-### 🌐 Universal Translation Engine
-![Language](pictures/Language.png)
+### 🗣️ Universal Translation Engine
 - **Global Support**: Full auto-detection and translation for Japanese, French, Italian, German, Spanish, Korean, and Chinese (Simplified/Traditional).
 - **High-Performance Caching**: Implemented a thread-safe `ConcurrentDictionary` cache for species and moves across all languages, making translations near-instant.
 - **Comprehensive Dictionaries**: Updated language-specific keywords for items, genders, shiny status, stats, and regional forms.
 
-### 🌐 SQL Synchronization & Ecosystem
-![SQL Sync](pictures/Settings.png)
-NexusBot.NET introduces a revolutionary **SQL Synchronization API**, transforming standalone bots into a unified global network.
-- **Global User Profiles**: Trade counts, medals, and trainer information (OT/TID/SID) are securely synced across all bot instances globally via a remote MySQL database.
-- **Real-Time Network Statistics**: Each bot instance sends a heartbeat every minute, allowing the community to track active bots and game coverage in real-time.
-- **Unified Hall of Fame**: A fully functional global ranking system that tracks the top trainers across the entire NexusBot.NET ecosystem.
-- **Advanced Data Integrity**: Sensitive user data is encrypted using AES-256 before storage, ensuring privacy while maintaining cross-instance persistence.
-- **Community Analytics**: High-performance SQL sorting enables real-time analytics for community-wide trade metrics and performance tracking.
-
 ### 🤖 Automation & Intelligence
-![Settings](pictures/Settings.png)
 - **Auto-Legality Mod (ALM)**: Integrated on-the-fly legalization ensures all distributed Pokémon meet strict legality standards.
-- **SQL-Powered Commands**:
-  - `$medals` - View your global trade count and earned achievement medals.
-  - `$leaderboard` - Access the global Hall of Fame and real-time community rankings.
 - **High-Performance Logic**: BDSP trade routines refactored with `Span<byte>` and `MemoryMarshal` for maximum speed and zero-allocation memory management.
 - **Async Modernization**: Fully non-blocking batch trade sequences using `Task`-based operations.
 - **AutoOT Integration**: Personalize Pokémon with the receiver's trainer information automatically.
@@ -165,16 +126,45 @@ NexusBot.NET leverages several powerful open-source libraries:
 
 NexusBot.NET is actively developed by Nexus Risen and a dedicated team of contributors. The project follows a [Steering Committee](.github/GOVERNANCE.md) governance model and a community [Code of Conduct](.github/CODE_OF_CONDUCT.md).
 
+### 💬 Developer Discord Hangout
+[![Discord Banner](https://discordapp.com/api/guilds/1512584349978202253/widget.png?style=banner2)](https://discord.gg/ZTxakPWfws)
+
+Are you a developer looking to collaborate? Join our **[Developer Discord Server](https://discord.gg/ZTxakPWfws)**! This is a dedicated hangout for developers working on programs based on the SysBot.NET framework (such as NexusBot.NET, DudeBot.NET, and FusionBot.NET) to share ideas, troubleshoot, and improve these projects together over time.
+
 See the full list of [Contributors](CONTRIBUTORS).
 
 - **[kwsch](https://github.com/kwsch)** - Original Creator (SysBot.NET & PKHeX)
 - **[Nexus Risen](https://nexusrisen.net)** - Main Developer
-- **Lusamine** - Research & Data Analysis
-- **Hexbyt3** - Core Engine Enhancements
+- **[Lusamine](https://github.com/Lusamine)** - Research & Data Analysis
+- **[Hexbyt3](https://github.com/hexbyt3)** - Core Engine Enhancements
 - **[Secludedly](https://github.com/Secludedly)** - Medals, Refactoring & Feature Enhancements
-- **SantaCrab2** - Auto-Legality Mod (ALM)
-- **[Link](https://github.com/link2026)** - Project Owners (Logo & Asset Creation)
-- **[Havok](https://github.com/Havokx89)** - Project Owners (Logo & Asset Creation)
+- **[SantaCrab2](https://github.com/santacrab2)** - Auto-Legality Mod (ALM)
+- **[Link](https://github.com/link2026)** - Program Contributor (Ideas, Feedback & Project Support)
+- **[Havok](https://github.com/Havokx89)** - Program Contributor (Ideas, Feedback & Project Support)
+
+---
+
+## 👥 Contributors
+
+Thanks to these wonderful people:
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/kwsch"><img src="https://github.com/kwsch.png" width="100px;" alt=""/><br /><sub><b>kwsch</b></sub></a><br /><a href="#code" title="Code">💻</a> <a href="#maintenance" title="Maintenance">🚧</a></td>
+    <td align="center"><a href="https://nexusrisen.net"><img src="https://github.com/NexusRisen.png" width="100px;" alt=""/><br /><sub><b>Nexus Risen</b></sub></a><br /><a href="#code" title="Code">💻</a> <a href="#design" title="Design">🎨</a> <a href="#maintenance" title="Maintenance">🚧</a></td>
+    <td align="center"><a href="https://github.com/Lusamine"><img src="https://github.com/Lusamine.png" width="100px;" alt=""/><br /><sub><b>Lusamine</b></sub></a><br /><a href="#research" title="Research">🔬</a> <a href="#data" title="Data">📊</a></td>
+    <td align="center"><a href="https://github.com/hexbyt3"><img src="https://github.com/hexbyt3.png" width="100px;" alt=""/><br /><sub><b>Hexbyt3</b></sub></a><br /><a href="#code" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/Secludedly"><img src="https://github.com/Secludedly.png" width="100px;" alt=""/><br /><sub><b>Secludedly</b></sub></a><br /><a href="#code" title="Code">💻</a> <a href="#maintenance" title="Maintenance">🚧</a></td>
+    <td align="center"><a href="https://github.com/santacrab2"><img src="https://github.com/santacrab2.png" width="100px;" alt=""/><br /><sub><b>SantaCrab2</b></sub></a><br /><a href="#code" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/link2026"><img src="https://github.com/link2026.png" width="100px;" alt=""/><br /><sub><b>Link</b></sub></a><br /><a href="#design" title="Design">🎨</a></td>
+    <td align="center"><a href="https://github.com/Havokx89"><img src="https://github.com/Havokx89.png" width="100px;" alt=""/><br /><sub><b>Havok</b></sub></a><br /><a href="#design" title="Design">🎨</a></td>
+  </tr>
+</table>
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ---
 
