@@ -21,6 +21,8 @@ namespace SysBot.Pokemon.Helpers
             if (!Directory.Exists(mgdbPath))
                 Directory.CreateDirectory(mgdbPath);
 
+            Console.WriteLine($"MGDB Directory located at: {Path.GetFullPath(mgdbPath)}");
+
             try
             {
                 using var client = new HttpClient();

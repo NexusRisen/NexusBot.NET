@@ -1,5 +1,6 @@
 # Release Notes
 
-## [7.0.5]
-- **MGDB Auto-Updater:** The bot now gracefully handles GitHub API rate limit errors when checking for MGDB wonder card repository updates. It correctly falls back to skipping the API check if the files already exist, or proceeds directly to downloading the full `.zip` if the directory is empty.
-- **Settings:** Corrected the default original trainer (OT) name across `LegalitySettings.cs` and `config.json` to properly be `NexusBot.NET` instead of `dudebot.NET` / `NexusBot.Net`.
+## [7.0.6]
+- **MGDB Updater Improvements:** 
+  - Forced the auto-updater to explicitly create the `MGDB` folder alongside the bot's executable using absolute paths (`AppContext.BaseDirectory`), resolving issues where it would create the folder in unpredictable working directories.
+  - Added a startup console log that prints the exact directory path where the MGDB folder is located.
