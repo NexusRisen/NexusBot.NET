@@ -1,6 +1,7 @@
 # Release Notes
 
-## [7.0.6]
-- **MGDB Updater Improvements:** 
-  - Forced the auto-updater to explicitly create the `MGDB` folder alongside the bot's executable using absolute paths (`AppContext.BaseDirectory`), resolving issues where it would create the folder in unpredictable working directories.
-  - Added a startup console log that prints the exact directory path where the MGDB folder is located.
+## [7.0.7]
+- **Bug Fixes:**
+  - Fixed an issue where the application would freeze/deadlock indefinitely when clicking "Start". This was caused by the MGDB auto-updater blocking the main UI thread during asynchronous network operations.
+- **Improvements:**
+  - The MGDB updater now runs automatically in the background when the program boots up, rather than waiting for a bot to start.

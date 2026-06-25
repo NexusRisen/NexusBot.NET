@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using SysBot.Base;
 
 namespace SysBot.Pokemon.Helpers
 {
@@ -21,7 +22,7 @@ namespace SysBot.Pokemon.Helpers
             if (!Directory.Exists(mgdbPath))
                 Directory.CreateDirectory(mgdbPath);
 
-            Console.WriteLine($"MGDB Directory located at: {Path.GetFullPath(mgdbPath)}");
+            LogUtil.LogInfo($"Directory located at: {Path.GetFullPath(mgdbPath)}", "MGDB");
 
             try
             {
@@ -29,18 +30,18 @@ namespace SysBot.Pokemon.Helpers
                 client.DefaultRequestHeaders.Add("User-Agent", "NexusBot");
 
                 // Check latest commit
-                var response = await client.GetAsync(RepoApiUrl);
+                var response = await client.GetAsync(RepoApiUrl).ConfigureAwait(false);
                 string latestCommit = null;
                 
                 if (response.IsSuccessStatusCode)
                 {
-                    var json = await response.Content.ReadAsStringAsync();
+                    var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     var doc = JsonDocument.Parse(json);
                     latestCommit = doc.RootElement.GetProperty("sha").GetString();
                 }
                 else
                 {
-                    Console.WriteLine($"Could not check for MGDB updates (GitHub API returned {response.StatusCode}).");
+                    LogUtil.LogError($"Could not check for MGDB updates (GitHub API returned {response.StatusCode}).", "MGDB");
                 }
 
                 string versionFile = Path.Combine(mgdbPath, VersionFileName);
@@ -48,26 +49,30 @@ namespace SysBot.Pokemon.Helpers
 
                 if (latestCommit != null && File.Exists(versionFile) && hasSubdirs)
                 {
-                    var currentCommit = await File.ReadAllTextAsync(versionFile);
+                    var currentCommit = await File.ReadAllTextAsync(versionFile).ConfigureAwait(false);
                     if (currentCommit == latestCommit)
-                        return; // Up to date
+                    {
+                        LogUtil.LogInfo("Up to date.", "MGDB");
+                        return;
+                    }
                 }
                 else if (latestCommit == null && hasSubdirs)
                 {
                     // Rate limited but we have files, assume we're good to avoid re-downloading constantly
-                    Console.WriteLine("Local MGDB files exist. Skipping download.");
+                    LogUtil.LogInfo("Local files exist. Skipping download due to rate limit.", "MGDB");
                     return;
                 }
 
+                LogUtil.LogInfo("Downloading update from GitHub...", "MGDB");
                 // Download zip
-                var zipResponse = await client.GetAsync(RepoZipUrl);
+                var zipResponse = await client.GetAsync(RepoZipUrl).ConfigureAwait(false);
                 if (!zipResponse.IsSuccessStatusCode)
                     return;
 
                 var zipPath = Path.Combine(mgdbPath, "mgdb.zip");
                 using (var fs = new FileStream(zipPath, FileMode.Create))
                 {
-                    await zipResponse.Content.CopyToAsync(fs);
+                    await zipResponse.Content.CopyToAsync(fs).ConfigureAwait(false);
                 }
 
                 // Delete old files except version file and zip
@@ -82,13 +87,13 @@ namespace SysBot.Pokemon.Helpers
                 ZipFile.ExtractToDirectory(zipPath, mgdbPath, true);
                 File.Delete(zipPath);
 
-                await File.WriteAllTextAsync(versionFile, latestCommit ?? string.Empty);
+                await File.WriteAllTextAsync(versionFile, latestCommit ?? string.Empty).ConfigureAwait(false);
                 
-                Console.WriteLine("MGDB has been updated to the latest version.");
+                LogUtil.LogInfo("Update completed to the latest version.", "MGDB");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error updating MGDB: {ex.Message}");
+                LogUtil.LogError($"Error updating: {ex.Message}", "MGDB");
             }
         }
     }

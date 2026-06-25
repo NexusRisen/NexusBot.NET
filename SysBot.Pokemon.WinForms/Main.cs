@@ -117,6 +117,19 @@ public sealed partial class Main : Form
             LogUtil.LogInfo("Required folders created.", "Form");
         }
 
+        // Initialize MGDB and legality data in the background upon booting
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                AutoLegalityWrapper.EnsureInitialized(Config.Hub.Legality);
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogError($"Background initialization failed: {ex.Message}", "Form");
+            }
+        });
+
         RTB_Logs.MaxLength = 32_767; // character length
         LoadControls();
         LogUtil.LogInfo($"Controls loaded: {sw.ElapsedMilliseconds}ms", "Form");
