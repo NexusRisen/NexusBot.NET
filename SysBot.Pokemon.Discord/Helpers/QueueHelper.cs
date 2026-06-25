@@ -153,7 +153,7 @@ public static class QueueHelper<T> where T : PKM, new()
         if (SysCord<T>.Runner.Config.Trade.TradeConfiguration.StoreTradeCodes)
         {
             var tradeCodeStorage = new TradeCodeStorage();
-            totalTradeCount = tradeCodeStorage.GetTradeCount(trader.Id);
+            totalTradeCount = new MedalStorage().GetTradeCount(trader.Id);
             tradeDetails = tradeCodeStorage.GetTradeDetails(trader.Id);
         }
 
@@ -297,7 +297,7 @@ public static class QueueHelper<T> where T : PKM, new()
         if (SysCord<T>.Runner.Hub.Config.Trade.TradeConfiguration.StoreTradeCodes)
         {
             var tradeCodeStorage = new TradeCodeStorage();
-            int tradeCount = tradeCodeStorage.GetTradeCount(trader.Id);
+            int tradeCount = new MedalStorage().GetTradeCount(trader.Id);
             _ = SendMilestoneEmbed(tradeCount, context.Channel, trader);
         }
 
@@ -376,7 +376,7 @@ public static class QueueHelper<T> where T : PKM, new()
         if (SysCord<T>.Runner.Config.Trade.TradeConfiguration.StoreTradeCodes)
         {
             var tradeCodeStorage = new TradeCodeStorage();
-            totalTradeCount = tradeCodeStorage.GetTradeCount(trader.Id);
+            totalTradeCount = new MedalStorage().GetTradeCount(trader.Id);
             tradeDetails = tradeCodeStorage.GetTradeDetails(trader.Id);
         }
 
@@ -481,7 +481,7 @@ public static class QueueHelper<T> where T : PKM, new()
         if (SysCord<T>.Runner.Hub.Config.Trade.TradeConfiguration.StoreTradeCodes)
         {
             var tradeCodeStorage = new TradeCodeStorage();
-            int tradeCount = tradeCodeStorage.GetTradeCount(trader.Id);
+            int tradeCount = new MedalStorage().GetTradeCount(trader.Id);
             _ = SendMilestoneEmbed(tradeCount, context.Channel, trader);
         }
     }

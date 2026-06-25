@@ -718,10 +718,7 @@
       "HardRecoveryThreshold": 3,
       "VerificationDelaySeconds": 10
     },
-    "Database": {
-      "DatabaseHost": "144.208.125.199",
-      "DatabasePort": 3306
-    },
+
     "AntiIdle": true,
     "Folder": {
       "Dump": false,

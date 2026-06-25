@@ -460,7 +460,7 @@ public sealed partial class Main : Form
         var controllers = FLP_Bots.Controls.OfType<BotController>().ToList();
         var states = controllers.Select(c => c.State).ToList();
 
-        // Create bots and runner in background since runner initialization connects to the database synchronously
+        // Create bots and runner in background
         IPokeBotRunner runner = null!;
         var newBots = new List<PokeRoutineExecutorBase>();
         await Task.Run(() =>

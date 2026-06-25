@@ -1,4 +1,4 @@
-﻿namespace SysBot.Pokemon.WinForms
+namespace SysBot.Pokemon.WinForms
 {
     partial class BotController
     {

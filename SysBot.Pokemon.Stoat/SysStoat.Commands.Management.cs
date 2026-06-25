@@ -87,84 +87,6 @@ public partial class SysStoat<T>
         await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
     }
 
-    [StoatCommand("medals", "ml")]
-    private async Task HandleMedalsCommandAsync(UserMessage message, List<string> args)
-    {
-        if (!Hub.Config.Stoat.EnableMedals)
-        {
-            await StoatHelper<T>.SendAsync(_client, message.ChannelId, "The medals system is currently disabled.");
-            return;
-        }
-
-        ulong userIdNumeric = StoatHelper<T>.ConvertId(message.AuthorId);
-        var tradeCodeStorage = new TradeCodeStorage();
-        tradeCodeStorage.UpdateUsername(userIdNumeric, message.Author!.Username);
-        int totalTrades = tradeCodeStorage.GetTradeCount(userIdNumeric);
-
-        if (totalTrades == 0)
-        {
-            var zeroEmbed = EmbedHelper.CreateEmbed(
-                title: "ðŸ… Milestone Medal",
-                description: $"{message.Author.Username}, you haven't made any trades yet.\nStart trading to earn your first medal!",
-                colorHex: "#808080"
-            );
-            await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { zeroEmbed });
-            return;
-        }
-
-        string description = totalTrades switch
-        {
-            1 => "Congratulations on your first trade!\n**Status:** Beginner Trainer.",
-            50 => "You've reached 50 trades!\n**Status:** Rookie Trainer.",
-            100 => "You've reached 100 trades!\n**Status:** Rising Star.",
-            150 => "You've reached 150 trades!\n**Status:** Challenger.",
-            200 => "You've reached 200 trades!\n**Status:** Master Baiter.",
-            250 => "You've reached 250 trades!\n**Status:** Star Trainer.",
-            300 => "You've reached 300 trades!\n**Status:** Ace Trainer.",
-            350 => "You've reached 350 trades!\n**Status:** Veteran Trainer.",
-            400 => "You've reached 400 trades!\n**Status:** Expert Trainer.",
-            450 => "You've reached 450 trades!\n**Status:** PokÃ©mon Trader.",
-            500 => "You've reached 500 trades!\n**Status:** PokÃ©mon Professor.",
-            550 => "You've reached 550 trades!\n**Status:** PokÃ©mon Champion.",
-            600 => "You've reached 600 trades!\n**Status:** PokÃ©mon Specialist.",
-            650 => "You've reached 650 trades!\n**Status:** PokÃ©mon Hero.",
-            700 => "You've reached 700 trades!\n**Status:** PokÃ©mon Elite.",
-            750 => "You've reached 750 trades!\n**Status:** PokÃ©mon Legend.",
-            800 => "You've reached 800 trades!\n**Status:** Region Master.",
-            850 => "You've reached 850 trades!\n**Status:** PokÃ©mon Master.",
-            900 => "You've reached 900 trades!\n**Status:** World Famous.",
-            950 => "You've reached 950 trades!\n**Status:** Master Trader.",
-            1000 => "You've reached 1000 trades!\n**Status:** PokÃ©mon God.",
-            _ => $"Congratulations on reaching {totalTrades} trades! Keep it going!"
-        };
-
-        var embed = EmbedHelper.CreateEmbed(
-            title: $"**{message.Author.Username}'s Milestone Medal**",
-            description: $"{description}\n**Total Trades**: {totalTrades}\n\n*NexusBot.NET {SysBot.Pokemon.Helpers.NexusBot.Version} | Synchronized via SQL*",
-            colorHex: "#FFD700",
-            iconUrl: "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Characters/nexusbot.png"
-        );
-
-        await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
-    }
-
-    [StoatCommand("leaderboard", "lb", "halloffame", "hof")]
-    private async Task HandleLeaderboardCommandAsync(UserMessage message, List<string> args)
-    {
-        string response = "Check out the top trainers and the community Hall of Fame on our official website!\n\n" +
-                          "ðŸŒ **Official Hall of Fame**: https://nexusbot.org/leaderboard/\n" +
-                          "âš¡ **Real-Time Stats**: Rankings are updated globally across all bot hosters.\n\n" +
-                          $"*NexusBot.NET {SysBot.Pokemon.Helpers.NexusBot.Version} | Synchronized via SQL*";
-
-        var embed = EmbedHelper.CreateEmbed(
-            title: "ðŸ† GLOBAL MEDALS LEADERBOARD",
-            description: response,
-            colorHex: "#FFD700"
-        );
-
-        await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
-    }
-
     [StoatCommand("queuestatus", "qs")]
     private async Task HandleQueueStatusCommandAsync(UserMessage message, List<string> args)
     {
@@ -230,47 +152,7 @@ public partial class SysStoat<T>
         await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
     }
 
-    [StoatCommand("linkcode", "link")]
-    private async Task HandleLinkCommandAsync(UserMessage message, List<string> args)
-    {
-        ulong userIdNumeric = StoatHelper<T>.ConvertId(message.AuthorId);
 
-        if (args.Count == 0) // Treat as "linkcode"
-        {
-            string token = DatabaseService.GenerateLinkToken(userIdNumeric);
-            if (token == "DB_OFF" || token == "ERROR")
-            {
-                var embed = EmbedHelper.CreateEmbed("Account Linking", "Account linking is currently disabled or an error occurred.", "#FF0000");
-                await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
-            }
-            else
-            {
-                var embed = EmbedHelper.CreateEmbed("Account Linking", $"<@{message.AuthorId}> Your account link token is: **{token}**\nThis token will expire in 15 minutes. Go to the other platform and run `link {token}` to link that account.", "#00FF00");
-                await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
-            }
-        }
-        else // Treat as "link" with token
-        {
-            string token = args[0].Trim().ToUpper();
-            if (token.Length != 6)
-            {
-                var embed = EmbedHelper.CreateEmbed("Account Linking", "Invalid token format. It should be 6 characters long.", "#FF0000");
-                await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
-                return;
-            }
-            bool success = DatabaseService.LinkAccount(userIdNumeric, token, "Stoat");
-            if (success)
-            {
-                var embed = EmbedHelper.CreateEmbed("Account Linking", $"<@{message.AuthorId}> successfully linked! Your stats here will now match the primary account you linked from.", "#00FF00");
-                await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
-            }
-            else
-            {
-                var embed = EmbedHelper.CreateEmbed("Account Linking", $"<@{message.AuthorId}> failed to link account. The token may be expired, invalid, or you are trying to link to yourself.", "#FF0000");
-                await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });
-            }
-        }
-    }
 
     [StoatCommand("ts", "tradestart")]
     private async Task HandleTsCommandAsync(UserMessage message, List<string> args)

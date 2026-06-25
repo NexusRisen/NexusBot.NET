@@ -36,8 +36,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         "egg", "Egg", "hidetrade", "ht", "batchTrade", "bt",
         "pokepaste", "pp",
         "PokePaste", "PP", "randomteam", "rt", "RandomTeam", "Rt", "specialrequestpokemon", "srp",
-        "queueStatus", "qs", "queueClear", "qc", "ts", "tc", "deleteTradeCode", "dtc", "mysteryegg", "me",
-        "linkcode", "link"
+        "queueStatus", "qs", "queueClear", "qc", "ts", "tc", "deleteTradeCode", "dtc", "mysteryegg", "me"
     };
 
     private readonly KookManager Manager;
@@ -341,33 +340,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         {
             await HandleDeleteTradeCodeCommandAsync(message);
         }
-        else if (cmd == "linkcode")
-        {
-            string token = DatabaseService.GenerateLinkToken(message.Author.Id);
-            if (token == "DB_OFF" || token == "ERROR")
-                await message.Channel.SendTextAsync("Account linking is currently disabled or an error occurred.");
-            else
-                await message.Channel.SendTextAsync($"(met){message.Author.Id}(met) Your account link token is: **{token}**\nThis token will expire in 15 minutes. Go to the other platform and run `link {token}` to link that account to this Kook account.");
-        }
-        else if (cmd == "link")
-        {
-            if (parts.Length < 2) 
-            {
-                await message.Channel.SendTextAsync("Please provide the 6-character token.");
-                return;
-            }
-            string token = parts[1].Trim().ToUpper();
-            if (token.Length != 6)
-            {
-                await message.Channel.SendTextAsync("Invalid token format. It should be 6 characters long.");
-                return;
-            }
-            bool success = DatabaseService.LinkAccount(message.Author.Id, token, "Kook");
-            if (success)
-                await message.Channel.SendTextAsync($"(met){message.Author.Id}(met) successfully linked! Your stats here will now match the primary account you linked from.");
-            else
-                await message.Channel.SendTextAsync($"(met){message.Author.Id}(met) failed to link account. The token may be expired, invalid, or you are trying to link to yourself.");
-        }
+
     }
 
     private async Task<bool> CheckPermissions(SocketMessage message, RemoteControlAccessList allowedRoles, bool sudoOnly = false)

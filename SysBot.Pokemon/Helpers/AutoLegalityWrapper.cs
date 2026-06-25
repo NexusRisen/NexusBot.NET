@@ -26,7 +26,7 @@ public static class AutoLegalityWrapper
         InitializeCoreStrings();
         
         if (string.IsNullOrWhiteSpace(cfg.MGDBPath))
-            cfg.MGDBPath = Path.Combine(AppContext.BaseDirectory, "MGDB");
+            cfg.MGDBPath = AppContext.BaseDirectory;
             
         SysBot.Pokemon.Helpers.MGDBUpdater.UpdateMGDBAsync(cfg.MGDBPath).GetAwaiter().GetResult();
         

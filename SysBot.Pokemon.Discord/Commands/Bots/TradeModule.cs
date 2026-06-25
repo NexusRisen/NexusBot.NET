@@ -34,7 +34,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         }
 
         var tradeCodeStorage = new TradeCodeStorage();
-        int totalTrades = tradeCodeStorage.GetTradeCount(Context.User.Id);
+        int totalTrades = new MedalStorage().GetTradeCount(Context.User.Id);
 
         if (totalTrades == 0)
         {
@@ -45,24 +45,6 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         int currentMilestone = MedalHelpers.GetCurrentMilestone(totalTrades);
         var embed = MedalHelpers.CreateMedalsEmbed(Context.User, currentMilestone, totalTrades);
         await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
-    }
-
-    [Command("leaderboard")]
-    [Alias("lb", "halloffame", "hof")]
-    [Summary("View the global community Hall of Fame rankings")]
-    public async Task ShowLeaderboardCommand()
-    {
-        var embed = new EmbedBuilder()
-            .WithTitle("ðŸ† GLOBAL MEDALS LEADERBOARD")
-            .WithDescription("Check out the top trainers and the community Hall of Fame on our official website!")
-            .AddField("ðŸŒ Official Hall of Fame", "https://nexusbot.org/leaderboard/")
-            .AddField("âš¡ Real-Time Stats", "Rankings are updated globally across all bot hosters.")
-            .WithColor(Color.Blue)
-            .WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/1000.png")
-            .WithFooter($"NexusBot.NET {NexusBot.Version} | Synchronized via SQL")
-            .Build();
-
-        await ReplyAsync(embed: embed).ConfigureAwait(false);
     }
 
     #endregion

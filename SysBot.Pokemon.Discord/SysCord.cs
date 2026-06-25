@@ -424,7 +424,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
     private async Task HandleJoinedGuild(SocketGuild guild)
     {
-        if (Manager.BlacklistedServers.Contains(guild.Id) || DatabaseService.IsGuildBlacklisted(guild.Id))
+        if (Manager.BlacklistedServers.Contains(guild.Id))
         {
             LogUtil.LogInfo("SysCord", $"Leaving blacklisted server on join: {guild.Name} ({guild.Id})");
             await guild.LeaveAsync().ConfigureAwait(false);
@@ -560,7 +560,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
             if (msg.Channel is SocketGuildChannel guildChannel)
             {
-                if (Manager.BlacklistedServers.Contains(guildChannel.Guild.Id) || DatabaseService.IsGuildBlacklisted(guildChannel.Guild.Id))
+                if (Manager.BlacklistedServers.Contains(guildChannel.Guild.Id))
                 {
                     await guildChannel.Guild.LeaveAsync();
                     return;
@@ -660,7 +660,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         // Global Blacklist Sweep on startup
         foreach (var guild in _client.Guilds)
         {
-            if (Manager.BlacklistedServers.Contains(guild.Id) || DatabaseService.IsGuildBlacklisted(guild.Id))
+            if (Manager.BlacklistedServers.Contains(guild.Id))
             {
                 LogUtil.LogInfo("SysCord", $"Leaving blacklisted server on startup: {guild.Name} ({guild.Id})");
                 await guild.LeaveAsync().ConfigureAwait(false);

@@ -1396,7 +1396,7 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
             // ALM's NET10 defaults can be identified by the OT name alone
             bool hasALMDefaults = toSend.OriginalTrainerName.Equals("ALM", StringComparison.OrdinalIgnoreCase);
             if (hasALMDefaults)
-                Log("ALM default OT detected. This might indicate that no matching trainer data was found in the database.");
+                Log("ALM default OT detected. This might indicate that no matching trainer data was found.");
 
             bool hasDefaultTrainerInfo = hasConfiguredDefaults || hasALMDefaults;
 

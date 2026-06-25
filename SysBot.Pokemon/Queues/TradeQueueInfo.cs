@@ -456,7 +456,7 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
     }
 
     public bool DeleteTradeCode(ulong trainerID) => _tradeCodeStorage.DeleteTradeCode(trainerID);
-    public int GetTradeCount(ulong trainerID) => _tradeCodeStorage.GetTradeCount(trainerID);
+    public int GetTradeCount(ulong trainerID) => new MedalStorage().GetTradeCount(trainerID);
     public TradeCodeStorage.TradeCodeDetails? GetTradeDetails(ulong trainerID) => _tradeCodeStorage.GetTradeDetails(trainerID);
 
     public void UpdateTradeDetails(ulong trainerID, string ot, int tid, int sid, string? quote = null, byte? gender = null, int? language = null)

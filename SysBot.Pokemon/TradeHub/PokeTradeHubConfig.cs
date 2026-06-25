@@ -94,8 +94,6 @@ public sealed class PokeTradeHubConfig : BaseConfig
     [TypeConverter(typeof(ExpandableObjectConverter))]
     public RecoverySettings Recovery { get; set; } = new();
 
-    [Category(Operation), Description("Settings for Remote MySQL Database.")]
-    [TypeConverter(typeof(ExpandableObjectConverter))]
-    public DatabaseSettings Database { get; set; } = new();
+
 
 }
