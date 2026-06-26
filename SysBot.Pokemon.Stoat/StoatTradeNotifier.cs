@@ -319,7 +319,7 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
         {
             if (BatchTradeNumber == TotalBatchTrades)
             {
-                // All done â€” send final summary
+                // All done - send final summary
                 _ = SendDM($"All {TotalBatchTrades} trades completed! Thank you for trading!");
             }
             else
