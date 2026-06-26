@@ -127,6 +127,7 @@ public abstract class PokeRoutineExecutor9SV : PokeRoutineExecutor<PK9>
             await SetScreen(ScreenState.Off, token).ConfigureAwait(false);
         }
         await SetController(ControllerType.ProController, token);
+        await Task.Delay(1_500, token).ConfigureAwait(false);
         Log("Setting SV-specific hid waits");
         await Connection.SendAsync(SwitchCommand.Configure(SwitchConfigureParameter.keySleepTime, KeyboardPressTime), token).ConfigureAwait(false);
         await Connection.SendAsync(SwitchCommand.Configure(SwitchConfigureParameter.pollRate, HidWaitTime), token).ConfigureAwait(false);
