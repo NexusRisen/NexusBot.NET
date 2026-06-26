@@ -1,13 +1,12 @@
-# NexusBot.NET v7.0.8
+# NexusBot.NET v7.0.9
 
-This update completely overhauls the internal storage and tracking mechanisms, bringing everything to the local filesystem for faster, disconnected execution.
+Welcome to NexusBot.NET v7.0.9! This release focuses on crucial bug fixes for hardware initialization, CI/CD stability, and documentation rendering.
 
-### Major Changes
-- **Completely removed Remote SQL Database**: All traces of the remote database and connection strings have been purged. NexusBot is now entirely local-only.
-- **Removed Account Linking**: The ability to cross-link accounts via tokens has been deprecated and completely removed along with the `/link` commands.
-- **Removed Global Leaderboards**: In tandem with the database removal, the global hall of fame and `/leaderboard` tracking have been removed.
+## 🐛 Bug Fixes & Hardware Compatibility
+- **sys-botbase 2.5 Boot Sequence Fixes**: Resolved a major issue where Pokémon Brilliant Diamond/Shining Pearl (BDSP) and Pokémon Scarlet/Violet (SV) would fail to launch when using `sys-botbase` v2.5. We've introduced a hardware delay to ensure the virtual controller fully mounts before pushing HID configuration packets (`keySleepTime`/`pollRate`), preventing the initial inputs from being dropped.
 
-### Architectural Improvements
-- **Decoupled Medals**: Trade counts and medals are no longer tracked in messy shared data files. All trades are now simply logged and incremented into a standalone `data/medals.json` isolated completely from trade queues.
-- **Purged Heartbeat API**: The active-bots heartbeat broadcast is completely removed to keep NexusBot isolated.
-- **Purged Cloud Blacklists**: The cloud-based global guild blacklist check has been removed, maintaining only the local manual configuration file limits.
+## 🛠️ CI/CD & Testing
+- **Automated Test Stability**: Fixed intermittent race conditions during CI/CD test execution by explicitly disabling assembly parallelization using `xunit.runner.json`. This ensures tests no longer encounter `FileNotFoundException` during assembly loading.
+
+## 📝 Documentation
+- **Markdown & Encoding Fixes**: Repaired multiple encoding issues (mojibake) across various markdown files, including `CONTRIBUTING.md` and `GOVERNANCE.md`, ensuring all emojis and special characters render flawlessly on GitHub.
