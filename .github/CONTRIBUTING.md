@@ -20,6 +20,6 @@ Thank you for your interest in contributing to NexusBot.NET! We welcome contribu
 
 ## Community Standards
 
-Please remember to follow our [Code of Conduct](CODE_OF_CONDUCT.md)â€”**don't be an asshole** and be friendly to your fellow contributors.
+Please remember to follow our [Code of Conduct](CODE_OF_CONDUCT.md) - **don't be an asshole** and be friendly to your fellow contributors.
 
 Everything here is volunteer-based. We appreciate your time and effort!
