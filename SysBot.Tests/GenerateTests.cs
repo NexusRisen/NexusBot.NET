@@ -3,6 +3,8 @@ using PKHeX.Core;
 using SysBot.Pokemon;
 using Xunit;
 
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
+
 namespace SysBot.Tests;
 
 public class GenerateTests
