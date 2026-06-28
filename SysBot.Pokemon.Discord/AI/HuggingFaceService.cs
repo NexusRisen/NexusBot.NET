@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SysBot.Base;
@@ -22,6 +23,7 @@ public class HuggingFaceService : IDisposable
 
     private readonly System.Collections.Concurrent.ConcurrentDictionary<ulong, List<Message>> _chatHistory = new();
     private const int MaxHistoryMessages = 10;
+    private readonly SemaphoreSlim _requestSemaphore = new(1, 1);
     private bool _isDisposed;
 
     public HuggingFaceService(string apiKey, string model, int maxTokens = 800, float temperature = 0.7f, float topP = 0.9f)
@@ -37,7 +39,10 @@ public class HuggingFaceService : IDisposable
 
     public async Task<string> GetAIResponseAsync(ulong userId, string prompt, string? systemPrompt = null)
     {
-        int maxRetries = 3;
+        await _requestSemaphore.WaitAsync();
+        try
+        {
+            int maxRetries = 3;
         for (int i = 0; i < maxRetries; i++)
         {
             try
@@ -82,6 +87,14 @@ public class HuggingFaceService : IDisposable
                     continue;
                 }
 
+                if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                {
+                    var retryAfter = response.Headers.RetryAfter?.Delta?.TotalSeconds ?? (5 * (i + 1));
+                    LogUtil.LogInfo("HuggingFaceService", $"Rate limited (429). Retrying in {retryAfter} seconds...");
+                    await Task.Delay(TimeSpan.FromSeconds(retryAfter));
+                    continue;
+                }
+
                 response.EnsureSuccessStatusCode();
 
                 var responseJson = await response.Content.ReadAsStringAsync();
@@ -120,6 +133,11 @@ public class HuggingFaceService : IDisposable
                 await Task.Delay(2000 * (i + 1));
             }
         }
+        }
+        finally
+        {
+            _requestSemaphore.Release();
+        }
 
         return string.Empty;
     }
@@ -131,6 +149,7 @@ public class HuggingFaceService : IDisposable
         if (_isDisposed) return;
         _isDisposed = true;
         _httpClient.Dispose();
+        _requestSemaphore.Dispose();
         GC.SuppressFinalize(this);
     }
 

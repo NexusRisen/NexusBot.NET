@@ -951,17 +951,25 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         }
 
         _pendingAIRequests[msg.Author.Id] = showdownSet;
-        await SafeSendMessageAsync(msg.Channel, "Would you like to be put in the queue for this Pokemon? (Yes/No)");
+        await SafeSendMessageAsync(msg.Channel, "Would you like to be put in the queue for this Pokemon, or receive the PKM file? (Reply 'Yes' to queue, 'File' for file, or 'No')");
     }
 
     private async Task<bool> HandleAIPendingAsync(SocketUserMessage msg)
     {
         var content = msg.Content.ToLower().Trim();
-        if (content == "yes" || content == "y")
+        if (content == "yes" || content == "y" || content == "queue")
         {
             if (_pendingAIRequests.TryRemove(msg.Author.Id, out var showdownSet))
             {
                 await ProcessAIShowdownSetAsync(msg, showdownSet);
+                return true;
+            }
+        }
+        else if (content == "file" || content == "f" || content == "pkm")
+        {
+            if (_pendingAIRequests.TryRemove(msg.Author.Id, out var showdownSet))
+            {
+                await ProcessAIShowdownFileAsync(msg, showdownSet);
                 return true;
             }
         }
@@ -1009,6 +1017,27 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         catch (Exception ex)
         {
             await Log(new LogMessage(LogSeverity.Error, "AI", $"Error processing AI Showdown set: {ex.Message}", ex));
+        }
+    }
+
+    private async Task ProcessAIShowdownFileAsync(SocketUserMessage msg, string showdownSet)
+    {
+        try
+        {
+            var result = await Helpers<T>.ProcessShowdownSetAsync(showdownSet, false);
+            if (result.Pokemon == null)
+            {
+                await SafeSendMessageAsync(msg.Channel, "I found a Showdown set, but I couldn't process it. Make sure it's valid.");
+                return;
+            }
+
+            var pkm = result.Pokemon;
+            using var ms = new System.IO.MemoryStream(pkm.Data.ToArray());
+            await msg.Channel.SendFileAsync(ms, pkm.FileName, "Here is your requested PKM file!");
+        }
+        catch (Exception ex)
+        {
+            await Log(new LogMessage(LogSeverity.Error, "AI", $"Error processing AI PKM file: {ex.Message}", ex));
         }
     }
 }

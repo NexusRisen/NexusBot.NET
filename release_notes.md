@@ -1,12 +1,9 @@
-# NexusBot.NET v7.0.9
+# Release Notes
 
-Welcome to NexusBot.NET v7.0.9! This release focuses on crucial bug fixes for hardware initialization, CI/CD stability, and documentation rendering.
+## [Unreleased]
 
-## 🐛 Bug Fixes & Hardware Compatibility
-- **sys-botbase 2.5 Boot Sequence Fixes**: Resolved a major issue where Pokémon Brilliant Diamond/Shining Pearl (BDSP) and Pokémon Scarlet/Violet (SV) would fail to launch when using `sys-botbase` v2.5. We've introduced a hardware delay to ensure the virtual controller fully mounts before pushing HID configuration packets (`keySleepTime`/`pollRate`), preventing the initial inputs from being dropped.
+### Added
+- **AI Chatbot File Generation:** Users can now reply "File" or "pkm" when the AI generates a legal Showdown set to receive the exact `.pkm` file directly as a Discord attachment instead of joining the trade queue.
 
-## 🛠️ CI/CD & Testing
-- **Automated Test Stability**: Fixed intermittent race conditions during CI/CD test execution by explicitly disabling assembly parallelization using `xunit.runner.json`. This ensures tests no longer encounter `FileNotFoundException` during assembly loading.
-
-## 📝 Documentation
-- **Markdown & Encoding Fixes**: Repaired multiple encoding issues (mojibake) across various markdown files, including `CONTRIBUTING.md` and `GOVERNANCE.md`, ensuring all emojis and special characters render flawlessly on GitHub.
+### Improved
+- **AI Rate Limiting:** Implemented robust rate-limit handling for the Hugging Face API. Added a `SemaphoreSlim` queue to manage concurrent AI requests and explicitly parse `Retry-After` headers on HTTP 429 errors, gracefully handling high server traffic without triggering API bans.
