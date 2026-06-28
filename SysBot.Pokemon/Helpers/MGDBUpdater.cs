@@ -31,12 +31,12 @@ namespace SysBot.Pokemon.Helpers
 
                 // Check latest commit
                 var response = await client.GetAsync(RepoApiUrl).ConfigureAwait(false);
-                string latestCommit = null;
+                string? latestCommit = null;
                 
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                    var doc = JsonDocument.Parse(json);
+                    var doc = JsonDocument.Parse(json!);
                     latestCommit = doc.RootElement.GetProperty("sha").GetString();
                 }
                 else

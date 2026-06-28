@@ -6,11 +6,11 @@ namespace SysBot.Pokemon.WinForms
 {
     public class ReportIssueForm : Form
     {
-        private TextBox tbTitle;
-        private TextBox tbDescription;
-        private Button btnSubmit;
-        private System.Windows.Forms.Label lblTitle;
-        private System.Windows.Forms.Label lblDescription;
+        private TextBox tbTitle = null!;
+        private TextBox tbDescription = null!;
+        private Button btnSubmit = null!;
+        private System.Windows.Forms.Label lblTitle = null!;
+        private System.Windows.Forms.Label lblDescription = null!;
 
         public ReportIssueForm()
         {

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SysBot.Base;
 
 namespace SysBot.Pokemon;
 
@@ -26,12 +27,28 @@ public static class AutoLegalityWrapper
         InitializeCoreStrings();
         
         if (string.IsNullOrWhiteSpace(cfg.MGDBPath))
-            cfg.MGDBPath = AppContext.BaseDirectory;
+        {
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            cfg.MGDBPath = Path.Combine(appData, "NexusBot", "MGDB");
+        }
             
-        SysBot.Pokemon.Helpers.MGDBUpdater.UpdateMGDBAsync(cfg.MGDBPath).GetAwaiter().GetResult();
-        
-        // Updated to convert the string to a ReadOnlySpan<string> array as required by the method signature.   
-        EncounterEvent.RefreshMGDB([cfg.MGDBPath]);
+        string mutexName = "NexusBot_MGDB_" + cfg.MGDBPath.GetHashCode().ToString("X");
+        using var mutex = new Mutex(false, mutexName);
+        bool acquired = false;
+        try
+        {
+            acquired = mutex.WaitOne(TimeSpan.FromMinutes(2));
+            if (!acquired)
+                LogUtil.LogError("Timeout waiting for MGDB update lock.", "MGDB");
+
+            SysBot.Pokemon.Helpers.MGDBUpdater.UpdateMGDBAsync(cfg.MGDBPath).GetAwaiter().GetResult();
+            EncounterEvent.RefreshMGDB([cfg.MGDBPath]);
+        }
+        finally
+        {
+            if (acquired)
+                mutex.ReleaseMutex();
+        }
         InitializeTrainerDatabase(cfg);
         InitializeSettings(cfg);
     }

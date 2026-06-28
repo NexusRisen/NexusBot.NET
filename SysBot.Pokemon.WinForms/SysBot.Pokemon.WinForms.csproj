@@ -18,7 +18,7 @@
     <Description>Nintendo Switch PokÃ©mon Bot Manager</Description>
     <ApplicationIcon>icon.ico</ApplicationIcon>
     <StartupObject>SysBot.Pokemon.WinForms.Program</StartupObject>
-    <Version>7.0.9</Version>
+    <Version>8.0.0</Version>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
   </PropertyGroup>
   <PropertyGroup>
