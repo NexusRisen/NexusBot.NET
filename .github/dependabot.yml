@@ -35,7 +35,7 @@ updates:
       interval: "daily"
     open-pull-requests-limit: 5
 
-  # Twitch/YouTube/Z3
+  # Twitch/YouTube/Z3/Kook/Stoat
   - package-ecosystem: "nuget"
     directory: "/SysBot.Pokemon.Twitch"
     schedule:
@@ -46,6 +46,20 @@ updates:
       interval: "daily"
   - package-ecosystem: "nuget"
     directory: "/SysBot.Pokemon.Z3"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "nuget"
+    directory: "/SysBot.Pokemon.Kook"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "nuget"
+    directory: "/SysBot.Pokemon.Stoat"
+    schedule:
+      interval: "daily"
+
+  # Tests
+  - package-ecosystem: "nuget"
+    directory: "/SysBot.Tests"
     schedule:
       interval: "daily"
 
