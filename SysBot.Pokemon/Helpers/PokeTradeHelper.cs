@@ -163,6 +163,22 @@ public static class PokeTradeHelper<T> where T : PKM, new()
             };
         }
 
+        // ============================================================================
+        // ZA TRADE EVOLUTION WORKAROUND
+        // ============================================================================
+        if (pkm is PA9 && hub.Config.Trade.TradeConfiguration.DisallowTradeEvolutionsZA && pkm.HeldItem != 110)
+        {
+            ushort[] tradeEvolutions = [61, 64, 67, 75, 79, 93, 95, 112, 117, 123, 125, 126, 137, 233, 349, 356, 366, 533, 588, 616, 682, 684, 708, 710];
+            if (Array.IndexOf(tradeEvolutions, pkm.Species) >= 0)
+            {
+                return new ProcessedPokemonResult<T>
+                {
+                    Error = "Trade evolutions are disallowed in ZA to prevent game crashes. Please attach an Everstone if you wish to trade this Pokemon.",
+                    ShowdownSet = set
+                };
+            }
+        }
+
         // Final preparation
         PrepareForTrade(pk, set, finalLanguage);
 

@@ -31,7 +31,7 @@ namespace SysBot.Pokemon.Discord.Helpers.TradeModule
             // Check if user explicitly requested a different StatNature via batch command (.StatNature=)
             // If pkm.StatNature differs from pkm.Nature, it means user wants manual nature minting
             // IMPORTANT: Capture this BEFORE any modifications
-            bool hasExplicitStatNature = pkm.StatNature != pkm.Nature;
+            bool hasExplicitStatNature = pkm.StatNature != Nature.Random;
             Nature explicitStatNature = hasExplicitStatNature ? pkm.StatNature : Nature.Random;
 
             // -----------------------------
@@ -108,7 +108,7 @@ namespace SysBot.Pokemon.Discord.Helpers.TradeModule
                 // 1. If user explicitly requested a Stat Nature via batch command, use that.
                 // 2. Else if minted (forced nature), use user's requested nature.
                 // 3. Else use the actual nature
-                pkm.StatNature = hasExplicitStatNature ? explicitStatNature : (isMinted ? userRequestedNature : pkm.Nature);
+                pkm.StatNature = hasExplicitStatNature ? explicitStatNature : (isMinted ? userRequestedNature : Nature.Random);
                 pkm.RefreshChecksum();
                 return;
             }
@@ -152,7 +152,7 @@ namespace SysBot.Pokemon.Discord.Helpers.TradeModule
             // 1. If user explicitly requested a StatNature via batch command, use that
             // 2. Else if minted (forced nature), use user's requested nature
             // 3. Else use the actual nature
-            pkm.StatNature = hasExplicitStatNature ? explicitStatNature : (isMinted ? userRequestedNature : pkm.Nature);
+            pkm.StatNature = hasExplicitStatNature ? explicitStatNature : (isMinted ? userRequestedNature : Nature.Random);
 
             // Restore IVs
             pkm.IV_HP = iv_hp;

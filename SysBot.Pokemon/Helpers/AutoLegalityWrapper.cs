@@ -291,6 +291,28 @@ public static class AutoLegalityWrapper
     }
 
     public static string GetLegalizationHint(IBattleTemplate set, ITrainerInfo sav, PKM pk) => set.SetAnalysis(sav, pk);
-    public static PKM LegalizePokemon(this PKM pk) => pk.Legalize();
+    public static PKM LegalizePokemon(this PKM pk) 
+    {
+        var originalOT = pk.OriginalTrainerName;
+        var originalTID = pk.TID16;
+        var originalSID = pk.SID16;
+        var originalGender = pk.OriginalTrainerGender;
+
+        var legal = pk.Legalize();
+
+        // Restore original OT/TID/SID if still legal (Honours OT & fixes random TID/SID)
+        var temp = legal.Clone();
+        temp.OriginalTrainerName = originalOT;
+        temp.TID16 = originalTID;
+        temp.SID16 = originalSID;
+        temp.OriginalTrainerGender = originalGender;
+
+        if (new LegalityAnalysis(temp).Valid)
+        {
+            return temp;
+        }
+
+        return legal;
+    }
     public static RegenTemplate GetTemplate(ShowdownSet set) => new RegenTemplate(set);
 }

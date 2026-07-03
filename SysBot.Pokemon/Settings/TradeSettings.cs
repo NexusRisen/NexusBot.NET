@@ -60,6 +60,9 @@ public class TradeSettings : IBotStateSettings, ICountSettings
         [Category(TradeConfig), Description("Time to wait for a trade partner in seconds."), DisplayName("Trade Partner Wait Time (seconds)")]
         public int TradeWaitTime { get; set; } = 30;
 
+        [Category(TradeConfig), Description("Disallow trade evolutions in Pokemon Legends: Z-A (prevents game crashes)."), DisplayName("Disallow Trade Evolutions (PLZA)")]
+        public bool DisallowTradeEvolutionsZA { get; set; } = true;
+
         [Category(TradeConfig), Description("Max amount of time in seconds pressing A to wait for a trade to process."), DisplayName("Maximum Trade Confirmation Time (seconds)")]
         public int MaxTradeConfirmTime { get; set; } = 25;
 

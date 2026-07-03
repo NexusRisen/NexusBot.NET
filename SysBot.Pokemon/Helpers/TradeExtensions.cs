@@ -90,7 +90,7 @@ namespace SysBot.Pokemon.Helpers
         public static void DittoTrade(PKM pkm)
         {
             var nickname = pkm.Nickname.ToLower();
-            pkm.StatNature = pkm.Nature;
+            pkm.StatNature = Nature.Random;
             pkm.MetLocation = pkm switch { PB8 => 400, PK9 => 28, _ => 162 };
             pkm.MetLevel = pkm switch { PB8 => 29, PK9 => 34, _ => pkm.MetLevel };
             

@@ -1,15 +1,16 @@
 # Release Notes
 
-## [8.0.0]
+## [8.0.1]
 
 ### Added
-- **AI Chatbot File Generation:** Users can now reply "File" or "pkm" when the AI generates a legal Showdown set to receive the exact `.pkm` file directly as a Discord attachment instead of joining the trade queue.
+- **`$pokemon` Command**: Introduced a new `$pokemon` command in Discord to quickly link users to an online Pokédex reference.
+- **Legends: Z-A Evolution Guard**: Added a `DisallowTradeEvolutionsZA` toggle in TradeSettings. When enabled, this automatically halts trades involving Pokémon that evolve via trade in *Pokémon Legends: Z-A* to prevent in-game crashes.
 
 ### Improved
-- **AI Rate Limiting:** Implemented robust rate-limit handling for the Hugging Face API. Added a `SemaphoreSlim` queue to manage concurrent AI requests and explicitly parse `Retry-After` headers on HTTP 429 errors, gracefully handling high server traffic without triggering API bans.
+- **PKHeX Core Standards**: Realigned `StatNature` checks and unminted state tracking (`Nature.Random`) to the latest PKHeX 26.5.5 requirements.
+- **Dependency Upgrades**: Upgraded `Microsoft.NET.Test.Sdk` package dependency to 18.7.0.
 
 ### Fixed
-- **Stability and Code Quality:** Resolved compiler warnings related to nullable references in `MGDBUpdater.cs` and uninitialized fields in `ReportIssueForm.cs`, preventing potential `NullReferenceException` crashes.
-- **Automated Tests:** Fixed the test suite by updating the missing `FluentAssertions` dependency in `SysBot.Tests`, ensuring all core logic tests pass correctly.
-- **MGDB Initialization Crash:** Fixed a critical bug where the Mystery Gift Database (MGDB) updater would attempt to delete the bot's own installation files on startup. The database is now securely sandboxed in the shared `AppData\Local` directory.
-- **Multi-Instance Support:** Implemented a system-wide Mutex for the MGDB updater. Multiple bots launched simultaneously will now safely coordinate and share the same central database without race conditions or file lock crashes.
+- **Discord Command Deadlocks**: Fixed a severe application lockup issue caused by two heavy Discord commands executing concurrently. Command handling is now safely synchronized.
+- **Original Trainer Retention**: Fixed an issue where ALM (AutoLegalityWrapper) would mistakenly randomize Original Trainer info (OT Name, TID, and SID) when generating from showdown sets. Honors the intended OT properly now.
+- **Box Format Slot Size**: Fixed BoxFormatSlotSize handling for PLZA (`0x158`) enabling correct box reads and generation handling for the format.

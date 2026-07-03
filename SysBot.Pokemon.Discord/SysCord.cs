@@ -42,6 +42,8 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
     private readonly AI.HuggingFaceService? _aiService;
     private readonly System.Collections.Concurrent.ConcurrentDictionary<ulong, string> _pendingAIRequests = new();
 
+    private readonly SemaphoreSlim _commandSemaphore = new(1, 1);
+
     private readonly HashSet<string> _validCommands = new HashSet<string>
     {
         "trade", "t", "clone", "fixOT", "fix", "f", "dittoTrade", "ditto", "dt", "itemTrade", "item", "it",
@@ -743,6 +745,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
     private async Task<bool> TryHandleCommandAsync(SocketUserMessage msg, SocketCommandContext context, int pos)
     {
+        await _commandSemaphore.WaitAsync().ConfigureAwait(false);
         try
         {
             var AbuseSettings = Hub.Config.TradeAbuse;
@@ -784,6 +787,10 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         {
             await Log(new LogMessage(LogSeverity.Error, "Command", $"Error executing command: {ex.Message}", ex)).ConfigureAwait(false);
             return false;
+        }
+        finally
+        {
+            _commandSemaphore.Release();
         }
     }
 
