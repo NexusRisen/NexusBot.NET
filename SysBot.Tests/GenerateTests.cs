@@ -100,7 +100,8 @@ Quiet Nature
             var s = new ShowdownSet(set);
             var template = AutoLegalityWrapper.GetTemplate(s);
             var pk = sav.GetLegal(template, out _);
-            pk.AbilityNumber.Should().Be(abilNumber);
+            pk.Should().NotBeNull();
+            pk!.AbilityNumber.Should().Be(abilNumber);
         }
     }
 

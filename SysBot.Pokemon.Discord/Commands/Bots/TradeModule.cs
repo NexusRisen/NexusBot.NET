@@ -269,7 +269,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
                     var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
 
                     // Generate the egg using ALM's GenerateEgg method
-                    var pkm = sav.GenerateEgg(template, out var result);
+                    var pkm = AutoLegalityWrapper.GenerateEgg(sav, template, out var result);
 
                     if (result == LegalizationResult.Regenerated && pkm != null)
                     {

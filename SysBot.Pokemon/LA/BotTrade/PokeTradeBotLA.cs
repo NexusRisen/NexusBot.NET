@@ -1303,11 +1303,18 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
             var mg = EncounterEvent.GetAllEvents().Where(x => x.Species == clone.Species && x.Form == clone.Form && x.IsShiny == clone.IsShiny && x.OriginalTrainerName == clone.OriginalTrainerName).ToList();
             if (mg.Count > 0)
                 clone = TradeExtensions<PA8>.CherishHandler(mg.First(), info);
-            else clone = (PA8)sav.GetLegal(AutoLegalityWrapper.GetTemplate(new ShowdownSet(string.Join("\n", set))), out _);
+            else clone = (PA8?)sav.GetLegal(AutoLegalityWrapper.GetTemplate(new ShowdownSet(string.Join("\n", set))), out _);
         }
         else
         {
-            clone = (PA8)sav.GetLegal(AutoLegalityWrapper.GetTemplate(new ShowdownSet(string.Join("\n", set))), out _);
+            clone = (PA8?)sav.GetLegal(AutoLegalityWrapper.GetTemplate(new ShowdownSet(string.Join("\n", set))), out _);
+        }
+
+        if (clone == null)
+        {
+            poke.SendNotification(this, "Failed to regenerate a legal Pokémon. Exiting trade.");
+            TradeProgressChanged?.Invoke(0);
+            return (offered, PokeTradeResult.IllegalTrade);
         }
         var la = new LegalityAnalysis(clone);
         clone = (PA8)TradeExtensions<PA8>.TrashBytes(clone, la);

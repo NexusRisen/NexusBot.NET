@@ -32,14 +32,14 @@ public static class AutoLegalityExtensionsDiscord
             bool isEggRequest = set.Nickname.Equals("egg", StringComparison.CurrentCultureIgnoreCase)
                                 && Breeding.CanHatchAsEgg(set.Species);
 
-            PKM pkm;
+            PKM? pkm;
             string result;
             var template = new RegenTemplate(set);
 
             if (isEggRequest)
             {
                 // Generate egg using ALM
-                pkm = sav.GenerateEgg(template, out var eggResult);
+                pkm = AutoLegalityWrapper.GenerateEgg(sav, template, out var eggResult);
                 result = eggResult.ToString();
 
                 if (pkm != null && APILegality.AllowTrainerOverride && template.Regen.Trainer != null)

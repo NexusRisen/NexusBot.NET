@@ -586,7 +586,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         if (args.Count == 0 || Hub.Queues.Info.IsUserInQueue(message.Author.Id)) return;
         var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
         var template = AutoLegalityWrapper.GetTemplate(new ShowdownSet(string.Join(" ", args)));
-        var pkm = sav.GenerateEgg(template, out var res);
+        var pkm = AutoLegalityWrapper.GenerateEgg(sav, template, out var res);
         if (res == LegalizationResult.Regenerated && pkm != null)
         {
             if (APILegality.AllowTrainerOverride && template.Regen.Trainer != null)

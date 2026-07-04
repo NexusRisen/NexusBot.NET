@@ -317,7 +317,7 @@ public partial class SysStoat<T>
 
         var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
         var template = AutoLegalityWrapper.GetTemplate(new ShowdownSet(eggName));
-        var pkm = sav.GenerateEgg(template, out var res);
+        var pkm = AutoLegalityWrapper.GenerateEgg(sav, template, out var res);
         
         if (res == LegalizationResult.Regenerated && pkm != null)
         {

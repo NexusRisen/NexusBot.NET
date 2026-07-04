@@ -30,7 +30,7 @@ Shiny: {(isShiny ? "Yes" : "No")}");
         var template = AutoLegalityWrapper.GetTemplate(set);
 
         // Act
-        var egg = sav.GenerateEgg(template, out var result);
+        var egg = AutoLegalityWrapper.GenerateEgg(sav, template, out var result);
 
         // Assert
         result.Should().Be(LegalizationResult.Regenerated, "egg generation should succeed");
@@ -64,7 +64,7 @@ Shiny: {(isShiny ? "Yes" : "No")}");
         var template = AutoLegalityWrapper.GetTemplate(set);
 
         // Act
-        var egg = sav.GenerateEgg(template, out var result);
+        var egg = AutoLegalityWrapper.GenerateEgg(sav, template, out var result);
 
         // Assert
         result.Should().Be(LegalizationResult.Regenerated, "egg generation should succeed");
@@ -96,7 +96,7 @@ Shiny: {(isShiny ? "Yes" : "No")}");
         var template = AutoLegalityWrapper.GetTemplate(set);
 
         // Act
-        var egg = sav.GenerateEgg(template, out var result);
+        var egg = AutoLegalityWrapper.GenerateEgg(sav, template, out var result);
 
         // Assert
         result.Should().Be(LegalizationResult.Regenerated, "egg generation should succeed");
@@ -124,7 +124,7 @@ Ball: Poke Ball");
         var template = AutoLegalityWrapper.GetTemplate(set);
 
         // Act
-        var egg = sav.GenerateEgg(template, out var result);
+        var egg = AutoLegalityWrapper.GenerateEgg(sav, template, out var result);
 
         // Assert
         result.Should().Be(LegalizationResult.Regenerated);
@@ -150,7 +150,7 @@ Ball: Poke Ball
         var template = AutoLegalityWrapper.GetTemplate(set);
 
         // Act
-        var egg = sav.GenerateEgg(template, out var result);
+        var egg = AutoLegalityWrapper.GenerateEgg(sav, template, out var result);
 
         // Assert
         result.Should().Be(LegalizationResult.Regenerated);
@@ -175,7 +175,7 @@ Ball: Poke Ball");
         var template = AutoLegalityWrapper.GetTemplate(set);
 
         // Act
-        var egg = sav.GenerateEgg(template, out var result);
+        var egg = AutoLegalityWrapper.GenerateEgg(sav, template, out var result);
 
         // Assert
         result.Should().Be(LegalizationResult.Regenerated);
@@ -198,7 +198,7 @@ Ball: Poke Ball");
     {
         var sav = AutoLegalityWrapper.GetTrainerInfo<PK9>();
         var template = AutoLegalityWrapper.GetTemplate(new ShowdownSet("pichu"));
-        var egg = sav.GenerateEgg(template, out var result);
+        var egg = AutoLegalityWrapper.GenerateEgg(sav, template, out var result);
         
         result.Should().Be(LegalizationResult.Regenerated);
         egg.Should().NotBeNull();
@@ -224,7 +224,7 @@ Ball: Poke Ball");
     {
         var sav = AutoLegalityWrapper.GetTrainerInfo<PB8>();
         var template = AutoLegalityWrapper.GetTemplate(new ShowdownSet("turtwig"));
-        var egg = sav.GenerateEgg(template, out var result);
+        var egg = AutoLegalityWrapper.GenerateEgg(sav, template, out var result);
         
         result.Should().Be(LegalizationResult.Regenerated);
         egg.Should().NotBeNull();

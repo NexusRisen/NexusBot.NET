@@ -60,12 +60,12 @@ public class DiscordCommandLogicTests
         }
         
         // The raw PKM is illegal
-        new LegalityAnalysis(pkm).Valid.Should().BeFalse();
+        new LegalityAnalysis(pkm!).Valid.Should().BeFalse();
         
         // Legalize it using ALM extension
-        var legal = pkm.LegalizePokemon();
+        var legal = pkm!.LegalizePokemon();
         
         legal.Should().NotBeNull();
-        new LegalityAnalysis(legal).Valid.Should().BeTrue();
+        new LegalityAnalysis(legal!).Valid.Should().BeTrue();
     }
 }

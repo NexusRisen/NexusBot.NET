@@ -81,7 +81,7 @@ public static class PokemonDetailsHelper<T> where T : PKM, new()
 
         // Nature (handle minted)
         string baseName = strings.natures[(int)pk.Nature];
-        if (pk.StatNature != pk.Nature)
+        if (pk.StatNature != Nature.Random && pk.StatNature != pk.Nature)
         {
             string statName = strings.natures[(int)pk.StatNature];
             details.Nature = $"{statName} (Minted from: {baseName})";

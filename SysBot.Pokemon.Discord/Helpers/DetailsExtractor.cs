@@ -174,8 +174,8 @@ public static class DetailsExtractor<T> where T : PKM, new()
         embedData.Ability = GetAbilityName(pk, strings);
         embedData.Nature = GetNatureName(pk, strings);
 
-        // Extract Stat Nature if it differs from regular Nature
-        if (pk.StatNature != pk.Nature && strings.natures != null)
+        // Extract Stat Nature if it differs from regular Nature and is not unminted (Nature.Random)
+        if (pk.StatNature != Nature.Random && pk.StatNature != pk.Nature && strings.natures != null)
         {
             embedData.StatNature = strings.natures[(int)pk.StatNature];
         }

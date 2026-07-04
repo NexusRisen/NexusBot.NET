@@ -81,8 +81,11 @@ namespace SysBot.Pokemon.Helpers
             {
                 mgPkm.SetRandomIVs(6);
                 var pk = AutoLegalityWrapper.GetLegal(info, AutoLegalityWrapper.GetTemplate(new ShowdownSet(ShowdownParsing.GetShowdownText(mgPkm))), out _);
-                pk.SetAllTrainerData(info);
-                return (T)pk;
+                if (pk != null)
+                {
+                    pk.SetAllTrainerData(info);
+                    return (T)pk;
+                }
             }
             return (T)mgPkm;
         }

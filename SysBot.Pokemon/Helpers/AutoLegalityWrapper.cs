@@ -6,49 +6,28 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SysBot.Base;
 
 namespace SysBot.Pokemon;
 
 public static class AutoLegalityWrapper
 {
     private static bool Initialized;
+    private static LegalitySettings? ConfiguredSettings;
 
     public static void EnsureInitialized(LegalitySettings cfg)
     {
         if (Initialized)
             return;
         Initialized = true;
+        ConfiguredSettings = cfg; // Cache for later use
         InitializeAutoLegality(cfg);
     }
 
     private static void InitializeAutoLegality(LegalitySettings cfg)
     {
         InitializeCoreStrings();
-        
-        if (string.IsNullOrWhiteSpace(cfg.MGDBPath))
-        {
-            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            cfg.MGDBPath = Path.Combine(appData, "NexusBot", "MGDB");
-        }
-            
-        string mutexName = "NexusBot_MGDB_" + cfg.MGDBPath.GetHashCode().ToString("X");
-        using var mutex = new Mutex(false, mutexName);
-        bool acquired = false;
-        try
-        {
-            acquired = mutex.WaitOne(TimeSpan.FromMinutes(2));
-            if (!acquired)
-                LogUtil.LogError("Timeout waiting for MGDB update lock.", "MGDB");
-
-            SysBot.Pokemon.Helpers.MGDBUpdater.UpdateMGDBAsync(cfg.MGDBPath).GetAwaiter().GetResult();
-            EncounterEvent.RefreshMGDB([cfg.MGDBPath]);
-        }
-        finally
-        {
-            if (acquired)
-                mutex.ReleaseMutex();
-        }
+        // Updated to convert the string to a ReadOnlySpan<string> array as required by the method signature.
+        EncounterEvent.RefreshMGDB([cfg.MGDBPath]);
         InitializeTrainerDatabase(cfg);
         InitializeSettings(cfg);
     }
@@ -56,10 +35,27 @@ public static class AutoLegalityWrapper
     // The list of encounter types in the priority we prefer if no order is specified.
     private static readonly EncounterTypeGroup[] EncounterPriority = [EncounterTypeGroup.Egg, EncounterTypeGroup.Slot, EncounterTypeGroup.Static, EncounterTypeGroup.Mystery, EncounterTypeGroup.Trade];
 
+    // Used by TryGetAsWildOrEgg to temporarily narrow the encounter search.
+    private static readonly SemaphoreSlim s_wildRetryLock = new SemaphoreSlim(1, 1);
+    private static readonly List<EncounterTypeGroup> s_wildAndEggPriority = [EncounterTypeGroup.Slot, EncounterTypeGroup.Egg];
+
+    // Used by TryGetAsShiny to re-run encounter search with shiny-friendly priorities.
+    // Static is intentionally last because newer-gen Static encounters are often shiny-locked
+    // (Shiny.Never), which causes ALM's SetShinyBoolean to silently return non-shiny.
+    private static readonly SemaphoreSlim s_shinyRetryLock = new SemaphoreSlim(1, 1);
+    private static readonly List<EncounterTypeGroup> s_shinyPriority =
+    [
+        EncounterTypeGroup.Slot,
+        EncounterTypeGroup.Egg,
+        EncounterTypeGroup.Mystery,
+        EncounterTypeGroup.Trade,
+        EncounterTypeGroup.Static,
+    ];
+
     private static void InitializeSettings(LegalitySettings cfg)
     {
         // Disable expensive PID+ validation for PLZA shiny Pokemon
-        // PKHeX will skip correlation checks when SearchShiny1 is false (see EncounterGift9a.TryGetSeed)       
+        // PKHeX will skip correlation checks when SearchShiny1 is false (see EncounterGift9a.TryGetSeed)
         LumioseSolver.SearchShiny1 = false;
 
         APILegality.SetAllLegalRibbons = cfg.SetAllLegalRibbons;
@@ -69,9 +65,8 @@ public static class AutoLegalityWrapper
         Legalizer.EnableEasterEggs = cfg.EnableEasterEggs;
         APILegality.AllowTrainerOverride = cfg.AllowTrainerDataOverride;
         APILegality.AllowBatchCommands = cfg.AllowBatchCommands;
-        APILegality.GameVersionPriority =  (PKHeX.Core.AutoMod.GameVersionPriorityType)cfg.GameVersionPriority ;
-        cfg.PriorityOrder = APILegality.PriorityOrder = SanitizePriorityOrder(cfg.PriorityOrder);
-
+        APILegality.GameVersionPriority = (PKHeX.Core.AutoMod.GameVersionPriorityType)cfg.GameVersionPriority;
+        APILegality.PriorityOrder = SanitizePriorityOrder(cfg.PriorityOrder);
         APILegality.SetBattleVersion = cfg.SetBattleVersion;
         APILegality.Timeout = cfg.Timeout;
         var settings = ParseSettings.Settings;
@@ -93,6 +88,7 @@ public static class AutoLegalityWrapper
         cfg.PrioritizeEncounters = [.. cfg.PrioritizeEncounters.Distinct()]; // Don't allow duplicates.
         EncounterMovesetGenerator.PriorityList = cfg.PrioritizeEncounters;
     }
+
     private static List<GameVersion> SanitizePriorityOrder(List<GameVersion> versionList)
     {
         var validVersions = Enum.GetValues<GameVersion>().Where(GameUtil.IsValidSavedVersion).Reverse().ToList();
@@ -113,68 +109,51 @@ public static class AutoLegalityWrapper
         if (Directory.Exists(externalSource))
             TrainerSettings.LoadTrainerDatabaseFromPath(externalSource);
 
-        // Seed the Trainer Database with enough fake save files so that we return a generation sensitive format when needed.
+        // Seed the Trainer Database with enough fake save files so that we return a generation sensitive format when needed.  
         var fallback = GetDefaultTrainer(cfg);
-        for (byte generation = 1; generation <= 9; generation++)
+        for (byte generation = 1; generation <= GameUtil.get_Generation(GameVersion.Gen9); generation++)
         {
-            var versions = generation switch
-            {
-                1 => GameUtil.GetVersionsInGeneration(EntityContext.Gen1, GameVersion.Any),
-                2 => GameUtil.GetVersionsInGeneration(EntityContext.Gen2, GameVersion.Any),
-                3 => GameUtil.GetVersionsInGeneration(EntityContext.Gen3, GameVersion.Any),
-                4 => GameUtil.GetVersionsInGeneration(EntityContext.Gen4, GameVersion.Any),
-                5 => GameUtil.GetVersionsInGeneration(EntityContext.Gen5, GameVersion.Any),
-                6 => GameUtil.GetVersionsInGeneration(EntityContext.Gen6, GameVersion.Any),
-                7 => GameUtil.GetVersionsInGeneration(EntityContext.Gen7, GameVersion.Any),
-                8 => GameUtil.GetVersionsInGeneration(EntityContext.Gen8, GameVersion.Any),
-                9 => GameUtil.GetVersionsInGeneration(EntityContext.Gen9, GameVersion.Any),
-                _ => []
-            };
-
+            // Convert generation -> GameVersion, then -> EntityContext, since GetVersionsInGeneration expects an EntityContext.
+            var gameVersionForGen = GameUtil.GetVersion(generation);
+            var context = GameUtil.GetContextFromSaved(gameVersionForGen);
+            var versions = GameUtil.GetVersionsInGeneration(context, GameVersion.Any);
             foreach (var version in versions)
-            {
-                var context = GetContextSafe(version);
-                if (context == EntityContext.None)
-                    continue;
-                RegisterIfNoneExist(fallback, context, version, generation);
-            }
+                RegisterIfNoneExist(fallback, generation, version);
         }
-        // Manually register for LGP/E since Gen7 above will only register the 3DS versions.  
-        RegisterIfNoneExist(fallback, EntityContext.Gen7, GameVersion.GP, 7);
-        RegisterIfNoneExist(fallback, EntityContext.Gen7, GameVersion.GE, 7);
+        // Manually register for LGP/E since Gen7 above will only register the 3DS versions.
+        RegisterIfNoneExist(fallback, 7, GameVersion.GP);
+        RegisterIfNoneExist(fallback, 7, GameVersion.GE);
+        // Manually register ZA since it uses a separate EntityContext from SV.
+        RegisterIfNoneExist(fallback, 9, GameVersion.ZA);
     }
-
-    private static EntityContext GetContextSafe(GameVersion v) => v switch
-    {
-        GameVersion.SW or GameVersion.SH => EntityContext.Gen8,
-        GameVersion.BD or GameVersion.SP => EntityContext.Gen8b,
-        GameVersion.PLA => EntityContext.Gen8a,
-        GameVersion.SL or GameVersion.VL => EntityContext.Gen9,
-        GameVersion.ZA => EntityContext.Gen9a,
-        _ => EntityContext.None
-    };
 
     private static SimpleTrainerInfo GetDefaultTrainer(LegalitySettings cfg)
     {
-        var ot = cfg.GenerateOT;
-        if (string.IsNullOrWhiteSpace(ot))
-            ot = "Blank";
-
-        return new SimpleTrainerInfo(GameVersion.Any)
+        var OT = cfg.GenerateOT;
+        if (OT.Length == 0)
+            OT = "Blank"; // Will fail if actually left blank.
+        var fallback = new SimpleTrainerInfo(GameVersion.Any)
         {
             Language = (byte)cfg.GenerateLanguage,
             TID16 = cfg.GenerateTID16,
             SID16 = cfg.GenerateSID16,
-            OT = ot,
+            OT = OT,
+            Generation = 0,
         };
+        return fallback;
     }
 
-    private static void RegisterIfNoneExist(SimpleTrainerInfo fallback, EntityContext context, GameVersion version, byte generation)
+    public static SimpleTrainerInfo GetFallbackTrainer()
     {
-        if (context == EntityContext.None)
-            return;
+        if (ConfiguredSettings == null)
+            throw new InvalidOperationException("AutoLegalityWrapper has not been initialized. Call EnsureInitialized first.");
 
-        var info = new SimpleTrainerInfo(version)
+        return GetDefaultTrainer(ConfiguredSettings);
+    }
+
+    private static void RegisterIfNoneExist(SimpleTrainerInfo fallback, byte generation, GameVersion version)
+    {
+        fallback = new SimpleTrainerInfo(version)
         {
             Language = fallback.Language,
             TID16 = fallback.TID16,
@@ -183,10 +162,9 @@ public static class AutoLegalityWrapper
             Generation = generation,
         };
 
-        // Pass the version as the second argument and the fallback as the third to match the overload
-        var exist = TrainerSettings.GetSavedTrainerData(context, version);
-        if (exist is SimpleTrainerInfo) // not anything from files; this assumes ALM returns SimpleTrainerInfo for non-user-provided fake templates.
-            TrainerSettings.Register(info);
+        // In NET10, ALM has internal defaults that override our configuration
+        // We need to register our fallback to ensure it's used instead of the "ALM" defaults
+        TrainerSettings.Register(fallback);
     }
 
     private static void InitializeCoreStrings()
@@ -214,7 +192,6 @@ public static class AutoLegalityWrapper
         IFixedTrainer { IsFixedTrainer: true } => true,
         MysteryGift g => !g.IsEgg && g switch
         {
-            WA9 wa9 => wa9.GetHasOT(pkm.Language),
             WC9 wc9 => wc9.GetHasOT(pkm.Language),
             WA8 wa8 => wa8.GetHasOT(pkm.Language),
             WB8 wb8 => wb8.GetHasOT(pkm.Language),
@@ -226,45 +203,153 @@ public static class AutoLegalityWrapper
         _ => false,
     };
 
+    /// <summary>
+    /// Tries to generate the Pokémon using only wild (Slot) and Egg encounters,
+    /// bypassing fixed-OT static/gift/trade encounters. Returns null if no valid
+    /// non-fixed-OT encounter exists for this species, or if another thread is
+    /// already performing a retry (avoids lock contention stalling the queue).
+    /// </summary>
+    public static PKM? TryGetAsWildOrEgg(ITrainerInfo sav, IBattleTemplate template)
+    {
+        if (!s_wildRetryLock.Wait(200))
+            return null;
+
+        var originalPriority = EncounterMovesetGenerator.PriorityList;
+        try
+        {
+            EncounterMovesetGenerator.PriorityList = s_wildAndEggPriority;
+            var pk = sav.GetLegal(template, out _);
+            if (pk == null)
+                return null;
+
+            var la = new LegalityAnalysis(pk);
+            if (!la.Valid || IsFixedOT(la.EncounterOriginal, pk))
+                return null;
+
+            return pk;
+        }
+        finally
+        {
+            EncounterMovesetGenerator.PriorityList = originalPriority;
+            s_wildRetryLock.Release();
+        }
+    }
+
+    /// <summary>
+    /// Re-runs the encounter search with a shiny-friendly priority list (Slot/Egg/Mystery
+    /// first, Static last) when ALM returned a non-shiny pkm for a shiny request.
+    /// Root cause: ALM's <c>SetShinyBoolean</c> early-returns without modification when the
+    /// chosen encounter is <see cref="Shiny.Never"/> or <see cref="Shiny.FixedValue"/>, and
+    /// ALM accepts that non-shiny pkm as a successful legalization. By forcing types that
+    /// almost always permit shiny to be tried first, this retry bypasses shiny-locked
+    /// encounters that the user's <c>PrioritizeEncounters</c> setting may have surfaced
+    /// first. Returns null if no valid shiny encounter exists, or if another thread is
+    /// already performing a retry.
+    /// </summary>
+    public static PKM? TryGetAsShiny(ITrainerInfo sav, IBattleTemplate template)
+    {
+        if (!s_shinyRetryLock.Wait(200))
+            return null;
+
+        var originalPriority = EncounterMovesetGenerator.PriorityList;
+        var originalGVP = APILegality.GameVersionPriority;
+        try
+        {
+            EncounterMovesetGenerator.PriorityList = s_shinyPriority;
+            APILegality.GameVersionPriority = (PKHeX.Core.AutoMod.GameVersionPriorityType)GameVersionPriorityType.PriorityOrder;
+            var pk = sav.GetLegal(template, out _);
+            if (pk == null || !pk.IsShiny)
+                return null;
+
+            var la = new LegalityAnalysis(pk);
+            if (!la.Valid)
+                return null;
+
+            return pk;
+        }
+        finally
+        {
+            EncounterMovesetGenerator.PriorityList = originalPriority;
+            APILegality.GameVersionPriority = originalGVP;
+            s_shinyRetryLock.Release();
+        }
+    }
+
     public static ITrainerInfo GetTrainerInfo<T>() where T : PKM, new()
     {
-        var version = typeof(T) switch
-        {
-            Type t when t == typeof(PK8) => GameVersion.SWSH,
-            Type t when t == typeof(PB8) => GameVersion.BDSP,
-            Type t when t == typeof(PA8) => GameVersion.PLA,
-            Type t when t == typeof(PK9) => GameVersion.SV,
-            Type t when t == typeof(PA9) => GameVersion.ZA,
-            Type t when t == typeof(PB7) => GameVersion.GG,
-            _ => throw new ArgumentException("Type does not have a recognized trainer fetch.", typeof(T).Name)
-        };
-        return TrainerSettings.GetSavedTrainerData(version);
+        ITrainerInfo trainerInfo;
+
+        if (typeof(T) == typeof(PB7))
+            trainerInfo = TrainerSettings.GetSavedTrainerData(GameVersion.GG);
+        else if (typeof(T) == typeof(PK8))
+            trainerInfo = TrainerSettings.GetSavedTrainerData(GameVersion.SWSH);
+        else if (typeof(T) == typeof(PB8))
+            trainerInfo = TrainerSettings.GetSavedTrainerData(GameVersion.BDSP);
+        else if (typeof(T) == typeof(PA8))
+            trainerInfo = TrainerSettings.GetSavedTrainerData(GameVersion.PLA);
+        else if (typeof(T) == typeof(PK9))
+            trainerInfo = TrainerSettings.GetSavedTrainerData(GameVersion.SV);
+        else if (typeof(T) == typeof(PA9))
+            trainerInfo = TrainerSettings.GetSavedTrainerData(GameVersion.ZA);
+        else
+            throw new ArgumentException("Type does not have a recognized trainer fetch.", typeof(T).Name);
+
+        // NET10 Fix: Force override ALM's internal defaults with our configured values
+        return OverrideALMDefaults(trainerInfo);
     }
 
-    // Change GetTrainerInfo(byte) to convert generation byte to an EntityContext before calling TrainerSettings
     public static ITrainerInfo GetTrainerInfo(byte gen)
     {
-        // Convert the numeric generation into a representative GameVersion, then to an EntityContext
-        var representativeVersion = gen switch
-        {
-            1 => GameVersion.RBY,
-            2 => GameVersion.GSC,
-            3 => GameVersion.RSE,
-            4 => GameVersion.DPPt,
-            5 => GameVersion.B2W2,
-            6 => GameVersion.ORAS,
-            7 => GameVersion.USUM,
-            8 => GameVersion.SWSH,
-            9 => GameVersion.SV,
-            _ => GameVersion.Any
-        };
-        var context = GetContextSafe(representativeVersion);
-        return TrainerSettings.GetSavedTrainerData(context);
+        // Convert generation (byte) to a representative GameVersion.
+        // GameUtil.GetVersion(byte) is used elsewhere in this file and returns a GameVersion for a generation.
+        var version = GameUtil.GetVersion(gen);
+
+        // Fetch saved trainer data using the GameVersion overload (correct type).
+        var trainerInfo = TrainerSettings.GetSavedTrainerData(version);
+
+        // NET10 Fix: Force override ALM's internal defaults with our configured values
+        return OverrideALMDefaults(trainerInfo);
     }
 
-    public static PKM GetLegal(this ITrainerInfo sav, IBattleTemplate set, out string res)
+    /// <summary>
+    /// In NET10, ALM has internal "ALM" defaults that override our configuration.
+    /// This method intercepts retrieved trainer info and replaces ALM defaults with our configured values.
+    /// </summary>
+    private static ITrainerInfo OverrideALMDefaults(ITrainerInfo trainerInfo)
     {
-        var task = Task.Factory.StartNew(() => sav.GetLegalFromSet(set), CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        // Check if this is ALM's default trainer info
+        if (trainerInfo.OT != "ALM")
+            return trainerInfo; // Not ALM defaults, return as-is
+
+        // Ensure we have configured settings cached
+        if (ConfiguredSettings == null)
+            return trainerInfo; // No configured settings available, return as-is
+
+        // ALM defaults detected - replace with our configured values
+        var generation = trainerInfo.Generation;
+        var version = trainerInfo.Version;
+
+        var OT = ConfiguredSettings.GenerateOT;
+        if (OT.Length == 0)
+            OT = "Blank"; // Safety fallback
+
+        // Create a new SimpleTrainerInfo with our configured defaults
+        var configuredTrainer = new SimpleTrainerInfo(version)
+        {
+            Language = (byte)ConfiguredSettings.GenerateLanguage,
+            TID16 = ConfiguredSettings.GenerateTID16,
+            SID16 = ConfiguredSettings.GenerateSID16,
+            OT = OT,
+            Generation = generation,
+        };
+
+        return configuredTrainer;
+    }
+
+
+    public static PKM? GetLegal(this ITrainerInfo sav, IBattleTemplate set, out string res)
+    {
+        var task = Task.Run(() => sav.GetLegalFromSet(set));
         if (task.Wait(TimeSpan.FromSeconds(30)))
         {
             var result = task.Result;
@@ -277,42 +362,153 @@ public static class AutoLegalityWrapper
                 _ => "",
             };
 
-            var pkm = result.Created;
-            if (pkm != null && set is RegenTemplate rt && APILegality.AllowTrainerOverride && rt.Regen.Trainer != null)
-                pkm.SetAllTrainerData(rt.Regen.Trainer);
+            var pk = result.Created;
 
-            return pkm!;
+            // NET10 Fix: Replace ALM defaults with configured defaults after generation
+            if (pk != null && ConfiguredSettings != null)
+            {
+                // Check if Pokemon has ALM defaults
+                if (pk.OriginalTrainerName == "ALM")
+                {
+                    var OT = ConfiguredSettings.GenerateOT;
+                    if (OT.Length == 0)
+                        OT = "Blank";
+
+                    // Capture shiny state before overwriting TID/SID. Reading pk.IsShiny
+                    // afterwards reflects the new trainer IDs against the old PID and would
+                    // skip the PID rebuild below — losing the shiny we just generated.
+                    bool wasShiny = pk.IsShiny;
+                    uint originalShinyXor = pk.ShinyXor;
+
+                    // Replace with configured defaults
+                    pk.OriginalTrainerName = OT;
+                    pk.TrainerTID7 = (uint)((ConfiguredSettings.GenerateSID16 << 16) | ConfiguredSettings.GenerateTID16);
+                    pk.Language = (int)ConfiguredSettings.GenerateLanguage;
+
+                    // Rebuild PID against the new TID/SID so the original shiny type is preserved.
+                    if (wasShiny)
+                        pk.PID = (uint)((pk.TID16 ^ pk.SID16 ^ (pk.PID & 0xFFFF) ^ originalShinyXor) << 16) | (pk.PID & 0xFFFF);
+
+                    pk.RefreshChecksum();
+                }
+
+                // CRITICAL FIX: Force shiny if requested but not generated.
+                // ALM silently returns non-shiny when it picks a shiny-locked encounter:
+                // SetShinyBoolean early-returns on Shiny.Never/FixedValue, and ALM accepts
+                // the legal-but-non-shiny pkm as success. First try regenerating with a
+                // shiny-friendly priority list (bypasses shiny-locked Static encounters);
+                // only fall back to brute PID flip if that retry can't find a shiny encounter.
+                if (set.Shiny && !pk.IsShiny)
+                {
+                    var shinyRetry = TryGetAsShiny(sav, set);
+                    if (shinyRetry != null)
+                    {
+                        pk = shinyRetry;
+                    }
+                    else
+                    {
+                        // Dynamax Adventures (Max Lair, MetLocation=244) REQUIRE Star shiny (XOR=1).
+                        // This applies to native PK8 (SWSH save) AND to PK9 that originated in
+                        // SWSH and were transferred to SV via HOME (Version=SW/SH, MetLocation=244).
+                        bool isMaxLairOrigin = pk switch
+                        {
+                            PK8 { MetLocation: 244 } => true,
+                            PK9 { MetLocation: 244 } when pk.Version == GameVersion.SW || pk.Version == GameVersion.SH => true,
+                            _ => false,
+                        };
+                        var desiredXor = isMaxLairOrigin
+                            ? 1  // Max Lair: always Star shiny (Square is invalid for Dynamax Adventures)
+                            : pk is PK8 or PK9 ? 0 : 1;
+                        pk.PID = (uint)((pk.TID16 ^ pk.SID16 ^ (pk.PID & 0xFFFF) ^ desiredXor) << 16) | (pk.PID & 0xFFFF);
+                        pk.RefreshChecksum();
+                    }
+                }
+
+                // Fix Square shiny at Max Lair: PKHeX requires Star shiny (ShinyXor 1-15) for MetLocation=244.
+                // Covers native PK8 (SWSH save) and HOME-transferred PK9 with SWSH Max Lair origin.
+                bool isMaxLairSquareShiny = pk.IsShiny && pk.ShinyXor == 0 && pk.MetLocation == 244 &&
+                    (pk is PK8 || (pk is PK9 && (pk.Version == GameVersion.SW || pk.Version == GameVersion.SH)));
+                if (isMaxLairSquareShiny)
+                {
+                    pk.PID ^= 0x10000u; // Flip bit 16: ShinyXor 0 → 1 (Square → Star)
+                    pk.RefreshChecksum();
+                }
+            }
+
+            return pk;
         }
         else
         {
             res = "Timeout";
-            return null!; // Explicitly return null with suppression since the res parameter indicates the failure
+            return null!; // Explicitly return null
         }
     }
 
     public static string GetLegalizationHint(IBattleTemplate set, ITrainerInfo sav, PKM pk) => set.SetAnalysis(sav, pk);
-    public static PKM LegalizePokemon(this PKM pk) 
+    public static PKM LegalizePokemon(this PKM pk) => pk.Legalize();
+    public static RegenTemplate GetTemplate(ShowdownSet set) => new RegenTemplate(set);
+
+    /// <summary>
+    /// Generates an egg from <paramref name="template"/> via Auto Legality Mod, then applies the
+    /// user's batch commands (e.g. <c>.Scale=</c>, marks, friendship) to it.
+    /// </summary>
+    /// <remarks>
+    /// ALM's egg generator applies the requested Ball but never the RegenTemplate's batch
+    /// instructions — only the normal (non-egg) GetLegal path runs the batch pipeline. On top of
+    /// that, PKHeX's batch editor skips any entity whose checksum is invalid
+    /// (<c>BatchEditingBase.ShouldModify</c>), which is exactly the state the freshly generated egg
+    /// is left in, so even a manual batch pass is silently dropped. We refresh the checksum and run
+    /// the same batch pipeline the non-egg path uses, reverting if a command makes the egg illegal.
+    /// Callers should use this instead of ALM's <c>ITrainerInfo.GenerateEgg</c> so eggs honor custom
+    /// scale/size and other batch edits the way regular trades do.
+    /// </remarks>
+    public static PKM? GenerateEgg(ITrainerInfo sav, RegenTemplate template, out LegalizationResult result)
     {
-        var originalOT = pk.OriginalTrainerName;
-        var originalTID = pk.TID16;
-        var originalSID = pk.SID16;
-        var originalGender = pk.OriginalTrainerGender;
+        var pkm = sav.GenerateEgg(template, out result);
+        if (result != LegalizationResult.Regenerated || pkm is null)
+            return pkm;
 
-        var legal = pk.Legalize();
+        var regen = template.Regen;
+        var requestedBall = regen.HasExtraSettings ? regen.Extra.Ball : Ball.None;
 
-        // Restore original OT/TID/SID if still legal (Honours OT & fixes random TID/SID)
-        var temp = legal.Clone();
-        temp.OriginalTrainerName = originalOT;
-        temp.TID16 = originalTID;
-        temp.SID16 = originalSID;
-        temp.OriginalTrainerGender = originalGender;
+        // The egg leaves ALM with an invalid checksum; refresh so legality checks and PKHeX's
+        // batch editor (which skips invalid-checksum entities) operate on a valid entity.
+        pkm.RefreshChecksum();
 
-        if (new LegalityAnalysis(temp).Valid)
+        // Re-assert the user's requested Ball. ALM's GenerateEgg runs SetSuggestedBall, which —
+        // when ForceSpecifiedBall is off and SetMatchingBalls is on — silently replaces the
+        // requested ball with a color-matched one if its egg ball verifier rejects it. Re-apply
+        // the request and keep it when the egg stays legal (or when the host has ForceSpecifiedBall
+        // on), so a user-specified ball wins over color-matching exactly like regular trades.
+        if (requestedBall != Ball.None && (Ball)pkm.Ball != requestedBall)
         {
-            return temp;
+            var prevBall = pkm.Ball;
+            pkm.Ball = (byte)requestedBall;
+            pkm.RefreshChecksum();
+            bool ballOk = APILegality.ForceSpecifiedBall || new LegalityAnalysis(pkm).Valid;
+            if (!ballOk)
+            {
+                pkm.Ball = prevBall;
+                pkm.RefreshChecksum();
+            }
         }
 
-        return legal;
+        // Apply batch commands (.Scale=, marks, friendship, etc). ALM's egg generator never runs
+        // the batch pipeline — only the non-egg GetLegal path does — so without this eggs ignore
+        // every batch edit. Mirror that path; revert if a command makes the egg illegal.
+        if (APILegality.AllowBatchCommands && regen.HasBatchSettings)
+        {
+            var beforeBatch = pkm.Clone();
+            var batch = regen.Batch;
+            EntityBatchEditor.ScreenStrings(batch.Filters);
+            EntityBatchEditor.ScreenStrings(batch.Instructions);
+            EntityBatchEditor.Instance.TryModifyIsSuccess(pkm, batch.Filters, batch.Instructions);
+            pkm.ApplyPostBatchFixes();
+            pkm.RefreshChecksum();
+            if (!new LegalityAnalysis(pkm).Valid)
+                pkm = beforeBatch; // revert just the batch; keep the ball/egg from above
+        }
+
+        return pkm;
     }
-    public static RegenTemplate GetTemplate(ShowdownSet set) => new RegenTemplate(set);
 }

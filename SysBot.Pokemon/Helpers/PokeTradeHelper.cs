@@ -64,7 +64,7 @@ public static class PokeTradeHelper<T> where T : PKM, new()
 
         var sav = LanguageHelper.GetTrainerInfoWithLanguage<T>((LanguageID)finalLanguage);
 
-        PKM pkm;
+        PKM? pkm;
         string result;
 
         // Generate egg or normal pokemon based on isEgg flag
@@ -72,7 +72,7 @@ public static class PokeTradeHelper<T> where T : PKM, new()
         if (isEgg)
         {
             // Generate egg using ALM
-            pkm = sav.GenerateEgg(regenTemplate, out var eggResult);
+            pkm = AutoLegalityWrapper.GenerateEgg(sav, regenTemplate, out var eggResult);
             result = eggResult.ToString();
         }
         else
@@ -161,6 +161,84 @@ public static class PokeTradeHelper<T> where T : PKM, new()
                 LegalizationHint = hint,
                 ShowdownSet = set
             };
+        }
+
+        // ============================================================================
+        // ZA NATURE LEGALITY ENFORCEMENT
+        // ============================================================================
+        if (pk is PA9)
+        {
+            var contentLines = content.Split('\n');
+            Nature requestedNature = set.Nature;
+            bool userRequestedNature = requestedNature != Nature.Random;
+
+            Nature? userExplicitStatNature = null;
+            foreach (var line in contentLines)
+            {
+                var trimmed = line.Trim();
+                if (trimmed.StartsWith(".StatNature=", StringComparison.OrdinalIgnoreCase))
+                {
+                    var value = trimmed[".StatNature=".Length..].Trim();
+                    if (Enum.TryParse<Nature>(value, true, out var parsedSN))
+                    {
+                        userExplicitStatNature = parsedSN;
+                        break;
+                    }
+                }
+            }
+
+            bool hasExplicitStatNature = userExplicitStatNature.HasValue;
+            Nature userStatNature = userExplicitStatNature ?? Nature.Random;
+
+            if (userRequestedNature && requestedNature != pk.Nature)
+            {
+                var clone = (PA9)pk.Clone();
+                clone.Nature = requestedNature;
+                clone.StatNature = hasExplicitStatNature ? userStatNature : requestedNature;
+                clone.RefreshChecksum();
+
+                if (new LegalityAnalysis(clone).Valid)
+                {
+                    pk.Nature = clone.Nature;
+                    pk.StatNature = clone.StatNature;
+                    pk.RefreshChecksum();
+                    LogUtil.LogInfo(
+                        $"{(Species)pk.Species}: Requested nature of {requestedNature} is legal for the set and is applied.",
+                        "ZANature");
+                }
+                else
+                {
+                    var wantedStatNature = hasExplicitStatNature ? userStatNature : requestedNature;
+                    var cloneMint = (PA9)pk.Clone();
+                    cloneMint.StatNature = wantedStatNature;
+                    cloneMint.RefreshChecksum();
+
+                    if (new LegalityAnalysis(cloneMint).Valid)
+                    {
+                        pk.StatNature = wantedStatNature;
+                        pk.RefreshChecksum();
+                        LogUtil.LogInfo(
+                            $"{(Species)pk.Species}: Requested nature of {requestedNature} is illegal for this encounter." +
+                            $"Mint Applied! Nature: {pk.Nature} | Stat Nature: {pk.StatNature}.",
+                            "ZANature");
+                    }
+                    else
+                    {
+                        LogUtil.LogInfo(
+                            $"{(Species)pk.Species}: Requested nature of {requestedNature} is illegal and minting is " +
+                            $"restricted for this encounter. Keeping forced nature of {pk.Nature} with Stat Nature of {pk.StatNature}.",
+                            "ZANature");
+                    }
+                }
+            }
+            else if (userRequestedNature && requestedNature == pk.Nature)
+            {
+                if (!hasExplicitStatNature)
+                {
+                    pk.StatNature = pk.Nature;
+                    pk.RefreshChecksum();
+                }
+            }
         }
 
         // ============================================================================

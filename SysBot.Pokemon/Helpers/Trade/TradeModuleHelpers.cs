@@ -108,7 +108,7 @@ public static class TradeModuleHelpers
             {
                 var set = CreateEggShowdownSet(species, context);
                 var template = AutoLegalityWrapper.GetTemplate(set);
-                var pk = sav.GenerateEgg(template, out var result);
+                var pk = AutoLegalityWrapper.GenerateEgg(sav, template, out var result);
 
                 if (pk == null || result != LegalizationResult.Regenerated)
                     continue;

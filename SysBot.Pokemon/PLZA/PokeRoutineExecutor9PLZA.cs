@@ -184,8 +184,7 @@ public abstract class PokeRoutineExecutor9PLZA(PokeBotState Config) : PokeRoutin
     public override Task<PA9> ReadBoxPokemon(int box, int slot, CancellationToken token)
     {
         var jumps = Offsets.BoxStartPokemonPointer.ToArray();
-        // PLZA uses 344 bytes + 64 bytes padding (0x198 total) per box slot
-        jumps[^1] += (long)(0x198 * ((30 * box) + slot));
+        jumps[^1] += (long)(BoxFormatSlotSize * ((30 * box) + slot));
         return ReadPokemonPointer(jumps, BoxFormatSlotSize, token);
     }
 
@@ -242,12 +241,8 @@ public abstract class PokeRoutineExecutor9PLZA(PokeBotState Config) : PokeRoutin
         pkm.Heal();
         pkm.RefreshChecksum();
 
-        // PLZA uses party format (344 bytes) + 64 bytes padding per box slot
-        var partyData = new byte[pkm.SIZE_PARTY];
-        pkm.WriteEncryptedDataParty(partyData);
-        var boxData = new byte[partyData.Length + 0x40]; // Add 64-byte gap
-        Array.Copy(partyData, boxData, partyData.Length);
-        // Remaining 64 bytes stay as zeros (padding)
+        var boxData = new byte[pkm.SIZE_PARTY];
+        pkm.WriteEncryptedDataParty(boxData);
 
         await SwitchConnection.WriteBytesAbsoluteAsync(boxData, offset, token).ConfigureAwait(false);
     }

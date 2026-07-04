@@ -1,16 +1,15 @@
-# Release Notes
+# NexusBot.NET Release Notes
 
-## [8.0.1]
+## [8.0.2]
 
-### Added
-- **`$pokemon` Command**: Introduced a new `$pokemon` command in Discord to quickly link users to an online Pokédex reference.
-- **Legends: Z-A Evolution Guard**: Added a `DisallowTradeEvolutionsZA` toggle in TradeSettings. When enabled, this automatically halts trades involving Pokémon that evolve via trade in *Pokémon Legends: Z-A* to prevent in-game crashes.
+### Enhancements & Core Standard Updates
+- **PKHeX Core Standards Alignment:** Realigned `StatNature` checks and unminted state tracking (`Nature.Random`) to match the latest PKHeX 26.5.5 requirements.
+- **PLZA Nature Legality Enforcement:** Brought the system fully in line with FusionBot's advanced `PA9` (Pokémon Legends: Z-A) nature manipulation logic. 
+  - The trade helper now correctly reads user-specified `.StatNature=` batch commands in Showdown sets.
+  - Legality-aware checks verify whether requested natures are strictly legal for a given static encounter. It will gracefully apply valid fallback Mints (`StatNature`) rather than producing entirely invalid Pokémon.
+- **PLZA Box Format Slot Size (0x158):** Corrected `BoxFormatSlotSize` handling for PLZA memory offsets. `SetBoxPokemonAbsolute` now correctly writes exactly `0x158` (344 bytes / `SIZE_PARTY`), enabling perfectly mapped box reads and generations without arbitrary byte padding.
 
-### Improved
-- **PKHeX Core Standards**: Realigned `StatNature` checks and unminted state tracking (`Nature.Random`) to the latest PKHeX 26.5.5 requirements.
-- **Dependency Upgrades**: Upgraded `Microsoft.NET.Test.Sdk` package dependency to 18.7.0.
-
-### Fixed
-- **Discord Command Deadlocks**: Fixed a severe application lockup issue caused by two heavy Discord commands executing concurrently. Command handling is now safely synchronized.
-- **Original Trainer Retention**: Fixed an issue where ALM (AutoLegalityWrapper) would mistakenly randomize Original Trainer info (OT Name, TID, and SID) when generating from showdown sets. Honors the intended OT properly now.
-- **Box Format Slot Size**: Fixed BoxFormatSlotSize handling for PLZA (`0x158`) enabling correct box reads and generation handling for the format.
+### Bug Fixes & Code Quality
+- Cleaned up nullable reference warnings (`CS8600`, `CS8602`, `CS8603`, `CS8604`) tied to `.GetLegal()` and `.GenerateEgg()` wrapper return types across all bot variants (BDSP, SV, LA, SWSH).
+- Fixed a compilation error regarding an invalid enum type (`PokeTradeResult.Stop` replaced with `PokeTradeResult.IllegalTrade`).
+- All 84 unit tests are fully operational and successful. The solution compiles cleanly with 0 warnings and 0 errors.
