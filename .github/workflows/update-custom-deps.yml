@@ -1,0 +1,51 @@
+name: Update Custom Dependencies
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Weekly on Sunday
+  workflow_dispatch:
+
+jobs:
+  update-alm:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Fetch Latest ALM Release
+        id: alm_release
+        shell: pwsh
+        run: |
+          $release = Invoke-RestMethod -Uri "https://api.github.com/repos/Secludedly/PKHeX-ALM-Releases/releases/latest"
+          $assetUrl = $release.assets | Where-Object name -match "7z$" | Select-Object -ExpandProperty browser_download_url
+          $tagName = $release.tag_name
+          echo "tag_name=$tagName" >> $env:GITHUB_OUTPUT
+          Invoke-WebRequest -Uri $assetUrl -OutFile "alm.7z"
+          
+          # Extract with 7z
+          7z x alm.7z -o"alm_extracted"
+          
+          # Find the DLLs and copy only the needed ones
+          $srcCore = Get-ChildItem -Path "alm_extracted" -Filter "PKHeX.Core.AutoMod.dll" -Recurse | Select-Object -First 1
+          
+          if ($srcCore) {
+              Copy-Item $srcCore.FullName -Destination "SysBot.Pokemon/deps/PKHeX.Core.AutoMod.dll" -Force
+          }
+          
+          # Cleanup
+          Remove-Item "alm.7z"
+          Remove-Item "alm_extracted" -Recurse -Force
+          
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Bump AutoLegalityMod to ${{ steps.alm_release.outputs.tag_name }}"
+          title: "Bump AutoLegalityMod to ${{ steps.alm_release.outputs.tag_name }}"
+          body: |
+            Bumps **AutoLegalityMod** to the latest release [${{ steps.alm_release.outputs.tag_name }}](https://github.com/Secludedly/PKHeX-ALM-Releases/releases/tag/${{ steps.alm_release.outputs.tag_name }}).
+            
+            This is an automated pull request created by the custom dependency updater.
+          branch: "dependabot/custom/alm-${{ steps.alm_release.outputs.tag_name }}"
+          labels: "dependencies"
+          delete-branch: true
