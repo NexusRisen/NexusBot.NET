@@ -44,9 +44,9 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
     private readonly SemaphoreSlim _commandSemaphore = new(1, 1);
 
-    private readonly HashSet<string> _validCommands = new HashSet<string>
+    private readonly HashSet<string> _validCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
-        "trade", "t", "clone", "fixOT", "fix", "f", "dittoTrade", "ditto", "dt", "itemTrade", "item", "it",
+        "trade", "t", "clone", "c", "fixOT", "fix", "f", "dittoTrade", "ditto", "dt", "itemTrade", "item", "it",
         "egg", "Egg", "hidetrade", "ht", "batchTrade", "bt",
         "pokepaste", "pp",
         "PokePaste", "PP", "randomteam", "rt", "RandomTeam", "Rt", "specialrequestpokemon", "srp",

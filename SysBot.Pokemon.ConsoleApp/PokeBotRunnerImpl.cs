@@ -74,9 +74,37 @@ public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
         if (string.IsNullOrWhiteSpace(token))
             return;
 
-        var bot = new SysStoat<T>(this, _config);
-        Integrations.Add(bot);
-        Task.Run(() => bot.MainAsync(token, IntegrationTokenSource.Token), IntegrationTokenSource.Token);
+        Task.Run(async () =>
+        {
+            while (!IntegrationTokenSource.Token.IsCancellationRequested)
+            {
+                var bot = new SysStoat<T>(this, _config);
+                lock (Integrations)
+                    Integrations.Add(bot);
+                
+                try
+                {
+                    await bot.MainAsync(token, IntegrationTokenSource.Token);
+                }
+                catch (System.Exception ex)
+                {
+                    LogUtil.LogText($"SysStoat encountered a critical error: {ex.Message}");
+                }
+                finally
+                {
+                    lock (Integrations)
+                        Integrations.Remove(bot);
+                    
+                    bot.Dispose();
+
+                    if (!IntegrationTokenSource.Token.IsCancellationRequested)
+                    {
+                        LogUtil.LogText("Rebuilding SysStoat in 5 seconds...");
+                        try { await Task.Delay(5000, IntegrationTokenSource.Token); } catch { }
+                    }
+                }
+            }
+        }, IntegrationTokenSource.Token);
     }
 
     private void AddKookBot(KookSettings config)
@@ -85,9 +113,37 @@ public class PokeBotRunnerImpl<T> : PokeBotRunner<T> where T : PKM, new()
         if (string.IsNullOrWhiteSpace(token))
             return;
 
-        var bot = new SysKook<T>(this, _config);
-        Integrations.Add(bot);
-        Task.Run(() => bot.MainAsync(token, IntegrationTokenSource.Token), IntegrationTokenSource.Token);
+        Task.Run(async () =>
+        {
+            while (!IntegrationTokenSource.Token.IsCancellationRequested)
+            {
+                var bot = new SysKook<T>(this, _config);
+                lock (Integrations)
+                    Integrations.Add(bot);
+                
+                try
+                {
+                    await bot.MainAsync(token, IntegrationTokenSource.Token);
+                }
+                catch (System.Exception ex)
+                {
+                    LogUtil.LogText($"SysKook encountered a critical error: {ex.Message}");
+                }
+                finally
+                {
+                    lock (Integrations)
+                        Integrations.Remove(bot);
+                    
+                    bot.Dispose();
+
+                    if (!IntegrationTokenSource.Token.IsCancellationRequested)
+                    {
+                        LogUtil.LogText("Rebuilding SysKook in 5 seconds...");
+                        try { await Task.Delay(5000, IntegrationTokenSource.Token); } catch { }
+                    }
+                }
+            }
+        }, IntegrationTokenSource.Token);
     }
 
 

@@ -30,9 +30,9 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
     private readonly ProgramConfig _config;
     private readonly KookSocketClient _client;
 
-    private readonly HashSet<string> _validCommands = new HashSet<string>
+    private readonly HashSet<string> _validCommands = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
-        "trade", "t", "clone", "fixOT", "fix", "f", "dittoTrade", "ditto", "dt", "itemTrade", "item", "it",
+        "trade", "t", "clone", "c", "fixOT", "fix", "f", "dittoTrade", "ditto", "dt", "itemTrade", "item", "it",
         "egg", "Egg", "hidetrade", "ht", "batchTrade", "bt",
         "pokepaste", "pp",
         "PokePaste", "PP", "randomteam", "rt", "RandomTeam", "Rt", "specialrequestpokemon", "srp",
@@ -68,11 +68,19 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         _client = new KookSocketClient(new KookSocketConfig
         {
             LogLevel = LogSeverity.Info,
+            AlwaysDownloadUsers = true
         });
 
         _client.Log += Log;
         _client.Disconnected += OnDisconnected;
         _client.MessageReceived += OnMessageReceived;
+        _client.Ready += OnReady;
+    }
+
+    private async Task OnReady()
+    {
+        LogUtil.LogInfo("SysKook", "Bot is ready. Notifying Kook users.");
+        await AnnounceBotStatus("Online", true);
     }
 
     private Task OnDisconnected(Exception exception)
@@ -157,6 +165,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         _client.Log -= Log;
         _client.Disconnected -= OnDisconnected;
         _client.MessageReceived -= OnMessageReceived;
+        _client.Ready -= OnReady;
 
         if (Runner != null)
         {
@@ -183,6 +192,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         try
         {
             _client.StopAsync().GetAwaiter().GetResult();
+            _client.LogoutAsync().GetAwaiter().GetResult();
             _client.Dispose();
         }
         catch { }
@@ -246,6 +256,8 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         if (!Manager.CanUseCommandChannel(message.Channel.Id)) return;
 
         var content = message.Content;
+        if (string.IsNullOrWhiteSpace(content)) return;
+
         var prefix = Hub.Config.Kook.CommandPrefix;
         if (!content.StartsWith(prefix)) return;
         var parts = content.Substring(prefix.Length).Split(' ', StringSplitOptions.RemoveEmptyEntries);
