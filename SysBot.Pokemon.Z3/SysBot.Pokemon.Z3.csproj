@@ -14,6 +14,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="PKHeX.Core" Version="26.5.5" />
+    <PackageReference Include="PKHeX.Core" Version="26.7.7" />
   </ItemGroup>
 </Project>
