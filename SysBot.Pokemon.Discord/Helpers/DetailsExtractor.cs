@@ -44,11 +44,11 @@ public static class DetailsExtractor<T> where T : PKM, new()
         if (settings.ShowNature)
         {
             string natureDisplay = $"**Nature:** {embedData.Nature}";
-            if (!string.IsNullOrEmpty(embedData.StatNature))
+            if (!string.IsNullOrEmpty(embedData.StatAlignment))
             {
                 // In PLZA, Nature is the PID-based nature, and StatNature is the minted/intended nature.
                 // We display it as: IntendedNature (Minted from: PIDNature)
-                natureDisplay = $"**Nature:** {embedData.StatNature} (Minted from: {embedData.Nature})";
+                natureDisplay = $"**Nature:** {embedData.StatAlignment} (Minted from: {embedData.Nature})";
             }
             attrList.Add(natureDisplay);
         }
@@ -175,9 +175,9 @@ public static class DetailsExtractor<T> where T : PKM, new()
         embedData.Nature = GetNatureName(pk, strings);
 
         // Extract Stat Nature if it differs from regular Nature and is not unminted (Nature.Random)
-        if (pk.StatNature != Nature.Random && pk.StatNature != pk.Nature && strings.natures != null)
+        if (pk.StatAlignment != Nature.Random && pk.StatAlignment != pk.Nature && strings.natures != null)
         {
-            embedData.StatNature = strings.natures[(int)pk.StatNature];
+            embedData.StatAlignment = strings.natures[(int)pk.StatAlignment];
         }
 
         embedData.SpeciesName = strings.Species[pk.Species];
@@ -590,7 +590,7 @@ public class EmbedData
     public string? PokemonDisplayName { get; set; }
 
     /// <summary>Stat Nature name (for minted Natures in PLZA).</summary>
-    public string? StatNature { get; set; }
+    public string? StatAlignment { get; set; }
 
     /// <summary>Size scale rating and number.</summary>
     public (string, byte) Scale { get; set; }

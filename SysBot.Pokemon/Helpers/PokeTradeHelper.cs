@@ -176,9 +176,9 @@ public static class PokeTradeHelper<T> where T : PKM, new()
             foreach (var line in contentLines)
             {
                 var trimmed = line.Trim();
-                if (trimmed.StartsWith(".StatNature=", StringComparison.OrdinalIgnoreCase))
+                if (trimmed.StartsWith(".StatAlignment=", StringComparison.OrdinalIgnoreCase))
                 {
-                    var value = trimmed[".StatNature=".Length..].Trim();
+                    var value = trimmed[".StatAlignment=".Length..].Trim();
                     if (Enum.TryParse<Nature>(value, true, out var parsedSN))
                     {
                         userExplicitStatNature = parsedSN;
@@ -194,13 +194,13 @@ public static class PokeTradeHelper<T> where T : PKM, new()
             {
                 var clone = (PA9)pk.Clone();
                 clone.Nature = requestedNature;
-                clone.StatNature = hasExplicitStatNature ? userStatNature : requestedNature;
+                clone.StatAlignment = hasExplicitStatNature ? userStatNature : requestedNature;
                 clone.RefreshChecksum();
 
                 if (new LegalityAnalysis(clone).Valid)
                 {
                     pk.Nature = clone.Nature;
-                    pk.StatNature = clone.StatNature;
+                    pk.StatAlignment = clone.StatAlignment;
                     pk.RefreshChecksum();
                     LogUtil.LogInfo(
                         $"{(Species)pk.Species}: Requested nature of {requestedNature} is legal for the set and is applied.",
@@ -210,23 +210,23 @@ public static class PokeTradeHelper<T> where T : PKM, new()
                 {
                     var wantedStatNature = hasExplicitStatNature ? userStatNature : requestedNature;
                     var cloneMint = (PA9)pk.Clone();
-                    cloneMint.StatNature = wantedStatNature;
+                    cloneMint.StatAlignment = wantedStatNature;
                     cloneMint.RefreshChecksum();
 
                     if (new LegalityAnalysis(cloneMint).Valid)
                     {
-                        pk.StatNature = wantedStatNature;
+                        pk.StatAlignment = wantedStatNature;
                         pk.RefreshChecksum();
                         LogUtil.LogInfo(
                             $"{(Species)pk.Species}: Requested nature of {requestedNature} is illegal for this encounter." +
-                            $"Mint Applied! Nature: {pk.Nature} | Stat Nature: {pk.StatNature}.",
+                            $"Mint Applied! Nature: {pk.Nature} | Stat Nature: {pk.StatAlignment}.",
                             "ZANature");
                     }
                     else
                     {
                         LogUtil.LogInfo(
                             $"{(Species)pk.Species}: Requested nature of {requestedNature} is illegal and minting is " +
-                            $"restricted for this encounter. Keeping forced nature of {pk.Nature} with Stat Nature of {pk.StatNature}.",
+                            $"restricted for this encounter. Keeping forced nature of {pk.Nature} with Stat Nature of {pk.StatAlignment}.",
                             "ZANature");
                     }
                 }
@@ -235,7 +235,7 @@ public static class PokeTradeHelper<T> where T : PKM, new()
             {
                 if (!hasExplicitStatNature)
                 {
-                    pk.StatNature = pk.Nature;
+                    pk.StatAlignment = pk.Nature;
                     pk.RefreshChecksum();
                 }
             }
