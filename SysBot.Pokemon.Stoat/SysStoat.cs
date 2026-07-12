@@ -1,4 +1,4 @@
-using PKHeX.Core;
+﻿using PKHeX.Core;
 using PKHeX.Core.AutoMod;
 using SysBot.Base;
 using SysBot.Pokemon.Helpers;
@@ -177,7 +177,7 @@ public sealed partial class SysStoat<T> : IDisposable where T : PKM, new()
         try
         {
             if (_client == null || _client.Token == null) return;
-            string gameStatus = message ?? Hub.Config.Stoat.BotGameStatus ?? "Trading PokÃ©mon";
+            string gameStatus = message ?? Hub.Config.Stoat.BotGameStatus ?? "Trading Pokémon";
             var json = $"{{\"status\":{{\"presence\":\"Online\",\"text\":\"{gameStatus}\"}}}}";
             using var httpClient = new System.Net.Http.HttpClient();
             httpClient.DefaultRequestHeaders.Add("x-bot-token", Hub.Config.Stoat.Token);

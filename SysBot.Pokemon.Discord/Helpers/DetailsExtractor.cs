@@ -266,12 +266,6 @@ public static class DetailsExtractor<T> where T : PKM, new()
         return embedData;
     }
 
-    private static int CalculateMedals(int tradeCount)
-    {
-        if (tradeCount < 1) return 0;
-        return 1 + Math.Min(20, tradeCount / 50); // 1 for >= 1, then +1 for every 50 up to 1000
-    }
-
     /// <summary>
     /// Gets user details for display.
     /// </summary>
@@ -288,7 +282,7 @@ public static class DetailsExtractor<T> where T : PKM, new()
         {
             if (SysCord<T>.Runner.Hub.Config.Discord.EnableMedals)
             {
-                int totalMedals = CalculateMedals(totalTradeCount);
+                int totalMedals = MedalHelpers.CalculateTotalMedals(totalTradeCount);
                 userDetailsText += $"Total User Trades: {totalTradeCount} | Medals: {totalMedals}\n";
             }
             else

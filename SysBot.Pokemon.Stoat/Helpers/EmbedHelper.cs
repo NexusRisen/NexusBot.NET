@@ -1,4 +1,4 @@
-using StoatSharp;
+﻿using StoatSharp;
 using PKHeX.Core;
 using SysBot.Base;
 using SysBot.Pokemon.Helpers;
@@ -120,7 +120,7 @@ public static class EmbedHelper
             var dm = await UserHelper.GetUserDMChannelAsync(client.Rest, userId);
             if (dm != null)
             {
-                var description = $"**PokÃ©mon:** {(isMysteryEgg ? "Mystery Egg" : speciesName)}\n**Code:** `{code:0000 0000}`";
+                var description = $"**Pokémon:** {(isMysteryEgg ? "Mystery Egg" : speciesName)}\n**Code:** `{code:0000 0000}`";
                 if (!string.IsNullOrEmpty(message))
                 {
                     description += $"\n\n{message}";

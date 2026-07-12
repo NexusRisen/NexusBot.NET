@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -70,7 +70,7 @@ public static class PKHeXContextHelper
         {
             var sb = new StringBuilder();
             var name = GameInfo.Strings.Species[speciesId];
-            sb.AppendLine($"PokÃ©mon: {name}");
+            sb.AppendLine($"Pokémon: {name}");
 
             // Accessing PersonalTable for Gen 9
             var personal = PersonalTable.SV[speciesId];

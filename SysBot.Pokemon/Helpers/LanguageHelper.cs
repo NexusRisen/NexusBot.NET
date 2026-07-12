@@ -1,4 +1,4 @@
-using PKHeX.Core;
+﻿using PKHeX.Core;
 using PKHeX.Core.AutoMod;
 using System;
 using System.Linq;
@@ -26,7 +26,7 @@ public static class LanguageHelper
     public static string GetLocalizedSpeciesLog(PKM pkm)
     {
         if (pkm == null)
-            return "(Invalid PokÃ©mon)";
+            return "(Invalid Pokémon)";
 
         var langID = (LanguageID)pkm.Language;
         var langName = GetLanguageName(langID);

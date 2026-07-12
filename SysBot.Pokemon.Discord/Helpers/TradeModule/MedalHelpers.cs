@@ -1,6 +1,6 @@
 using Discord;
 using Discord.WebSocket;
-using System.Linq;
+using System;
 
 namespace SysBot.Pokemon.Discord;
 
@@ -8,13 +8,30 @@ public static class MedalHelpers
 {
     public static int GetCurrentMilestone(int totalTrades)
     {
-        int[] milestones = { 1000, 950, 900, 850, 800, 750, 700, 650, 600, 550, 500, 450, 400, 350, 300, 250, 200, 150, 100, 50, 1 };
-        return milestones.FirstOrDefault(m => totalTrades >= m, 0);
+        if (totalTrades < 1) return 0;
+        if (totalTrades < 50) return 1;
+        
+        int milestone = (totalTrades / 50) * 50;
+        return Math.Min(milestone, 1000);
     }
 
-    public static Embed CreateMedalsEmbed(SocketUser user, int milestone, int totalTrades)
+    public static bool IsExactMilestone(int totalTrades)
     {
-        string status = milestone switch
+        if (totalTrades == 1) return true;
+        if (totalTrades <= 0) return false;
+        if (totalTrades % 50 == 0 && totalTrades <= 1000) return true;
+        return false;
+    }
+
+    public static int CalculateTotalMedals(int tradeCount)
+    {
+        if (tradeCount < 1) return 0;
+        return 1 + Math.Min(20, tradeCount / 50);
+    }
+
+    public static string GetMilestoneStatus(int milestone)
+    {
+        return milestone switch
         {
             1 => "Beginner Trainer",
             50 => "Rookie Trainer",
@@ -39,27 +56,49 @@ public static class MedalHelpers
             1000 => "Pokémon God",
             _ => "New Trainer"
         };
+    }
 
+    public static string GetMilestoneCongratulations(int tradeCount)
+    {
+        if (tradeCount == 1)
+            return $"Congratulations on your first trade!\n**Status:** {GetMilestoneStatus(1)}.";
+        
+        return $"You've reached {tradeCount} trades!\n**Status:** {GetMilestoneStatus(tradeCount)}.";
+    }
+
+    public static string GetMedalImageUrl(string baseUrl, int milestone)
+    {
+        try
+        {
+            return string.Format(baseUrl, milestone);
+        }
+        catch
+        {
+            return $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/{milestone:D4}.png";
+        }
+    }
+
+    public static Embed CreateMedalsEmbed(SocketUser user, int milestone, int totalTrades, string baseUrl)
+    {
+        string status = GetMilestoneStatus(milestone);
         string description = $"Total Trades: **{totalTrades}**\n**Current Status:** {status}";
 
         if (milestone > 0)
         {
-            string imageUrl = $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/{milestone:D4}.png";
             return new EmbedBuilder()
                 .WithTitle($"{user.Username}'s Trading Status")
                 .WithColor(new Color(255, 215, 0))
                 .WithDescription(description)
-                .WithThumbnailUrl(imageUrl)
+                .WithThumbnailUrl(GetMedalImageUrl(baseUrl, milestone))
                 .Build();
         }
         else
         {
-            string imageUrl = $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0000.png";
             return new EmbedBuilder()
                 .WithTitle($"{user.Username}'s Trading Status")
                 .WithColor(new Color(0, 255, 0)) // Lime Green
                 .WithDescription($"{description}\nNo trades on record yet, thank you for participating!")
-                .WithThumbnailUrl(imageUrl)
+                .WithThumbnailUrl(GetMedalImageUrl(baseUrl, 0))
                 .Build();
         }
     }

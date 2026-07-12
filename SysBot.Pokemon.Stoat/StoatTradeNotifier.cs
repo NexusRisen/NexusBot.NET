@@ -1,4 +1,4 @@
-using PKHeX.Core;
+﻿using PKHeX.Core;
 using StoatSharp;
 using SysBot.Base;
 using SysBot.Pokemon.Helpers;
@@ -91,7 +91,7 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
                     if (currentPosition == 1 && _initialUpdateSent && !_almostUpNotificationSent)
                     {
                         _almostUpNotificationSent = true;
-                        var batchInfo = TotalBatchTrades > 1 ? $"\n\n**Important:** This is a batch trade with {TotalBatchTrades} PokÃ©mon. Please stay in the trade until all are completed!" : "";
+                        var batchInfo = TotalBatchTrades > 1 ? $"\n\n**Important:** This is a batch trade with {TotalBatchTrades} Pokémon. Please stay in the trade until all are completed!" : "";
                         
                         var dm = await UserHelper.GetUserDMChannelAsync(_client.Rest, UserId);
                         if (dm != null)
@@ -132,7 +132,7 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
             _lastReportedPosition = currentPosition;
 
             var batchDescription = TotalBatchTrades > 1
-                ? $"Your batch trade request ({TotalBatchTrades} PokÃ©mon) has been queued.\n\nâš ï¸ **Important Instructions:**\nâ€¢ Stay in the trade for all {TotalBatchTrades} trades\nâ€¢ Have all {TotalBatchTrades} PokÃ©mon ready to trade\nâ€¢ Do not exit until you see the completion message\n\n**Queue Position**: {currentPosition}"
+                ? $"Your batch trade request ({TotalBatchTrades} Pokémon) has been queued.\n\nâš ï¸ **Important Instructions:**\nâ€¢ Stay in the trade for all {TotalBatchTrades} trades\nâ€¢ Have all {TotalBatchTrades} Pokémon ready to trade\nâ€¢ Do not exit until you see the completion message\n\n**Queue Position**: {currentPosition}"
                 : $"Your trade request has been queued.\n**Queue Position**: {currentPosition}";
 
             var dm = await UserHelper.GetUserDMChannelAsync(_client.Rest, UserId);
@@ -233,7 +233,7 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
             {
                 if (BatchTradeNumber == 1)
                 {
-                    message = $"Starting your batch trade! Trading {TotalBatchTrades} PokÃ©mon.\n\n" +
+                    message = $"Starting your batch trade! Trading {TotalBatchTrades} Pokémon.\n\n" +
                              $"**Trade 1/{TotalBatchTrades}**: {speciesName}{receive}\n\n" +
                              $"âš ï¸ **IMPORTANT:** Stay in the trade until all {TotalBatchTrades} trades are completed!";
                 }
@@ -282,12 +282,12 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
             {
                 if (BatchTradeNumber == 1)
                 {
-                    additionalMessage = $"Starting batch trade ({TotalBatchTrades} PokÃ©mon total). **Please select your first PokÃ©mon!**";
+                    additionalMessage = $"Starting batch trade ({TotalBatchTrades} Pokémon total). **Please select your first Pokémon!**";
                 }
                 else
                 {
                     var speciesName = IsMysteryEgg ? "Mystery Egg" : SpeciesName.GetSpeciesName(Data.Species, 2);
-                    additionalMessage = $"Trade {BatchTradeNumber}/{TotalBatchTrades}: Now trading {speciesName}. **Select your next PokÃ©mon!**";
+                    additionalMessage = $"Trade {BatchTradeNumber}/{TotalBatchTrades}: Now trading {speciesName}. **Select your next Pokémon!**";
                 }
             }
 

@@ -1,4 +1,4 @@
-using PKHeX.Core;
+﻿using PKHeX.Core;
 using StoatSharp;
 using SysBot.Base;
 using SysBot.Pokemon.Stoat.Commands;
@@ -23,8 +23,8 @@ public partial class SysStoat<T>
         var prefix = Hub.Config.Stoat.CommandPrefix;
         var description = $"Welcome to NexusBot!\n\n" +
                           $"**Core Commands**:\n" +
-                          $"`{prefix}trade` or `{prefix}t` - Trade a PokÃ©mon using a Showdown set or attachment.\n" +
-                          $"`{prefix}batchtrade` or `{prefix}bt` - Trade multiple PokÃ©mon at once.\n" +
+                          $"`{prefix}trade` or `{prefix}t` - Trade a Pokémon using a Showdown set or attachment.\n" +
+                          $"`{prefix}batchtrade` or `{prefix}bt` - Trade multiple Pokémon at once.\n" +
                           $"`{prefix}egg` - Generate an egg from a Showdown set.\n" +
                           $"`{prefix}mysteryegg` or `{prefix}me` - Request a random Mystery Egg.\n" +
                           $"`{prefix}itemtrade` or `{prefix}it` - Trade for a specific item.\n\n" +
@@ -49,12 +49,12 @@ public partial class SysStoat<T>
         var heapSize = Math.Round(GC.GetTotalMemory(true) / (1024.0 * 1024.0), 2).ToString(CultureInfo.CurrentCulture);
         var gameName = typeof(T).Name switch
         {
-            nameof(PA9) => "PokÃ©mon Legends: Z-A",
-            nameof(PK9) => "PokÃ©mon Scarlet & Violet",
-            nameof(PK8) => "PokÃ©mon Sword & Shield",
-            nameof(PA8) => "PokÃ©mon Legends: Arceus",
-            nameof(PB8) => "PokÃ©mon BDSP",
-            _ => "PokÃ©mon LGPE"
+            nameof(PA9) => "Pokémon Legends: Z-A",
+            nameof(PK9) => "Pokémon Scarlet & Violet",
+            nameof(PK8) => "Pokémon Sword & Shield",
+            nameof(PA8) => "Pokémon Legends: Arceus",
+            nameof(PB8) => "Pokémon BDSP",
+            _ => "Pokémon LGPE"
         };
 
         string description = $"**A high-performance Pokemon automation bot powered by PKHeX.Core.**\n\n" +

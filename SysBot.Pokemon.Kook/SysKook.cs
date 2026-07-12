@@ -1,4 +1,4 @@
-using Kook;
+﻿using Kook;
 using Kook.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using PKHeX.Core;
@@ -642,7 +642,7 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         {
             var sets = ParseShowdownSets(await SysBot.Pokemon.Helpers.NetUtil.HttpClient.GetStringAsync(args[0]));
             if (sets.Count == 0) return;
-            await message.Channel.SendTextAsync($"Found {sets.Count} PokÃ©mon. Processing...");
+            await message.Channel.SendTextAsync($"Found {sets.Count} Pokémon. Processing...");
             _ = Task.Run(async () => {
                 foreach (var s in sets) {
                     var res = await KookHelper<T>.ProcessShowdownSetAsync(string.Join("\n", s.GetSetLines()));

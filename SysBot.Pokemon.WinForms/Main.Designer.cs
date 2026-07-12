@@ -1,4 +1,4 @@
-using SysBot.Pokemon.WinForms.Properties;
+﻿using SysBot.Pokemon.WinForms.Properties;
 
 namespace SysBot.Pokemon.WinForms
 {
@@ -761,7 +761,7 @@ namespace SysBot.Pokemon.WinForms
             MinimumSize = new Size(866, 600);
             Name = "Main";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "SysBot: PokÃ©mon";
+            Text = "SysBot: Pokémon";
             FormClosing += Main_FormClosing;
             P_Sidebar.ResumeLayout(false);
             P_LangArea.ResumeLayout(false);

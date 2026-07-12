@@ -1,4 +1,4 @@
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
@@ -23,59 +23,6 @@ public static class QueueHelper<T> where T : PKM, new()
 {
     private const uint MaxTradeCode = 9999_9999;
 
-    private static readonly Dictionary<int, string> MilestoneImages = new()
-    {
-         { 1, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0001.png" },
-     { 50, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0050.png" },
-     { 100, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0100.png" },
-     { 150, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0150.png" },
-     { 200, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0200.png" },
-     { 250, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0250.png" },
-     { 300, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0300.png" },
-     { 350, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0350.png" },
-     { 400, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0400.png" },
-     { 450, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0450.png" },
-     { 500, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0500.png" },
-     { 550, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0550.png" },
-     { 600, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0600.png" },
-     { 650, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0650.png" },
-     { 700, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0700.png" },
-     { 750, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0750.png" },
-     { 800, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0800.png" },
-     { 850, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0850.png" },
-     { 900, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0900.png" },
-     { 950, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/0950.png" },
-     { 1000, "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/1000.png" }
- };
-
-    private static string GetMilestoneDescription(int tradeCount)
-    {
-        return tradeCount switch
-        {
-            1 => "Congratulations on your first trade!\n**Status:** Beginner Trainer.",
-            50 => "You've reached 50 trades!\n**Status:** Rookie Trainer.",
-            100 => "You've reached 100 trades!\n**Status:** Rising Star.",
-            150 => "You've reached 150 trades!\n**Status:** Challenger.",
-            200 => "You've reached 200 trades!\n**Status:** Master Baiter.",
-            250 => "You've reached 250 trades!\n**Status:** Star Trainer.",
-            300 => "You've reached 300 trades!\n**Status:** Ace Trainer.",
-            350 => "You've reached 350 trades!\n**Status:** Veteran Trainer.",
-            400 => "You've reached 400 trades!\n**Status:** Expert Trainer.",
-            450 => "You've reached 450 trades!\n**Status:** PokÃ©mon Trader.",
-            500 => "You've reached 500 trades!\n**Status:** PokÃ©mon Professor.",
-            550 => "You've reached 550 trades!\n**Status:** PokÃ©mon Champion.",
-            600 => "You've reached 600 trades!\n**Status:** PokÃ©mon Specialist.",
-            650 => "You've reached 650 trades!\n**Status:** PokÃ©mon Hero.",
-            700 => "You've reached 700 trades!\n**Status:** PokÃ©mon Elite.",
-            750 => "You've reached 750 trades!\n**Status:** PokÃ©mon Legend.",
-            800 => "You've reached 800 trades!\n**Status:** Region Master.",
-            850 => "You've reached 850 trades!\n**Status:** PokÃ©mon Master.",
-            900 => "You've reached 900 trades!\n**Status:** World Famous.",
-            950 => "You've reached 950 trades!\n**Status:** Master Trader.",
-            1000 => "You've reached 1000 trades!\n**Status:** PokÃ©mon God.",
-            _ => $"Congratulations on reaching {tradeCount} trades! Keep it going!"
-        };
-    }
 
     public static async Task AddToQueueAsync(SocketCommandContext context, int code, string trainer, RequestSignificance sig, T trade, PokeRoutineType routine, PokeTradeType type, SocketUser trader, bool isBatchTrade = false, int batchTradeNumber = 1, int totalBatchTrades = 1, bool isHiddenTrade = false, bool isMysteryEgg = false, List<Pictocodes>? lgcode = null, bool ignoreAutoOT = false, bool setEdited = false, bool isNonNative = false)
     {
@@ -381,9 +328,9 @@ public static class QueueHelper<T> where T : PKM, new()
         }
 
         // Send initial batch summary message
-        await context.Channel.SendMessageAsync($"{trader.Mention} - Added batch trade with {totalBatchTrades} PokÃ©mon to the queue! Position: {position.Position}. Estimated: {baseEta:F1} min(s).").ConfigureAwait(false);
+        await context.Channel.SendMessageAsync($"{trader.Mention} - Added batch trade with {totalBatchTrades} Pokémon to the queue! Position: {position.Position}. Estimated: {baseEta:F1} min(s).").ConfigureAwait(false);
 
-        // Create and send embeds for each PokÃ©mon in the batch
+        // Create and send embeds for each Pokémon in the batch
         if (SysCord<T>.Runner.Config.Trade.TradeEmbedSettings.UseEmbeds)
         {
             for (int i = 0; i < allTrades.Count; i++)
@@ -391,7 +338,7 @@ public static class QueueHelper<T> where T : PKM, new()
                 var pk = allTrades[i];
                 var batchTradeNumber = i + 1;
 
-                // Extract details for this PokÃ©mon
+                // Extract details for this Pokémon
                 var embedData = DetailsExtractor<T>.ExtractPokemonDetails(
                     pk, trader, false, false, false, false, false, true, batchTradeNumber, totalBatchTrades
                 );
@@ -729,13 +676,13 @@ public static class QueueHelper<T> where T : PKM, new()
 
     private static async Task SendMilestoneEmbed(int tradeCount, ISocketMessageChannel channel, SocketUser user)
     {
-        if (MilestoneImages.TryGetValue(tradeCount, out string? imageUrl))
+        if (MedalHelpers.IsExactMilestone(tradeCount))
         {
             var embed = new EmbedBuilder()
+                .WithColor(new global::Discord.Color(255, 215, 0))
                 .WithTitle($"{user.Username}'s Milestone Medal")
-                .WithDescription(GetMilestoneDescription(tradeCount))
-                .WithColor(new DiscordColor(255, 215, 0)) // Gold color
-                .WithThumbnailUrl(imageUrl)
+                .WithDescription(MedalHelpers.GetMilestoneCongratulations(tradeCount))
+                .WithThumbnailUrl(MedalHelpers.GetMedalImageUrl(SysCord<T>.Runner.Hub.Config.Discord.CustomMedalsBaseUrl, tradeCount))
                 .Build();
 
             await channel.SendMessageAsync(embed: embed).ConfigureAwait(false);

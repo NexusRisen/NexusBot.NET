@@ -147,6 +147,9 @@ public class DiscordSettings
     [Category(Operation), Description("When enabled, users can earn medals and check their status with the $medals command."), DisplayName("Enable Medals System")]
     public bool EnableMedals { get; set; } = true;
 
+    [Category(Operation), Description("Base URL for custom medal images. Expects {0:D4} as a placeholder for the milestone number."), DisplayName("Custom Medals Base URL")]
+    public string CustomMedalsBaseUrl { get; set; } = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/Progress/{0:D4}.png";
+
     [Category(Operation), Description("When enabled, user command messages will be deleted along with bot responses. Disable to keep user commands visible."), DisplayName("Delete Bot Commands")]
     public bool DeleteUserCommandMessages { get; set; } = true;
 

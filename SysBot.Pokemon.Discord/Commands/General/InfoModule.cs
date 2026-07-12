@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -60,12 +60,12 @@ public class InfoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
 
     private static string GetGameName() => typeof(T).Name switch
     {
-        nameof(PA9) => "PokÃ©mon Legends: Z-A",
-        nameof(PK9) => "PokÃ©mon Scarlet & Violet",
-        nameof(PK8) => "PokÃ©mon Sword & Shield",
-        nameof(PA8) => "PokÃ©mon Legends: Arceus",
-        nameof(PB8) => "PokÃ©mon BDSP",
-        _ => "PokÃ©mon LGPE"
+        nameof(PA9) => "Pokémon Legends: Z-A",
+        nameof(PK9) => "Pokémon Scarlet & Violet",
+        nameof(PK8) => "Pokémon Sword & Shield",
+        nameof(PA8) => "Pokémon Legends: Arceus",
+        nameof(PB8) => "Pokémon BDSP",
+        _ => "Pokémon LGPE"
     };
 
     private static string GetHeapSize() =>
