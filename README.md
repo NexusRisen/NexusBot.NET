@@ -64,13 +64,16 @@ NexusBot.NET features a state-of-the-art **AI Chatbot** powered by [Hugging Face
 - **Learn More**: See the [AI Chatbot Wiki](https://github.com/NexusRisen/NexusBot.NET/wiki/AI-Chatbot) for setup instructions.
 
 ### 📊 Enhanced Discord Experience
+- **Infinite Medals System**: Uncapped milestone tracking system that dynamically rewards users with escalating graphic medals (up to 1,000+ trades) for their interaction history.
 - **Visual Embeds**: Multi-column layouts for clean and professional data visualization.
+- **Global Asset Management**: Centralized high-performance `AssetManager` with built-in CDN cache-busting, instantly serving up-to-date graphics (Shiny sprites, Serebii held items, Medals, etc.) for zero broken image links.
 - **Advanced Metadata**: 
   - **Hyper Trained (HT)** indicators for IVs.
   - **Origin & Physical**: Clear display of Met Level, Met Date, and Met Location (with ID).
   - **Scale Visualization**: See exactly how big or small your Pokémon is.
 - **Refined Nature Logic**: Detailed display for minted natures, showing both intended stats and visual nature (e.g., `Adamant (Minted from: Jolly)`).
 - **Special Symbols**: Professional iconography for Shiny, Alpha, Marks, and Ribbons.
+- **System Diagnostics**: Real-time websocket latency reporting via the `$ping` command to monitor Discord API health instantly.
 
 ---
 
