@@ -13,7 +13,7 @@ public class PingModule : ModuleBase<SocketCommandContext>
         var latency = Context.Client.Latency;
         var embed = new EmbedBuilder()
             .WithTitle("Ping Response")
-            .WithDescription($"Pong! Latency: **{latency}ms**. Now stop @&#$?&! pinging me.")
+            .WithDescription($"Pong! Connection Latency: **{latency}ms**.")
             .WithColor(Color.Green)
             .Build();
 
