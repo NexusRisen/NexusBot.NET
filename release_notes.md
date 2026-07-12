@@ -15,5 +15,7 @@
   - Automatically attaches `?v=4` cache-busting arguments to all GitHub graphics, ensuring Discord's CDN instantly serves up-to-date versions of assets.
 - **Ping Command Overhaul**:
   - Replaced the generic GIF image in the `$ping` command with real-time websocket connection latency reporting (e.g. `Connection Latency: 42ms`), providing immediate insight into the bot's health and connection stability.
+- **Custom AI Core Identity**:
+  - Generated and implemented a brand new, highly-customized futuristic neon "AI Core" identity icon for the `$info` command thumbnail!
 - **Pokémon Encoding Fixes**:
   - Fixed multiple files displaying broken encoding (e.g. `PokÃ©mon`), standardizing properly UTF-8 encoded text across the entire Discord bot output!
