@@ -10,10 +10,10 @@ public class PingModule : ModuleBase<SocketCommandContext>
     [Summary("Makes the bot respond, indicating that it is running.")]
     public async Task PingAsync()
     {
+        var latency = Context.Client.Latency;
         var embed = new EmbedBuilder()
             .WithTitle("Ping Response")
-            .WithDescription("Pong! Now stop @&#$?&! pinging me.")
-            .WithImageUrl(SysBot.Pokemon.Helpers.AssetManager.GetPingGifUrl())
+            .WithDescription($"Pong! Latency: **{latency}ms**. Now stop @&#$?&! pinging me.")
             .WithColor(Color.Green)
             .Build();
 

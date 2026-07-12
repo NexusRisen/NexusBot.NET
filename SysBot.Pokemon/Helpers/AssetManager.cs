@@ -45,11 +45,4 @@ public static class AssetManager
         return $"https://serebii.net/itemdex/sprites/{itemName}.png";
     }
 
-    /// <summary>
-    /// Gets a centralized external URL for misc graphics (e.g. Ping).
-    /// </summary>
-    public static string GetPingGifUrl()
-    {
-        return "https://i.imgur.com/W9YmyA6.gif";
-    }
 }
