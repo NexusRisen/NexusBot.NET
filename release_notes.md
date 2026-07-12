@@ -9,5 +9,11 @@
 - **Security & Stability**:
   - Hardcoded the Custom Medals Base URL deeply into the application architecture (`MedalHelpers.cs`) to prevent accidental overriding or URL configuration errors via the settings UI.
   - Added native cache-busting arguments directly to the URL fetching logic, forcing Discord's strict CDN to instantly serve updated medal graphics when we push new assets to the GitHub repository.
+- **Global Asset Centralization**:
+  - Engineered a brand new `AssetManager` module that automatically centralizes and routes over 50 external image assets across the entire solution.
+  - Hardcoded Pokémon sprites, Held Items (via Serebii), Eggs, and Icons are now strictly maintained in one core location, preventing broken image links and increasing maintainability.
+  - Automatically attaches `?v=4` cache-busting arguments to all GitHub graphics, ensuring Discord's CDN instantly serves up-to-date versions of assets.
+- **Ping Command Overhaul**:
+  - Replaced the generic GIF image in the `$ping` command with real-time websocket connection latency reporting (e.g. `Connection Latency: 42ms`), providing immediate insight into the bot's health and connection stability.
 - **Pokémon Encoding Fixes**:
   - Fixed multiple files displaying broken encoding (e.g. `PokÃ©mon`), standardizing properly UTF-8 encoded text across the entire Discord bot output!
