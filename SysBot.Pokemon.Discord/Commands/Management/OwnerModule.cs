@@ -409,7 +409,7 @@ public class OwnerModule<T> : SudoModule<T> where T : PKM, new()
             Description = message,
             Color = (DiscordColor?)Color.Gold,
             Timestamp = DateTimeOffset.Now,
-            ThumbnailUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Extras/pikamail.png"
+            ThumbnailUrl = SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Extras/pikamail.png")
         };
 
         try

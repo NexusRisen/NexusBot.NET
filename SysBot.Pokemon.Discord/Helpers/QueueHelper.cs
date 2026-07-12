@@ -142,11 +142,11 @@ public static class QueueHelper<T> where T : PKM, new()
         {
             (string embedImageUrl, DiscordColor embedColor) = await PrepareEmbedDetails(pk);
 
-            embedData.EmbedImageUrl = isMysteryEgg ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/mysteryegg3.png?raw=true&width=300&height=300" :
-                type == PokeRoutineType.Dump ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/Dumping.png?raw=true&width=300&height=300" :
-                type == PokeRoutineType.Clone ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/Cloning.png?raw=true&width=300&height=300" :
-                type == PokeRoutineType.SeedCheck ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/Seeding.png?raw=true&width=300&height=300" :
-                type == PokeRoutineType.FixOT ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/FixOTing.png?raw=true&width=300&height=300" :
+            embedData.EmbedImageUrl = isMysteryEgg ? SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Eggs/mysteryegg3.png?raw=true&width=300&height=300") :
+                type == PokeRoutineType.Dump ? SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Actions/Dumping.png?raw=true&width=300&height=300") :
+                type == PokeRoutineType.Clone ? SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Actions/Cloning.png?raw=true&width=300&height=300") :
+                type == PokeRoutineType.SeedCheck ? SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Actions/Seeding.png?raw=true&width=300&height=300") :
+                type == PokeRoutineType.FixOT ? SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Actions/FixOTing.png?raw=true&width=300&height=300") :
                     embedImageUrl;
 
             embedData.HeldItemUrl = string.Empty;
@@ -187,23 +187,23 @@ public static class QueueHelper<T> where T : PKM, new()
             {
                 if (homeTrack.HasTracker && isNonNative)
                 {
-                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/setedited.png";
+                    embedBuilder.Footer.IconUrl = SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Actions/setedited.png");
                     embedBuilder.AddField("**__Notice__**: **This Pokemon is Non-Native & Has Home Tracker.**", "*AutoOT not applied.*");
                 }
                 else if (homeTrack.HasTracker)
                 {
-                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/setedited.png";
+                    embedBuilder.Footer.IconUrl = SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Actions/setedited.png");
                     embedBuilder.AddField("**__Notice__**: **Home Tracker Detected.**", "*AutoOT not applied.*");
                 }
                 else if (isNonNative)
                 {
-                    embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/setedited.png";
+                    embedBuilder.Footer.IconUrl = SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Actions/setedited.png");
                     embedBuilder.AddField("**__Notice__**: **This Pokemon is Non-Native.**", "*Cannot enter HOME & AutoOT not applied.*");
                 }
             }
             else if (isNonNative)
             {
-                embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/setedited.png";
+                embedBuilder.Footer.IconUrl = SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Actions/setedited.png");
                 embedBuilder.AddField("**__Notice__**: **This Pokemon is Non-Native.**", "*Cannot enter HOME & AutoOT not applied.*");
             }
 
@@ -381,7 +381,7 @@ public static class QueueHelper<T> where T : PKM, new()
                         .WithAuthor(new EmbedAuthorBuilder()
                             .WithName(embedData.AuthorName)
                             .WithIconUrl(trader.GetAvatarUrl() ?? trader.GetDefaultAvatarUrl())
-                            .WithUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Extras/FromTheHeart2.png"));
+                            .WithUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Extras/FromTheHeart2.png")));
 
                     DetailsExtractor<T>.AddAdditionalText(embedBuilder);
                     DetailsExtractor<T>.AddNormalTradeFields(embedBuilder, embedData, trader.Mention, pk);
@@ -391,7 +391,7 @@ public static class QueueHelper<T> where T : PKM, new()
                     {
                         if (homeTrack.HasTracker)
                         {
-                            embedBuilder.Footer.IconUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Actions/setedited.png";
+                            embedBuilder.Footer.IconUrl = SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Actions/setedited.png");
                             embedBuilder.AddField("**__Notice__**: **Home Tracker Detected.**", "*AutoOT not applied.*");
                         }
                     }
@@ -490,7 +490,7 @@ public static class QueueHelper<T> where T : PKM, new()
             ballName = ballName.Replace(" ", "").ToLower();
         }
 
-        string ballImgUrl = $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Balls/Alt/28x28/{ballName}.png";
+        string ballImgUrl = SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl($"Balls/Alt/28x28/{ballName}.png");
 
         if (Uri.TryCreate(embedImageUrl, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeFile)
         {
@@ -814,7 +814,7 @@ public static class QueueHelper<T> where T : PKM, new()
             ? typeNames[typeIndex]
             : "Normal";
 
-        return $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/Egg_{typeName}.png";
+        return SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl($"Assets/Eggs/Egg_{typeName}.png");
     }
 
     public static (string, Embed) CreateLGLinkCodeSpriteEmbed(List<Pictocodes> lgcode)

@@ -25,7 +25,7 @@ public static class EmbedHelper
                 .WithTitle("Notice")
                 .WithDescription(message)
                 .WithTimestamp(DateTimeOffset.Now)
-                .WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/DM/dm-legalityerror.gif")
+                .WithThumbnailUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-legalityerror.gif"))
                 .WithColor(Color.Orange)
                 .Build();
 
@@ -61,7 +61,7 @@ public static class EmbedHelper
                 .WithTitle("Trade Canceled")
                 .WithDescription(reason)
                 .WithTimestamp(DateTimeOffset.Now)
-                .WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/DM/dm-uhoherror.gif")
+                .WithThumbnailUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-uhoherror.gif"))
                 .WithColor(Color.Red)
                 .Build();
 
@@ -97,7 +97,7 @@ public static class EmbedHelper
                 .WithTitle("Link Trade Code")
                 .WithDescription($"**Code:** `{code:0000 0000}`\n\n*I will notify you when it is time to search.*")
                 .WithTimestamp(DateTimeOffset.Now)
-                .WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/DM/dm-tradecode.gif")
+                .WithThumbnailUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-tradecode.gif"))
                 .WithColor(Color.Gold)
                 .Build();
 
@@ -124,7 +124,7 @@ public static class EmbedHelper
         try
         {
             string thumbnailUrl = isMysteryEgg 
-                ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/mysteryegg3.png" 
+                ? SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Eggs/mysteryegg3.png") 
                 : TradeExtensions<T>.PokeImg(pk, false, true, null);
 
             var embed = new EmbedBuilder()
@@ -162,7 +162,7 @@ public static class EmbedHelper
                 .WithTitle("Initializing Trade")
                 .WithDescription($"**Pokémon:** {(isMysteryEgg ? "Mystery Egg" : speciesName)}\n**Code:** `{code:0000 0000}`")
                 .WithTimestamp(DateTimeOffset.Now)
-                .WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/DM/dm-initializingbot.gif")
+                .WithThumbnailUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-initializingbot.gif"))
                 .WithColor(Color.Blue);
 
             if (!string.IsNullOrEmpty(message))
@@ -202,7 +202,7 @@ public static class EmbedHelper
                 .WithTitle("Searching for Trade")
                 .WithDescription($"**Waiting For:** {trainerName}\n**My IGN:** {inGameName}\n\n*Please begin searching now using your code.*")
                 .WithTimestamp(DateTimeOffset.Now)
-                .WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/DM/dm-nowsearching.gif")
+                .WithThumbnailUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-nowsearching.gif"))
                 .WithColor(Color.Green);
 
             if (!string.IsNullOrEmpty(message))

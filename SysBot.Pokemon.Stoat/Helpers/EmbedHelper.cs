@@ -29,7 +29,7 @@ public static class EmbedHelper
             var dm = await UserHelper.GetUserDMChannelAsync(client.Rest, userId);
             if (dm != null)
             {
-                var embed = CreateEmbed("Notice", message, "#FFA500", "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/DM/dm-legalityerror.gif");
+                var embed = CreateEmbed("Notice", message, "#FFA500", SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-legalityerror.gif"));
                 await MessageHelper.SendMessageAsync(dm, string.Empty, embeds: new[] { embed });
             }
         }
@@ -49,7 +49,7 @@ public static class EmbedHelper
                 var embed = new EmbedBuilder()
                     .SetTitle("Trade Canceled")
                     .SetDescription(reason)
-                    .SetIconUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/DM/dm-uhoherror.gif")
+                    .SetIconUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-uhoherror.gif"))
                     .SetColor(new StoatColor("#FF0000")) // Red
                     .Build();
 
@@ -72,7 +72,7 @@ public static class EmbedHelper
                 var embed = new EmbedBuilder()
                     .SetTitle("Link Trade Code")
                     .SetDescription($"**Code:** `{code:0000 0000}`\n\n*I will notify you when it is time to search.*")
-                    .SetIconUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/DM/dm-tradecode.gif")
+                    .SetIconUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-tradecode.gif"))
                     .SetColor(new StoatColor("#FFD700")) // Gold
                     .Build();
 
@@ -91,7 +91,7 @@ public static class EmbedHelper
         try
         {
             string thumbnailUrl = isMysteryEgg 
-                ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/mysteryegg3.png" 
+                ? SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Eggs/mysteryegg3.png") 
                 : TradeExtensions<T>.PokeImg(pk, false, true, null);
 
             var dm = await UserHelper.GetUserDMChannelAsync(client.Rest, userId);
@@ -129,7 +129,7 @@ public static class EmbedHelper
                 var embed = new EmbedBuilder()
                     .SetTitle("Initializing Trade")
                     .SetDescription(description)
-                    .SetIconUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/DM/dm-initializingbot.gif")
+                    .SetIconUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-initializingbot.gif"))
                     .SetColor(new StoatColor("#0000FF")) // Blue
                     .Build();
 
@@ -158,7 +158,7 @@ public static class EmbedHelper
                 var embed = new EmbedBuilder()
                     .SetTitle("Searching for Trade")
                     .SetDescription(description)
-                    .SetIconUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/DM/dm-nowsearching.gif")
+                    .SetIconUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-nowsearching.gif"))
                     .SetColor(new StoatColor("#008000")) // Green
                     .Build();
 
@@ -184,7 +184,7 @@ public static class EmbedHelper
                 var eggEmbed = new EmbedBuilder()
                     .SetTitle("Trade Complete - Mystery Egg")
                     .SetDescription($"**User:** {trainerMention}\n\nYour mystery egg has been traded! Good luck with the hatch!")
-                    .SetIconUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/mysteryegg3.png")
+                    .SetIconUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Eggs/mysteryegg3.png"))
                     .SetColor(new StoatColor("#FFD700"))
                     .Build();
                 await MessageHelper.SendMessageAsync(dm, string.Empty, embeds: new[] { eggEmbed });

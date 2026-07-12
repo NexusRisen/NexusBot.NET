@@ -301,8 +301,8 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         var botName = string.IsNullOrEmpty(SysCordSettings.HubConfig.BotName) ? NexusBot.Name : SysCordSettings.HubConfig.BotName;
         var fullStatusMessage = $"**Status**: {botName} is {status}!";
         var thumbnailUrl = status == "Online"
-            ? "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Status/botgo.png"
-            : "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Status/botstop.png";
+            ? SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Status/botgo.png")
+            : SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Status/botstop.png");
 
         var embed = new EmbedBuilder()
             .WithTitle("Bot Status Report")

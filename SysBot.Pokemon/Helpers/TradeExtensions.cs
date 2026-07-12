@@ -153,7 +153,7 @@ namespace SysBot.Pokemon.Helpers
         {
             if (pkm.IsEgg)
             {
-                return "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/egg.png";
+                return SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Eggs/egg.png");
             }
 
             canGmax = canGmax || (pkm is IGigantamax g && g.CanGigantamax);
@@ -228,7 +228,7 @@ namespace SysBot.Pokemon.Helpers
                 }
             }
 
-            return $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/{shinyFolder}/PNG/{rangeFolder}/{baseSpecies}{formSuffix}.png";
+            return SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl($"{shinyFolder}/PNG/{rangeFolder}/{baseSpecies}{formSuffix}.png");
         }
 
         private static string GetAlphabeticalRange(string speciesName)

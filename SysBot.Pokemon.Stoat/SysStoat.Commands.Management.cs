@@ -81,7 +81,7 @@ public partial class SysStoat<T>
             title: "NexusBot.NET - Information",
             description: description,
             colorHex: "#FFD700",
-            iconUrl: "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Characters/nexusbot.png"
+            iconUrl: SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Characters/nexusbot.png")
         );
 
         await MessageHelper.SendMessageAsync(message.Channel!, string.Empty, embeds: new[] { embed });

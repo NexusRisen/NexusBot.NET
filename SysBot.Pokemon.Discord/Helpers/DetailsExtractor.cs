@@ -125,7 +125,7 @@ public static class DetailsExtractor<T> where T : PKM, new()
     {
         if (isCloneRequest || isSpecialRequest)
         {
-            embedBuilder.WithThumbnailUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/NPCs/profoak.png");
+            embedBuilder.WithThumbnailUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/NPCs/profoak.png"));
         }
         else if (!string.IsNullOrEmpty(heldItemUrl))
         {

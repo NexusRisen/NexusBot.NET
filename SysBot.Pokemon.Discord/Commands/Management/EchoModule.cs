@@ -190,13 +190,13 @@ namespace SysBot.Pokemon.Discord
         {
             var thumbnailOptions = new List<string>
     {
-        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/gengarmegaphone.png",
-        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/pikachumegaphone.png",
-        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/umbreonmegaphone.png",
-        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/sylveonmegaphone.png",
-        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/charmandermegaphone.png",
-        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/jigglypuffmegaphone.png",
-        "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/flareonmegaphone.png",
+        SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/gengarmegaphone.png"),
+        SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/pikachumegaphone.png"),
+        SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/umbreonmegaphone.png"),
+        SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/sylveonmegaphone.png"),
+        SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/charmandermegaphone.png"),
+        SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/jigglypuffmegaphone.png"),
+        SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/flareonmegaphone.png"),
     };
             var random = new Random();
             return thumbnailOptions[random.Next(thumbnailOptions.Count)];
@@ -220,14 +220,14 @@ namespace SysBot.Pokemon.Discord
         {
             return option switch
             {
-                ThumbnailOption.Gengar => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/gengarmegaphone.png",
-                ThumbnailOption.Pikachu => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/pikachumegaphone.png",
-                ThumbnailOption.Umbreon => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/umbreonmegaphone.png",
-                ThumbnailOption.Sylveon => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/sylveonmegaphone.png",
-                ThumbnailOption.Charmander => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/charmandermegaphone.png",
-                ThumbnailOption.Jigglypuff => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/jigglypuffmegaphone.png",
-                ThumbnailOption.Flareon => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/flareonmegaphone.png",
-                _ => "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Icons/Megaphones/gengarmegaphone.png",
+                ThumbnailOption.Gengar => SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/gengarmegaphone.png"),
+                ThumbnailOption.Pikachu => SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/pikachumegaphone.png"),
+                ThumbnailOption.Umbreon => SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/umbreonmegaphone.png"),
+                ThumbnailOption.Sylveon => SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/sylveonmegaphone.png"),
+                ThumbnailOption.Charmander => SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/charmandermegaphone.png"),
+                ThumbnailOption.Jigglypuff => SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/jigglypuffmegaphone.png"),
+                ThumbnailOption.Flareon => SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/flareonmegaphone.png"),
+                _ => SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Icons/Megaphones/gengarmegaphone.png"),
             };
         }
 

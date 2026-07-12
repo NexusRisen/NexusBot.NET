@@ -129,7 +129,7 @@ namespace SysBot.Pokemon.Discord
 
                     // Add batch to queue
                     var batchTradeCode = Info.GetRandomTradeCode(userID);
-                    await ProcessBatchMysteryItems(Context, batchEggList, batchTradeCode, count, "Mystery Egg", "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Eggs/mysteryegg3.png");
+                    await ProcessBatchMysteryItems(Context, batchEggList, batchTradeCode, count, "Mystery Egg", SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Eggs/mysteryegg3.png"));
                 }
                 catch (Exception ex)
                 {
@@ -238,7 +238,7 @@ namespace SysBot.Pokemon.Discord
 
                     // Add batch to queue
                     var batchTradeCode = Info.GetRandomTradeCode(userID);
-                    await ProcessBatchMysteryItems(Context, batchList, batchTradeCode, count, "Mystery Pokémon", "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Extras/mystery_box.png");
+                    await ProcessBatchMysteryItems(Context, batchList, batchTradeCode, count, "Mystery Pokémon", SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Extras/mystery_box.png"));
                 }
                 catch (Exception ex)
                 {
@@ -335,7 +335,7 @@ namespace SysBot.Pokemon.Discord
                 .WithAuthor(new EmbedAuthorBuilder()
                     .WithName($"{typeName} for {context.User.Username}")
                     .WithIconUrl(context.User.GetAvatarUrl() ?? context.User.GetDefaultAvatarUrl())
-                    .WithUrl("https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Bot/Extras/FromTheHeart2.png"));
+                    .WithUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/Extras/FromTheHeart2.png")));
 
             return embedBuilder.Build();
         }

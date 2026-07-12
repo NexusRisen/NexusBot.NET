@@ -7,7 +7,7 @@ namespace SysBot.Pokemon.Discord;
 public static class MedalHelpers
 {
     private const int MaxMedalMilestone = 1000;
-    private const string DefaultBaseUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/Progress/{0:D4}.png?v=4";
+    private static readonly string DefaultBaseUrl = SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Medals/Progress/{0:D4}.png?v=4");
 
     public static int GetCurrentMilestone(int totalTrades)
     {
