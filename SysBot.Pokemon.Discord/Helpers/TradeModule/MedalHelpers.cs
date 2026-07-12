@@ -70,26 +70,14 @@ public static class MedalHelpers
         return $"You've reached {tradeCount} trades!\n**Status:** {GetMilestoneStatus(tradeCount)}.";
     }
 
-    public static string GetMedalImageUrl(string baseUrl, int milestone)
+    public static string GetMedalImageUrl(int milestone)
     {
         // Clamp the milestone so requesting >1000 trades falls back to the max 1000 medal image
         int clampedMilestone = GetCurrentMilestone(milestone);
-        
-        try
-        {
-            if (string.IsNullOrWhiteSpace(baseUrl))
-            {
-                return string.Format(DefaultBaseUrl, clampedMilestone);
-            }
-            return string.Format(baseUrl, clampedMilestone);
-        }
-        catch
-        {
-            return string.Format(DefaultBaseUrl, clampedMilestone);
-        }
+        return string.Format(DefaultBaseUrl, clampedMilestone);
     }
 
-    public static Embed CreateMedalsEmbed(SocketUser user, int milestone, int totalTrades, string baseUrl)
+    public static Embed CreateMedalsEmbed(SocketUser user, int milestone, int totalTrades)
     {
         string status = GetMilestoneStatus(milestone);
         string description = $"Total Trades: **{totalTrades}**\n**Current Status:** {status}";
@@ -100,7 +88,7 @@ public static class MedalHelpers
                 .WithTitle($"{user.Username}'s Trading Status")
                 .WithColor(new Color(255, 215, 0))
                 .WithDescription(description)
-                .WithThumbnailUrl(GetMedalImageUrl(baseUrl, milestone))
+                .WithThumbnailUrl(GetMedalImageUrl(milestone))
                 .Build();
         }
         else
@@ -109,7 +97,7 @@ public static class MedalHelpers
                 .WithTitle($"{user.Username}'s Trading Status")
                 .WithColor(new Color(0, 255, 0)) // Lime Green
                 .WithDescription($"{description}\nNo trades on record yet, thank you for participating!")
-                .WithThumbnailUrl(GetMedalImageUrl(baseUrl, 0))
+                .WithThumbnailUrl(GetMedalImageUrl(0))
                 .Build();
         }
     }

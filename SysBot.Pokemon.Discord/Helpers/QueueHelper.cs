@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
@@ -682,7 +682,7 @@ public static class QueueHelper<T> where T : PKM, new()
                 .WithColor(new global::Discord.Color(255, 215, 0))
                 .WithTitle($"{user.Username}'s Milestone Medal")
                 .WithDescription(MedalHelpers.GetMilestoneCongratulations(tradeCount))
-                .WithThumbnailUrl(MedalHelpers.GetMedalImageUrl(SysCord<T>.Runner.Hub.Config.Discord.CustomMedalsBaseUrl, tradeCount))
+                .WithThumbnailUrl(MedalHelpers.GetMedalImageUrl(tradeCount))
                 .Build();
 
             await channel.SendMessageAsync(embed: embed).ConfigureAwait(false);

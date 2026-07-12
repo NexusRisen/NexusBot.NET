@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using PKHeX.Core;
@@ -43,7 +43,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         }
 
         int currentMilestone = MedalHelpers.GetCurrentMilestone(totalTrades);
-        var embed = MedalHelpers.CreateMedalsEmbed(Context.User, currentMilestone, totalTrades, SysCord<T>.Runner.Hub.Config.Discord.CustomMedalsBaseUrl);
+        var embed = MedalHelpers.CreateMedalsEmbed(Context.User, currentMilestone, totalTrades);
         await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
     }
 
