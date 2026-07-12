@@ -1,6 +1,6 @@
 # NexusBot.NET Release Notes
 
-## [Unreleased]
+## [v8.0.4]
 
 ### Features & Improvements
 - **Infinite Medals Architecture**: 
