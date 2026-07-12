@@ -153,7 +153,7 @@ public static class QueueHelper<T> where T : PKM, new()
             if (!string.IsNullOrWhiteSpace(embedData.HeldItem))
             {
                 string heldItemName = embedData.HeldItem.ToLower().Replace(" ", "");
-                embedData.HeldItemUrl = $"https://serebii.net/itemdex/sprites/{heldItemName}.png";
+                embedData.HeldItemUrl = SysBot.Pokemon.Helpers.AssetManager.GetItemUrl(heldItemName);
             }
 
             embedData.IsLocalFile = File.Exists(embedData.EmbedImageUrl);
@@ -353,7 +353,7 @@ public static class QueueHelper<T> where T : PKM, new()
                     if (!string.IsNullOrWhiteSpace(embedData.HeldItem))
                     {
                         string heldItemName = embedData.HeldItem.ToLower().Replace(" ", "");
-                        embedData.HeldItemUrl = $"https://serebii.net/itemdex/sprites/{heldItemName}.png";
+                        embedData.HeldItemUrl = SysBot.Pokemon.Helpers.AssetManager.GetItemUrl(heldItemName);
                     }
 
                     embedData.IsLocalFile = File.Exists(embedData.EmbedImageUrl);
