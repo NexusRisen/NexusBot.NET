@@ -6,32 +6,36 @@ namespace SysBot.Pokemon.Discord;
 
 public static class MedalHelpers
 {
+    private const int MaxMedalMilestone = 1000;
+    private const string DefaultBaseUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/Progress/{0:D4}.png?v=4";
+
     public static int GetCurrentMilestone(int totalTrades)
     {
         if (totalTrades < 1) return 0;
         if (totalTrades < 50) return 1;
         
         int milestone = (totalTrades / 50) * 50;
-        return Math.Min(milestone, 1000);
+        return Math.Min(milestone, MaxMedalMilestone);
     }
 
     public static bool IsExactMilestone(int totalTrades)
     {
         if (totalTrades == 1) return true;
         if (totalTrades <= 0) return false;
-        if (totalTrades % 50 == 0 && totalTrades <= 1000) return true;
-        return false;
+        // Congratulate infinitely every 50 trades
+        return totalTrades % 50 == 0;
     }
 
     public static int CalculateTotalMedals(int tradeCount)
     {
         if (tradeCount < 1) return 0;
-        return 1 + Math.Min(20, tradeCount / 50);
+        return 1 + Math.Min(MaxMedalMilestone / 50, tradeCount / 50);
     }
 
     public static string GetMilestoneStatus(int milestone)
     {
-        return milestone switch
+        int clampedMilestone = GetCurrentMilestone(milestone);
+        return clampedMilestone switch
         {
             1 => "Beginner Trainer",
             50 => "Rookie Trainer",
@@ -68,13 +72,20 @@ public static class MedalHelpers
 
     public static string GetMedalImageUrl(string baseUrl, int milestone)
     {
+        // Clamp the milestone so requesting >1000 trades falls back to the max 1000 medal image
+        int clampedMilestone = GetCurrentMilestone(milestone);
+        
         try
         {
-            return string.Format(baseUrl, milestone);
+            if (string.IsNullOrWhiteSpace(baseUrl))
+            {
+                return string.Format(DefaultBaseUrl, clampedMilestone);
+            }
+            return string.Format(baseUrl, clampedMilestone);
         }
         catch
         {
-            return $"https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/Assets/Medals/{milestone:D4}.png";
+            return string.Format(DefaultBaseUrl, clampedMilestone);
         }
     }
 
