@@ -66,7 +66,9 @@ public static class PokeTradeHelper<T> where T : PKM, new()
             };
         }
 
-        var sav = LanguageHelper.GetTrainerInfoWithLanguage<T>((LanguageID)finalLanguage);
+        // DON'T use language-specific trainer! It causes encounter errors.
+        // Generate with normal trainer (English), then set language after generation.
+        var sav = AutoLegalityWrapper.GetTrainerInfo<T>();
 
         PKM? pkm;
         string result;
@@ -112,6 +114,37 @@ public static class PokeTradeHelper<T> where T : PKM, new()
                 Error = "Set took too long to legalize.",
                 ShowdownSet = set
             };
+        }
+
+        // Set language early so 6IV/Tera checks see the correct language.
+        // Also fix the OT length and nickname for Asian languages here, before the
+        // FIXED-OT FALLBACK runs its LegalityAnalysis.
+        if (pkm is T pkBeforeCheck)
+        {
+            pkBeforeCheck.Language = finalLanguage;
+
+            // Asian languages enforce a 6-char OT limit in PKHeX.
+            if ((finalLanguage == (byte)LanguageID.Japanese ||
+                 finalLanguage == (byte)LanguageID.Korean ||
+                 finalLanguage == (byte)LanguageID.ChineseS ||
+                 finalLanguage == (byte)LanguageID.ChineseT) &&
+                pkBeforeCheck.OriginalTrainerName.Length > 6)
+            {
+                const string asianOT = "王犬米";
+                pkBeforeCheck.OriginalTrainerName = asianOT;
+                // Clear trash bytes from the previous longer OT
+                Span<byte> trashBuf = stackalloc byte[pkBeforeCheck.TrashCharCountTrainer * 2];
+                int trashLen = pkBeforeCheck.SetString(trashBuf, asianOT.AsSpan(), pkBeforeCheck.TrashCharCountTrainer, StringConverterOption.ClearZero);
+                pkBeforeCheck.OriginalTrainerTrash.Clear();
+                trashBuf[..trashLen].CopyTo(pkBeforeCheck.OriginalTrainerTrash);
+                pkBeforeCheck.RefreshChecksum();
+            }
+
+            if (string.IsNullOrEmpty(set.Nickname))
+            {
+                pkBeforeCheck.Nickname = SpeciesName.GetSpeciesNameGeneration(pkBeforeCheck.Species, pkBeforeCheck.Language, pkBeforeCheck.Format);
+                pkBeforeCheck.IsNicknamed = false;
+            }
         }
 
         var spec = GameInfo.Strings.Species[template.Species];
