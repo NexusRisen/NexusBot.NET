@@ -1747,9 +1747,14 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
                 var configLanguage = (int)legalitySettings.GenerateLanguage;
                 if (originalLanguage != configLanguage && originalLanguage >= 1 && originalLanguage <= 12)
                     cln.Language = originalLanguage; // Preserve user's requested language
-                else if (originalLanguage < 1 || originalLanguage > 12)
-                    cln.Language = data[5]; // Use trade partner's language if invalid
-                // else: use current (config) language
+                else
+                {
+                    // Use trade partner's language if valid, otherwise fallback to English
+                    int partnerLang = data[5];
+                    if (partnerLang < 1 || partnerLang > 12)
+                        partnerLang = 2; // English
+                    cln.Language = partnerLang;
+                }
 
                 // Truncate OT name based on language (Asian languages have 6-char limit, others 12-char)
                 string otName = LanguageHelper.SanitizeOTName(trainerName, cln.Language);
@@ -1759,7 +1764,10 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
             }
 
             if (!toSend.IsNicknamed)
-                cln.ClearNickname();
+            {
+                cln.Nickname = SpeciesName.GetSpeciesNameGeneration(cln.Species, cln.Language, cln.Format);
+                cln.IsNicknamed = false;
+            }
 
             if (!toSend.ChecksumValid)
                 cln.RefreshChecksum();

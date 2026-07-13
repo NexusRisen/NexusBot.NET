@@ -373,15 +373,14 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                     // Preserve the user's explicitly requested language
                     cln.Language = originalLanguage;
                 }
-                else if (originalLanguage < 1 || originalLanguage > 12)
+                else
                 {
-                    // Original language is invalid, use trade partner's language
+                    // Use trade partner's language if valid, otherwise fallback to English
                     int language = tradePartner.Language;
                     if (language < 1 || language > 12) // Valid language IDs are 1-12
                         language = 2; // English
                     cln.Language = language;
                 }
-                // else: use current (config) language
                 
                 // Re-sanitize OT Name in case language changed
                 cln.OriginalTrainerName = LanguageHelper.SanitizeOTName(tradePartner.OT, cln.Language);
@@ -399,7 +398,10 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             // Set nickname to species name in the Pokemon's language using PKHeX's method
             // This properly handles generation-specific formatting and language-specific names
             if (!toSend.IsNicknamed)
-                cln.ClearNickname();
+            {
+                cln.Nickname = SpeciesName.GetSpeciesNameGeneration(cln.Species, cln.Language, cln.Format);
+                cln.IsNicknamed = false;
+            }
 
             // Clear handler info - make it look like trade partner is OT and never traded it
             cln.CurrentHandler = 0; // 0 = OT is current handler

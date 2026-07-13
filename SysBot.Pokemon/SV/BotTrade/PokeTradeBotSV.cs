@@ -272,10 +272,13 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
                     // Preserve the user's explicitly requested language
                     cln.Language = originalLanguage;
                 }
-                else if (originalLanguage < 1 || originalLanguage > 12)
+                else
                 {
-                    // Original language is invalid, use trade partner's language
-                    cln.Language = tradePartner.Language;
+                    // Use trade partner's language if valid, otherwise fallback to English
+                    int partnerLang = tradePartner.Language;
+                    if (partnerLang < 1 || partnerLang > 12)
+                        partnerLang = 2; // English
+                    cln.Language = partnerLang;
                 }
                 
                 cln.OriginalTrainerName = LanguageHelper.SanitizeOTName(tradePartner.OT, cln.Language);
@@ -310,7 +313,10 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
             cln.Version = version;
 
             if (!toSend.IsNicknamed)
-                cln.ClearNickname();
+            {
+                cln.Nickname = SpeciesName.GetSpeciesNameGeneration(cln.Species, cln.Language, cln.Format);
+                cln.IsNicknamed = false;
+            }
 
             if (toSend.IsShiny)
                 cln.PID = (uint)((cln.TID16 ^ cln.SID16 ^ (cln.PID & 0xFFFF) ^ toSend.ShinyXor) << 16) | (cln.PID & 0xFFFF);

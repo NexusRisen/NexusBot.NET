@@ -930,7 +930,10 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
             }
 
             if (!toSend.IsNicknamed)
-                cln.ClearNickname();
+            {
+                cln.Nickname = SpeciesName.GetSpeciesNameGeneration(cln.Species, cln.Language, cln.Format);
+                cln.IsNicknamed = false;
+            }
 
             if (!toSend.ChecksumValid)
                 cln.RefreshChecksum();

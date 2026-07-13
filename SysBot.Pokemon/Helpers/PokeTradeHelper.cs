@@ -119,6 +119,7 @@ public static class PokeTradeHelper<T> where T : PKM, new()
         // Set language early so 6IV/Tera checks see the correct language.
         // Also fix the OT length and nickname for Asian languages here, before the
         // FIXED-OT FALLBACK runs its LegalityAnalysis.
+        byte effectiveLanguage = finalLanguage;
         if (pkm is T pkBeforeCheck)
         {
             pkBeforeCheck.Language = finalLanguage;
@@ -146,6 +147,38 @@ public static class PokeTradeHelper<T> where T : PKM, new()
                 pkBeforeCheck.IsNicknamed = false;
             }
         }
+
+        // ============================================================================
+        // FIXED-OT ENCOUNTER LANGUAGE FALLBACK
+        // ============================================================================
+        if (pkm is T pkmOTCheck && (byte)pkmOTCheck.Language != (byte)hub.Config.Legality.GenerateLanguage)
+        {
+            var langCheckLa = new LegalityAnalysis(pkmOTCheck);
+            if (!langCheckLa.Valid)
+            {
+                pkmOTCheck.Language = (byte)hub.Config.Legality.GenerateLanguage;
+                effectiveLanguage = (byte)hub.Config.Legality.GenerateLanguage;
+                if (string.IsNullOrEmpty(set.Nickname))
+                {
+                    pkmOTCheck.Nickname = SpeciesName.GetSpeciesNameGeneration(pkmOTCheck.Species, pkmOTCheck.Language, pkmOTCheck.Format);
+                    pkmOTCheck.IsNicknamed = false;
+                }
+                var revertCheckLa = new LegalityAnalysis(pkmOTCheck);
+                if (!revertCheckLa.Valid)
+                {
+                    pkmOTCheck.Language = finalLanguage;
+                    effectiveLanguage = finalLanguage;
+                    if (string.IsNullOrEmpty(set.Nickname))
+                    {
+                        pkmOTCheck.Nickname = SpeciesName.GetSpeciesNameGeneration(pkmOTCheck.Species, pkmOTCheck.Language, pkmOTCheck.Format);
+                        pkmOTCheck.IsNicknamed = false;
+                    }
+                }
+            }
+        }
+        // ============================================================================
+        // END OF FIXED-OT ENCOUNTER LANGUAGE FALLBACK
+        // ============================================================================
 
         var spec = GameInfo.Strings.Species[template.Species];
 
@@ -294,8 +327,9 @@ public static class PokeTradeHelper<T> where T : PKM, new()
             }
         }
 
-        // Final preparation
-        PrepareForTrade(pk, set, finalLanguage);
+        // Final preparation — use effectiveLanguage so the FIXED-OT FALLBACK's language
+        // choice is not overwritten by finalLanguage here.
+        PrepareForTrade(pk, set, effectiveLanguage);
 
         if (TradeExtensions<T>.HasAdName(pk, out _))
         {
@@ -338,7 +372,13 @@ public static class PokeTradeHelper<T> where T : PKM, new()
         pk.Language = finalLanguage;
 
         if (!set.Nickname.Equals(pk.Nickname) && string.IsNullOrEmpty(set.Nickname))
-            _ = pk.ClearNickname();
+        {
+            // Use the correct species name for the stored language instead of "" (ClearNickname).
+            // Asian languages require the actual species name in the nickname field; "" fails
+            // PKHeX's "Nickname does not match species name" legality check.
+            pk.Nickname = SpeciesName.GetSpeciesNameGeneration(pk.Species, pk.Language, pk.Format);
+            pk.IsNicknamed = false;
+        }
 
         pk.ResetPartyStats();
     }

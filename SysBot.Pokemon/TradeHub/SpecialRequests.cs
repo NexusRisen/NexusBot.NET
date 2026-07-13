@@ -214,14 +214,16 @@ namespace SysBot.Pokemon.TradeHub
             switch (pk.HeldItem)
             {
                 case ITEM_ULTRA_BALL:
-                    pk.ClearNickname();
+                    pk.Nickname = SpeciesName.GetSpeciesNameGeneration(pk.Species, pk.Language, pk.Format);
+                    pk.IsNicknamed = false;
                     pk.OriginalTrainerName = trainerName;
                     break;
                 case ITEM_GREAT_BALL:
                     pk.OriginalTrainerName = trainerName;
                     break;
                 case ITEM_POKE_BALL:
-                    pk.ClearNickname();
+                    pk.Nickname = SpeciesName.GetSpeciesNameGeneration(pk.Species, pk.Language, pk.Format);
+                    pk.IsNicknamed = false;
                     break;
             }
 
@@ -383,7 +385,8 @@ namespace SysBot.Pokemon.TradeHub
             };
 
             pk.Language = (int)language;
-            pk.ClearNickname();
+            pk.Nickname = SpeciesName.GetSpeciesNameGeneration(pk.Species, pk.Language, pk.Format);
+            pk.IsNicknamed = false;
 
             ApplyCommonModifications(ref pk, rewardItem);
 
@@ -464,7 +467,9 @@ namespace SysBot.Pokemon.TradeHub
             }
 
             pk.Ball = (byte)ball;
-            pk.ClearNickname(); // Clear the nickname after changing the ball
+            // Clear the nickname after changing the ball
+            pk.Nickname = SpeciesName.GetSpeciesNameGeneration(pk.Species, pk.Language, pk.Format);
+            pk.IsNicknamed = false;
 
             if (!CheckLegalityAfterModification(pk, caller, detail))
                 return SpecialTradeType.FailReturn;
@@ -498,7 +503,10 @@ namespace SysBot.Pokemon.TradeHub
             pk.SetRecordFlags([]);
             pk.HeldItem = rewardItem;
             if (!pk.IsEgg)
-                pk.ClearNickname();
+            {
+                pk.Nickname = SpeciesName.GetSpeciesNameGeneration(pk.Species, pk.Language, pk.Format);
+                pk.IsNicknamed = false;
+            }
         }
 
         /// <summary>

@@ -311,7 +311,10 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
             }
 
             if (!toSend.IsNicknamed)
-                cln.ClearNickname();
+            {
+                cln.Nickname = SpeciesName.GetSpeciesNameGeneration(cln.Species, cln.Language, cln.Format);
+                cln.IsNicknamed = false;
+            }
 
             if (toSend.IsShiny)
                 cln.PID = (uint)((cln.TID16 ^ cln.SID16 ^ (cln.PID & 0xFFFF) ^ toSend.ShinyXor) << 16) | (cln.PID & 0xFFFF);

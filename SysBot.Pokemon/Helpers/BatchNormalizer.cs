@@ -60,6 +60,11 @@ namespace SysBot.Pokemon.Helpers
             { "Mark", ProcessMark },
             { "Ribbon", ProcessRibbon },
             { "GVs", ProcessGVs },
+            { "Nickname", ProcessNickname },
+            { "EVs", ProcessEVs },
+            { "IVs", ProcessIVs },
+            { "HT", ProcessHyperTrain },
+            { "StatNature", ProcessStatNature },
         };
 
         //////////////////////////////////// NEW COMMAND DICTIONARIES //////////////////////////////////////
@@ -110,6 +115,15 @@ namespace SysBot.Pokemon.Helpers
             { "Ribbon", 6 }
         };
 
+        private static readonly HashSet<string> ValidNatures = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile", "Relaxed",
+            "Impish", "Lax", "Timid", "Hasty", "Serious", "Jolly", "Naive", "Modest", "Mild",
+            "Quiet", "Bashful", "Rash", "Calm", "Gentle", "Sassy", "Careful", "Quirky"
+        };
+
+        private static readonly string[] StatKeys = { "HP", "ATK", "DEF", "SPA", "SPD", "SPE" };
+
         //////////////////////////////////// MAIN ENTRY //////////////////////////////////////
 
         public static string NormalizeBatchCommands(string input)
@@ -125,6 +139,18 @@ namespace SysBot.Pokemon.Helpers
                 {
                     if (match.Groups[1].Value.Length == 6 || uint.TryParse(match.Groups[1].Value, out uint tid) && tid > 65535)
                         isGen7PlusID = true;
+                }
+            }
+
+            bool hasExistingNickname = false;
+            
+            // Check if first line has a nickname in parentheses (e.g., "Pikachu (Nick)")
+            if (lines.Length > 0)
+            {
+                var firstLine = lines[0].Trim();
+                if (firstLine.Contains('(') && firstLine.Contains(')'))
+                {
+                    hasExistingNickname = true;
                 }
             }
 
@@ -210,6 +236,12 @@ namespace SysBot.Pokemon.Helpers
 
                 if (BatchCommandAliasMap.TryGetValue(key, out var normalizedKey))
                     key = normalizedKey;
+
+                // Skip "Nickname: Suggest" if Pokemon already has a nickname in species line
+                if (hasExistingNickname &&
+                    key.Equals("Nickname", StringComparison.OrdinalIgnoreCase) &&
+                    value.Equals("Suggest", StringComparison.OrdinalIgnoreCase))
+                    continue;
 
                 if (CommandProcessors.TryGetValue(key, out var processor))
                 {
@@ -381,6 +413,202 @@ namespace SysBot.Pokemon.Helpers
                     _ => string.Empty
                 };
             }));
+        }
+
+        private static readonly string[] SuggestedNicknames =
+        {
+            "Ace", "Atlas", "Foot Hat", "Hurt Daddy", "Bolt", "Bruno", "Buddy", "Caesar", "Captain", "Champ", "Baller", "Dingdoodler",
+            "Charlie", "Chase", "Chief", "Chip", "Enrique", "Charmin", "Cosmo", "Dash", "Derpendoodle", "Duke", "Echo", "Flash", "Frost",
+            "Gizmo", "Gordo", "Gus", "Hank", "Hunter", "Killswitch", "Badonkadonk", "Ferginfluff", "Corn", "The Herps", "Buff Balls",
+            "Max", "Milo", "Drinky Moo", "Pole Dancer", "Mocha", "Nala", "Neo", "Nova", "Oscar", "Peanut", "Willikers", "Hogmilk", "Jingafunk",
+            "Pixel", "Prince", "Rocket", "Rocky", "Schmiggins", "Shadow", "Slapstick", "Adrenaline", "Colonoscopy", "Contagious", "Bladder Pump",
+            "Spike", "Punk", "Humphrey Tot", "Storm", "Tank", "Titan", "Ziggy", "Fluffinfarts", "Dorito Poo", "Trumpzilla", "Jeebus Crust", 
+            "Angel", "Athena", "Aurora", "Bella", "Chloe", "Coco", "Daisy", "Diva", "Duchess", "Ellie", "Milkshake", "No Bueno", "Jim Socks",
+            "Emma", "Ginger", "Grace", "Hazel", "Honey", "Ivy", "Jade", "Jasmine", "Kira", "Lady", "Yungblud", "Nipsy Hunk", "Metalcore",
+            "Lexi", "Lily", "Jugginflute", "Napalm Poots", "Just Jim", "Frederic", "Ferguson", "Link", "Lucy", "Luna", "Lux", "McMonkey", "Mia",
+            "Mist", "Molly", "Noodles", "Pearl", "Dish Soap", "Listerine", "Smelly Feet", "Sedation", "Failure", "Ron", "Crystal", "Pizza Plower",
+            "Penny", "Pepper", "Phoebe", "Pixie", "Princess", "Queen", "Rose", "Ruby", "Sadie", "Sasha", "Wonka Sack", "Shmegma", "Toothpick Al",
+            "Sophie", "Star", "Stella", "Storm", "Soul", "Sugar", "Sunny", "Trixie", "Venom", "Violet", "Willow", "Zelda", "Hologram", "Jill Dill",
+            "Martin Bumps", "Timmy 3-Legs", "Yugi Moto", "Farm Fresh", "Almond Milk", "Asia Nips", "Zoolander", "Carnage", "Banana Tater", "Plums",
+            "Testinut", "Consuella", "Stop it, Mom", "Urologist", "Jackson", "Meat Beater", "That Smell", "Anchorman", "Kip", "Hop", "Fried Nugget",
+            "Ringading", "Fruity Carl", "Alpaca Tim", "Hernandez", "Touch it", "Jive Turkey", "Sticky Sock", "Haggard", "Orphan", "Larry Cables",
+            "Tom Petty", "Biffingort", "Invisible", "Diabetes", "Buelfork", "Spork Ninja", "Hayley", "Terrance", "Ted Turner", "Elon Musket",
+            "Arnold Jiff", "Brenda", "Man Cow Pig", "Firework", "Disaster", "Gully", "OK Karen", "Nancy Grace", "Papi Chulo", "Glamour", "Uber",
+            "Jigsaw", "General Mill", "I No Like", "Dustin", "Illicit", "Bandido", "Skrillex", "Dadoony", "Donna", "Flank", "Dollop Dan",
+            "Kaiou", "Simon", "Geo", "Sai", "Ralph", "Flububba", "Rancid", "Empty", "Spongy Hat", "Geraldo", "Camel Toes", "Son Goku", "Broccoli",
+            "Pride", "Charlie", "Chuck", "Smackafats", "Flubber", "Bag", "Wrench", "Tool", "Hatebreed", "Cocoa", "Shane", "Shannon", "Sophie",
+            "Corruption", "Tonga", "Grace", "Blasphemy", "NutriGrain", "The Clamp", "Radiance", "Chimera", "Flounder", "Juice Me", "Will Ferrell",
+            "Ali", "Fenix", "Phoenix", "Vile", "Old Spice", "Brady", "Soultaker", "Ham Jacket", "Hollow Point", "Desire"
+        };
+
+        // .Nickname= → Nickname:
+        // Value is "Suggest" or any other string
+        private static string ProcessNickname(string val)
+        {
+            if (string.IsNullOrWhiteSpace(val))
+                return string.Empty;
+
+            var trimmed = val.Trim();
+
+            if (trimmed.Equals("Suggest", StringComparison.OrdinalIgnoreCase))
+            {
+                string randomNickname = SuggestedNicknames[Rng.Next(SuggestedNicknames.Length)];
+                return $".Nickname={randomNickname}";
+            }
+
+            return $".Nickname={trimmed}";
+        }
+
+        // StatNature: Adamant -> .StatNature=Adamant
+        private static string ProcessStatNature(string val)
+        {
+            if (string.IsNullOrWhiteSpace(val)) return string.Empty;
+            var nature = val.Trim();
+            var matchedNature = ValidNatures.FirstOrDefault(n => n.Equals(nature, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrEmpty(matchedNature)) return string.Empty;
+            return $".StatNature={matchedNature}";
+        }
+
+        // .HT_[STAT]= → HT:
+        // "HT: HP / Atk / Def" to enable Hyper Training for those stats only
+        private static string ProcessHyperTrain(string val)
+        {
+            if (string.IsNullOrWhiteSpace(val))
+                return string.Empty;
+
+            var requestedStats = val.Split('/', StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(s => s.Trim().ToUpper())
+                                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            var htLines = new List<string>();
+            foreach (var stat in StatKeys)
+            {
+                if (requestedStats.Contains(stat))
+                    htLines.Add($".HT_{stat}=True");
+            }
+
+            return string.Join('\n', htLines);
+        }
+
+        // Creates an ".EVs=" batch command that can be written as "EVs:" that accepts "Random" or "Suggest" as special values
+        private static string ProcessEVs(string val)
+        {
+            if (val.Equals("Random", StringComparison.OrdinalIgnoreCase))
+            {
+                return GenerateRandomEVs();
+            }
+            else if (val.Equals("Suggest", StringComparison.OrdinalIgnoreCase))
+            {
+                return GenerateSuggestedEVs();
+            }
+            else
+            {
+                return $".SetEVs={val}";
+            }
+        }
+
+        private static string GenerateRandomEVs()
+        {
+            int maxTotal = 510;
+            int maxPerStat = 252;
+            int[] evs = new int[6];
+
+            int remaining = maxTotal;
+
+            for (int i = 0; i < 6; i++)
+            {
+                int maxForStat = Math.Min(maxPerStat, remaining);
+                evs[i] = Rng.Next(0, maxForStat + 1);
+                remaining -= evs[i];
+            }
+
+            while (remaining > 0)
+            {
+                int idx = Rng.Next(0, 6);
+                if (evs[idx] < maxPerStat)
+                {
+                    evs[idx]++;
+                    remaining--;
+                }
+            }
+
+            return FormatEVs(evs);
+        }
+
+        private static string GenerateSuggestedEVs()
+        {
+            int[] evs = new int[6];
+
+            var indices = Enumerable.Range(0, 6).OrderBy(_ => Rng.Next()).Take(3).ToArray();
+
+            evs[indices[0]] = 252;
+            evs[indices[1]] = 252;
+            evs[indices[2]] = 4;
+
+            return FormatEVs(evs);
+        }
+
+        // Creates an ".IVs=" batch command that can be written as "IVs:" that accepts "Random" or "1IV", "2IV", "3IV", "4IV", "5IV", "6IV"
+        private static string ProcessIVs(string val)
+        {
+            val = val.Trim();
+
+            if (val.Equals("Random", StringComparison.OrdinalIgnoreCase))
+                return GenerateRandomIVs();
+
+            var presetMatch = Regex.Match(val, @"^(\d)IV$", RegexOptions.IgnoreCase);
+            if (presetMatch.Success)
+            {
+                int ivCount = int.Parse(presetMatch.Groups[1].Value);
+                if (ivCount >= 1 && ivCount <= 6)
+                    return GeneratePresetIVs(ivCount);
+            }
+
+            return $".SetIVs={val}";
+        }
+
+        private static string GenerateRandomIVs()
+        {
+            int maxPerStat = 31;
+            int[] ivs = new int[6];
+            for (int i = 0; i < 6; i++)
+                ivs[i] = Rng.Next(0, maxPerStat + 1);
+            return FormatIVs(ivs);
+        }
+
+        private static string GeneratePresetIVs(int countAt31)
+        {
+            int maxPerStat = 31;
+            int[] ivs = new int[6];
+
+            var indicesAt31 = Enumerable.Range(0, 6).OrderBy(_ => Rng.Next()).Take(countAt31).ToArray();
+
+            foreach (var idx in indicesAt31)
+                ivs[idx] = maxPerStat;
+
+            for (int i = 0; i < 6; i++)
+            {
+                if (!indicesAt31.Contains(i))
+                    ivs[i] = Rng.Next(0, maxPerStat + 1);
+            }
+
+            return FormatIVs(ivs);
+        }
+
+        private static string FormatEVs(int[] evs)
+        {
+            var evLines = new List<string>(6);
+            for (int i = 0; i < StatKeys.Length; i++)
+                evLines.Add($".EV_{StatKeys[i]}={evs[i]}");
+            return string.Join('\n', evLines);
+        }
+
+        private static string FormatIVs(int[] ivs)
+        {
+            var ivLines = new List<string>(6);
+            for (int i = 0; i < StatKeys.Length; i++)
+                ivLines.Add($".IV_{StatKeys[i]}={ivs[i]}");
+            return string.Join('\n', ivLines);
         }
 
         //////////////////////////////////// HELPERS //////////////////////////////////////

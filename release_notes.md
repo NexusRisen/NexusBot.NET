@@ -1,10 +1,13 @@
-# NexusBot.NET Release Notes
+# Release Notes
 
-## [v8.0.6]
+## [v8.0.7]
 
-### Features & Improvements
-- **Trading Flexibility**:
-  - Implemented seamless single-species name trading support (e.g., `.t pikachu`). Users can now trade by just providing the Pokémon's name without needing a full Showdown set.
-  - Added intelligent filtering to safely bypass non-critical structural parsing errors from PKHeX (e.g., missing nicknames or language ID flags), letting the Auto-Legality Mod (ALM) perfectly handle legalization automatically.
-- **Showdown Translation Enhancements**:
-  - Showdown translation checking is now completely case-insensitive. Inputting `.t PIKACHU` or `.t pikachu` will reliably match and parse correctly without requiring specific capitalization.
+- **Trade Bot Language ID Fix**: Updated all `PokeTradeBot` variants to properly validate and preserve requested languages, defaulting invalid trade partner languages (e.g. `0`) to English (`2`) to prevent "Language ID out of range" legality errors.
+- **Nickname Legality Fix**: Replaced `cln.ClearNickname()` with `SpeciesName.GetSpeciesNameGeneration()` to correctly substitute the translated species name when nicknames are cleared. This bypasses the "Nickname is empty" ALM error for Asian languages.
+- **Fixed-OT Encounter Fallback**: Added a secondary fallback generation mechanism for encounters tied to specific Original Trainers/Languages (e.g., in-game trades) to ensure they pass legality checks if the initial requested language fails.
+- **Custom Batch Commands (FusionBot Port)**: Ported and improved custom Showdown commands to `BatchNormalizer.cs`:
+  - `Nickname: Suggest` randomly assigns a fun nickname from an internal dictionary.
+  - `EVs: Random` or `EVs: Suggest` legally randomizes EVs or applies a 252/252/4 spread.
+  - `IVs: Random` or `IVs: [1-6]IV` randomizes IVs entirely or forces a specific number of stats to 31.
+  - `HT: HP / Atk / Def` enables Hyper Training for explicitly specified stats.
+  - `StatNature: [nature]` seamlessly converts to Mint Nature.
