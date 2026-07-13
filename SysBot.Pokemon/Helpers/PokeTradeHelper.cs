@@ -47,10 +47,14 @@ public static class PokeTradeHelper<T> where T : PKM, new()
         var template = AutoLegalityWrapper.GetTemplate(set);
 
         // Filter out batch commands (.) and filters (~) from invalid lines - these are handled by ALM
+        // Also filter out parser validation messages which start with "Invalid:" as ALM handles legalization
         var actualInvalidLines = set.InvalidLines.Where(line =>
         {
             var text = line.Value?.Trim();
-            return !string.IsNullOrEmpty(text) && !text.StartsWith('.') && !text.StartsWith('~');
+            return !string.IsNullOrEmpty(text) 
+                && !text.StartsWith('.') 
+                && !text.StartsWith('~')
+                && !text.StartsWith("Invalid:", StringComparison.OrdinalIgnoreCase);
         }).ToList();
 
         if (actualInvalidLines.Count != 0)

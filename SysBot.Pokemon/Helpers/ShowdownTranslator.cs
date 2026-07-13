@@ -33,7 +33,7 @@ namespace SysBot.Pokemon
             foreach (var lang in SupportedLanguages)
             {
                 var speciesCache = ShowdownTranslatorCache.GetSpeciesCache(lang);
-                if (speciesCache.Keys.Any(input.Contains))
+                if (speciesCache.Keys.Any(k => input.Contains(k, StringComparison.OrdinalIgnoreCase)))
                 {
                     return Any2Showdown(input, lang);
                 }
@@ -61,7 +61,7 @@ namespace SysBot.Pokemon
             
             foreach (var kvp in speciesCache)
             {
-                if (input.Contains(kvp.Key))
+                if (input.Contains(kvp.Key, StringComparison.OrdinalIgnoreCase))
                 {
                     specieNo = kvp.Value;
                     matchedSpeciesName = kvp.Key;
@@ -75,7 +75,7 @@ namespace SysBot.Pokemon
                 var enCache = ShowdownTranslatorCache.GetSpeciesCache(LanguageID.English);
                 foreach (var kvp in enCache)
                 {
-                    if (input.Contains(kvp.Key))
+                    if (input.Contains(kvp.Key, StringComparison.OrdinalIgnoreCase))
                     {
                         specieNo = kvp.Value;
                         matchedSpeciesName = kvp.Key;
@@ -343,7 +343,7 @@ namespace SysBot.Pokemon
         public static bool IsPS(string str) 
         {
             var enCache = ShowdownTranslatorCache.GetSpeciesCache(LanguageID.English);
-            return enCache.Keys.Any(str.Contains);
+            return enCache.Keys.Any(k => str.Contains(k, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
