@@ -1,10 +1,9 @@
-# NexusBot.NET Release Notes
+# Release Notes
 
-## [v8.0.6]
+## [v8.0.7]
 
-### Features & Improvements
-- **Trading Flexibility**:
-  - Implemented seamless single-species name trading support (e.g., `.t pikachu`). Users can now trade by just providing the Pokémon's name without needing a full Showdown set.
-  - Added intelligent filtering to safely bypass non-critical structural parsing errors from PKHeX (e.g., missing nicknames or language ID flags), letting the Auto-Legality Mod (ALM) perfectly handle legalization automatically.
-- **Showdown Translation Enhancements**:
-  - Showdown translation checking is now completely case-insensitive. Inputting `.t PIKACHU` or `.t pikachu` will reliably match and parse correctly without requiring specific capitalization.
+- **Fix Nickless Trades & Showdown Sets**: Implemented ALM integration from FusionBot to support partial commands like `.t pikachu`.
+- **ALM Encounter Generation Fix**: Replaced `LanguageHelper.GetTrainerInfoWithLanguage` with `AutoLegalityWrapper.GetTrainerInfo<T>()` to prevent ALM from enforcing language locks on base trainer info during encounter matching.
+- **Language Post-Assignment**: Forcefully assigned target language after the initial legal template is resolved.
+- **Nickname Legality Fix**: Automatically substitutes default translated species name based on assigned language when nickname is empty to bypass "Nickname does not match species" errors.
+- **Asian Language Constraints**: Replicated FusionBot's temporary overwrite of `OriginalTrainerName` to bypass PKHeX's 6-character length limit for Asian languages, preventing false illegality flags.
