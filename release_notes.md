@@ -1,5 +1,9 @@
 # Release Notes
 
+## [v8.0.8]
+
+- **Updater Fix**: Fixed a silent failure in the auto-updater where the update script would not wait long enough for the application to fully close before attempting to overwrite the executable, causing the updater to loop on the old version.
+
 ## [v8.0.7]
 
 - **Trade Bot Language ID Fix**: Updated all `PokeTradeBot` variants to properly validate and preserve requested languages, defaulting invalid trade partner languages (e.g. `0`) to English (`2`) to prevent "Language ID out of range" legality errors.

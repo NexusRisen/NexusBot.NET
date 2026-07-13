@@ -379,17 +379,22 @@ namespace SysBot.Pokemon.WinForms
 
                 string batchContent = @$"
 @echo off
-timeout /t 2 /nobreak >nul
 echo Updating NexusBot...
+
+:retry
+timeout /t 1 /nobreak >nul
 
 if exist ""{targetExePath}"" (
     if exist ""{backupPath}"" (
         del ""{backupPath}""
     )
-    move ""{targetExePath}"" ""{backupPath}""
+    move /y ""{targetExePath}"" ""{backupPath}"" >nul 2>&1
+    if errorlevel 1 goto retry
 )
 
-move ""{downloadedFilePath}"" ""{targetExePath}""
+move /y ""{downloadedFilePath}"" ""{targetExePath}"" >nul 2>&1
+if errorlevel 1 goto retry
+
 {cleanupCommand}
 
 start """" ""{targetExePath}""
