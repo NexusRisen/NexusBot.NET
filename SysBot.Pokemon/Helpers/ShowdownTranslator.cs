@@ -59,7 +59,7 @@ namespace SysBot.Pokemon
             string matchedSpeciesName = "";
             var speciesCache = ShowdownTranslatorCache.GetSpeciesCache(sourceLang);
             
-            foreach (var kvp in speciesCache)
+            foreach (var kvp in speciesCache.OrderByDescending(x => x.Key.Length))
             {
                 if (input.Contains(kvp.Key, StringComparison.OrdinalIgnoreCase))
                 {
@@ -73,7 +73,7 @@ namespace SysBot.Pokemon
             if (specieNo <= 0)
             {
                 var enCache = ShowdownTranslatorCache.GetSpeciesCache(LanguageID.English);
-                foreach (var kvp in enCache)
+                foreach (var kvp in enCache.OrderByDescending(x => x.Key.Length))
                 {
                     if (input.Contains(kvp.Key, StringComparison.OrdinalIgnoreCase))
                     {

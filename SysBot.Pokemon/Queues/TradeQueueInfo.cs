@@ -294,7 +294,7 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
     {
         lock (_sync)
         {
-            return UsersInQueue.Select(z => string.Format(fmt, z.Trade.ID, z.Trade.Code, z.Trade.Type, z.Username, (Species)z.Trade.TradeData.Species));
+            return UsersInQueue.Select(z => string.Format(fmt, z.Trade.ID, z.Trade.Code, z.Trade.Type, z.Username, (Species)z.Trade.TradeData.Species)).ToArray();
         }
     }
 
@@ -302,7 +302,7 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
     {
         lock (_sync)
         {
-            return UsersInQueue.Take(count).Select(z => z.Trade.Trainer.ID);
+            return UsersInQueue.Take(count).Select(z => z.Trade.Trainer.ID).ToArray();
         }
     }
 

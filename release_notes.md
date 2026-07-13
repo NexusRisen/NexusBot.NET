@@ -1,4 +1,7 @@
-# Release Notes
+## [v8.0.9]
+
+- **Trade Queue Thread Safety**: Fixed an `InvalidOperationException` (Collection was modified; enumeration operation may not execute) caused by deferred LINQ execution outside of `lock (_sync)` when fetching queue summaries (`GetUserList`).
+- **Translation Substring Matching**: Fixed a bug where a substring match during translation parsing could incorrectly match a shorter Pokémon name (e.g., matching "Ka" before "Pikachu"), resulting in the wrong species (like Totodile instead of Pikachu).
 
 ## [v8.0.8]
 
