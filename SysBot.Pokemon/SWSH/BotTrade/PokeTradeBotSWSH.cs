@@ -1670,48 +1670,9 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
                 return toSend;
             }
 
-            // Special handling for Pokémon GO
-            if (toSend.Version == GameVersion.GO)
-            {
-                var goClone = toSend.Clone();
-                goClone.OriginalTrainerName = trainerName;
-
-                // Update OT trash to match the new OT name
-                ClearOTTrash(goClone, trainerName);
-
-                if (!toSend.ChecksumValid)
-                    goClone.RefreshChecksum();
-
-                Log("Applied only OT name to Pokémon from GO.");
-                await SetBoxPokemon(goClone, 0, 0, token, sav).ConfigureAwait(false);
-                return goClone;
-            }
-
             if (toSend is IHomeTrack pk && pk.HasTracker)
             {
                 Log("Home tracker detected. Can't apply AutoOT.");
-                return toSend;
-            }
-
-            // Check if the Pokémon is from a Mystery Gift
-            bool isMysteryGift = toSend.FatefulEncounter;
-
-            // Check if Mystery Gift has legitimate preset OT/TID/SID (not PKHeX defaults)
-            var legalitySettings = hub.Config.Legality;
-            bool hasConfiguredDefaults = toSend.OriginalTrainerName.Equals(legalitySettings.GenerateOT, StringComparison.OrdinalIgnoreCase) &&
-                                         toSend.TID16 == legalitySettings.GenerateTID16 &&
-                                         toSend.SID16 == legalitySettings.GenerateSID16;
-
-            // ALM's NET10 defaults can be identified by the OT name alone
-            bool hasALMDefaults = toSend.OriginalTrainerName.Equals("ALM", StringComparison.OrdinalIgnoreCase);
-            if (hasALMDefaults)
-                Log("ALM default OT detected. This might indicate that no matching trainer data was found.");
-
-            bool hasDefaultTrainerInfo = hasConfiguredDefaults || hasALMDefaults;
-
-            if (isMysteryGift && !hasDefaultTrainerInfo)
-            {
-                Log("Mystery Gift with preset OT/TID/SID detected. Skipping AutoOT entirely.");
                 return toSend;
             }
 
@@ -1719,41 +1680,8 @@ public class PokeTradeBotSWSH(PokeTradeHub<PK8> hub, PokeBotState config) : Poke
             var tidsid = BitConverter.ToUInt32(data, 0);
             var cln = toSend.Clone();
 
-            if (isMysteryGift)
-            {
-                Log("Mystery Gift detected. Only applying OT info, preserving language.");
-                // Only set OT-related info for Mystery Gifts without preset OT/TID/SID
-                cln.OriginalTrainerGender = data[6];
-                cln.TrainerTID7 = tidsid % 1_000_000;
-                cln.TrainerSID7 = tidsid / 1_000_000;
-
-                // Truncate OT name based on language (Asian languages have 6-char limit, others 12-char)
-                string otName = LanguageHelper.SanitizeOTName(trainerName, cln.Language);
-                cln.OriginalTrainerName = otName;
-            }
-            else
-            {
-                // Apply all trade partner details for non-Mystery Gift Pokémon
-                cln.OriginalTrainerGender = data[6];
-                cln.TrainerTID7 = tidsid % 1_000_000;
-                cln.TrainerSID7 = tidsid / 1_000_000;
-
-                // Preserve the originally requested language from the showdown set
-                // Only use trade partner's language if the original language is invalid
-                int originalLanguage = toSend.Language;
-                var configLanguage = (int)legalitySettings.GenerateLanguage;
-                if (originalLanguage != configLanguage && originalLanguage >= 1 && originalLanguage <= 12)
-                    cln.Language = originalLanguage; // Preserve user's requested language
-                else if (originalLanguage < 1 || originalLanguage > 12)
-                    cln.Language = data[5]; // Use trade partner's language if invalid
-                // else: use current (config) language
-
-                // Truncate OT name based on language (Asian languages have 6-char limit, others 12-char)
-                string otName = LanguageHelper.SanitizeOTName(trainerName, cln.Language);
-                cln.OriginalTrainerName = otName;
-            }
-
-            ClearOTTrash(cln, trainerName);
+            // Utilize PKHeX.Core.AutoMod logic for perfect memory and handler generation
+            SysBot.Pokemon.Helpers.AutoOTHelper.ApplyAutoOT(cln, trainerName, data[6], data[5], tidsid & 0xFFFF, tidsid >> 16);
 
             if (!toSend.IsNicknamed)
                 cln.ClearNickname();

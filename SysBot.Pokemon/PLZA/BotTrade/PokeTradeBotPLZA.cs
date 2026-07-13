@@ -306,22 +306,6 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 return toSend;
             }
 
-            if (toSend.Version == GameVersion.GO)
-            {
-                var goClone = toSend.Clone();
-                goClone.OriginalTrainerName = tradePartner.OT;
-
-                ClearOTTrash(goClone, tradePartner);
-
-                if (!toSend.ChecksumValid)
-                    goClone.RefreshChecksum();
-
-                var boxOffset = await GetBoxStartOffset(token).ConfigureAwait(false);
-                await SetBoxPokemonAbsolute(boxOffset, goClone, token, sav).ConfigureAwait(false);
-                Log("Applied only OT name to Pokémon from GO (PLZA).");
-                return goClone;
-            }
-
             if (toSend is IHomeTrack pk && pk.HasTracker)
             {
                 Log("Home tracker detected. Can't apply AutoOT.");
@@ -334,56 +318,12 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 return toSend;
             }
 
-            bool isMysteryGift = toSend.FatefulEncounter;
-
-            // Check if Mystery Gift has legitimate preset OT/TID/SID (not PKHeX defaults)
-            var legalitySettings = Hub.Config.Legality;
-            bool hasConfiguredDefaults = toSend.OriginalTrainerName.Equals(legalitySettings.GenerateOT, StringComparison.OrdinalIgnoreCase) &&
-                                         toSend.TID16 == legalitySettings.GenerateTID16 &&
-                                         toSend.SID16 == legalitySettings.GenerateSID16;
-
-            // ALM's NET10 defaults can be identified by the OT name alone
-            bool hasALMDefaults = toSend.OriginalTrainerName.Equals("ALM", StringComparison.OrdinalIgnoreCase);
-            if (hasALMDefaults)
-                Log("ALM default OT detected. This might indicate that no matching trainer data was found.");
-
-            bool hasDefaultTrainerInfo = hasConfiguredDefaults || hasALMDefaults;
-
-            if (isMysteryGift && !hasDefaultTrainerInfo)
-            {
-                Log("Mystery Gift with preset OT/TID/SID detected. Skipping AutoOT entirely.");
-                return toSend;
-            }
-
             var cln = toSend.Clone();
 
-            // Apply trainer info (OT, TID, SID, Gender)
-            ApplyTrainerInfo(cln, tradePartner);
+            uint tid32 = (uint)Math.Abs(tradePartner.DisplaySID) * 1_000_000 + (uint)Math.Abs(tradePartner.DisplayTID);
 
-            if (!isMysteryGift)
-            {
-                // Preserve the originally requested language from the showdown set
-                // Only use trade partner's language if the original language is invalid
-                int originalLanguage = toSend.Language;
-                var configLanguage = (int)legalitySettings.GenerateLanguage;
-
-                if (originalLanguage != configLanguage && originalLanguage >= 1 && originalLanguage <= 12)
-                {
-                    // Preserve the user's explicitly requested language
-                    cln.Language = originalLanguage;
-                }
-                else if (originalLanguage < 1 || originalLanguage > 12)
-                {
-                    // Original language is invalid, use trade partner's language
-                    int language = tradePartner.Language;
-                    if (language < 1 || language > 12) // Valid language IDs are 1-12
-                        language = 2; // English
-                    cln.Language = language;
-                }
-                // else: use current (config) language
-            }
-
-            ClearOTTrash(cln, tradePartner);
+            // Utilize PKHeX.Core.AutoMod logic for perfect memory and handler generation
+            SysBot.Pokemon.Helpers.AutoOTHelper.ApplyAutoOT(cln, tradePartner.OT, tradePartner.Gender, tradePartner.Language, tid32 & 0xFFFF, tid32 >> 16);
 
             // Hard-code version to ZA since PLZA only has one game version
             cln.Version = GameVersion.ZA;
