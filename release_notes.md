@@ -1,21 +1,14 @@
 # NexusBot.NET Release Notes
 
-## [v8.0.4]
+## [v8.0.5]
 
 ### Features & Improvements
-- **Infinite Medals Architecture**: 
-  - Overhauled the Discord Medals system to be uncapped! Users are now continuously congratulated every 50 trades instead of silently stopping at 1,000.
-  - Implemented graceful fallback clamping, which automatically defaults to the highest graphical milestone (1,000) when a user surpasses it, preventing broken embed thumbnails.
-- **Security & Stability**:
-  - Hardcoded the Custom Medals Base URL deeply into the application architecture (`MedalHelpers.cs`) to prevent accidental overriding or URL configuration errors via the settings UI.
-  - Added native cache-busting arguments directly to the URL fetching logic, forcing Discord's strict CDN to instantly serve updated medal graphics when we push new assets to the GitHub repository.
-- **Global Asset Centralization**:
-  - Engineered a brand new `AssetManager` module that automatically centralizes and routes over 50 external image assets across the entire solution.
-  - Hardcoded Pokémon sprites, Held Items (via Serebii), Eggs, and Icons are now strictly maintained in one core location, preventing broken image links and increasing maintainability.
-  - Automatically attaches `?v=4` cache-busting arguments to all GitHub graphics, ensuring Discord's CDN instantly serves up-to-date versions of assets.
-- **Ping Command Overhaul**:
-  - Replaced the generic GIF image in the `$ping` command with real-time websocket connection latency reporting (e.g. `Connection Latency: 42ms`), providing immediate insight into the bot's health and connection stability.
-- **Custom AI Core Identity**:
-  - Generated and implemented a brand new, highly-customized futuristic neon "AI Core" identity icon for the `$info` command thumbnail!
-- **Pokémon Encoding Fixes**:
-  - Fixed multiple files displaying broken encoding (e.g. `PokÃ©mon`), standardizing properly UTF-8 encoded text across the entire Discord bot output!
+- **Project Structure Overhaul**:
+  - Fully decoupled the PKHeX.Core.AutoMod project from the SysBot.NET solution, migrating to a much cleaner dynamically linked library (.dll) dependency system located centrally in the SysBot.Pokemon/deps/ folder. This significantly reduces solution bloat and simplifies cross-repository integration.
+- **AutoOT Mechanics & Stability**:
+  - Re-engineered the AutoOT (ApplyAutoOT) extension method to perfectly handle complex trade logic directly at the trade screen, ensuring Trainer Information, Memories, and Trash Bytes are all perfectly sanitized and updated before transferring.
+  - Pushed critical fixes upstream to the PKHeX-Plugins repository, ensuring that **Shiny PIDs** are dynamically recalculated whenever AutoOT alters the Original Trainer (OT/TID/SID) data, preventing invalid shiny checks on legally distributed Pokémon.
+- **LGPE (Let's Go Pikachu / Eevee) Improvements**:
+  - Overhauled LGPE's unique link-trade OT storage mechanics! Because LGPE lacks the ability to transmit OT data prior to the first trade presentation, the bot now perfectly saves the trainer's data via TradeCodeStorage upon their first connection. When the trainer reconnects, the bot seamlessly applies AutoOT using the cached data.
+- **Dependency Cleanups**:
+  - Cleaned up obsolete solution project references and corrected MSBuild dependencies across SysBot.Pokemon.Discord, SysBot.Pokemon.Kook, SysBot.Pokemon.Stoat, and SysBot.Tests to point to the newly compiled PKHeX.Core.AutoMod.dll.

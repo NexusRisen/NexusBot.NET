@@ -1,4 +1,5 @@
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 using PKHeX.Core.Searching;
 using SysBot.Base;
 using SysBot.Base.Util;
@@ -1426,6 +1427,8 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
                 // Truncate OT name based on language (Asian languages have 6-char limit, others 12-char)
                 string otName = LanguageHelper.SanitizeOTName(tradePartner.TrainerName, cln.Language);
                 cln.OriginalTrainerName = otName;
+                
+                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: false);
             }
             else
             {
@@ -1447,15 +1450,12 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
                 // Truncate OT name based on language (Asian languages have 6-char limit, others 12-char)
                 string otName = LanguageHelper.SanitizeOTName(tradePartner.TrainerName, cln.Language);
                 cln.OriginalTrainerName = otName;
+                
+                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: true);
             }
-
-            ClearOTTrash(cln, tradePartner.TrainerName);
 
             if (!toSend.IsNicknamed)
                 cln.ClearNickname();
-
-            if (toSend.IsShiny)
-                cln.PID = (uint)((cln.TID16 ^ cln.SID16 ^ (cln.PID & 0xFFFF) ^ toSend.ShinyXor) << 16) | (cln.PID & 0xFFFF);
 
             if (!toSend.ChecksumValid)
                 cln.RefreshChecksum();

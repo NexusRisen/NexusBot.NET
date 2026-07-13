@@ -1,4 +1,5 @@
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 using PKHeX.Core.Searching;
 using SysBot.Base;
 using SysBot.Base.Util;
@@ -381,9 +382,16 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                     cln.Language = language;
                 }
                 // else: use current (config) language
+                
+                // Re-sanitize OT Name in case language changed
+                cln.OriginalTrainerName = LanguageHelper.SanitizeOTName(tradePartner.OT, cln.Language);
+                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: true);
             }
-
-            ClearOTTrash(cln, tradePartner);
+            else
+            {
+                Log("Mystery Gift detected. Only applying OT info, preserving language.");
+                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: false);
+            }
 
             // Hard-code version to ZA since PLZA only has one game version
             cln.Version = GameVersion.ZA;

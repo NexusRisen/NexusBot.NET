@@ -1,4 +1,5 @@
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 using PKHeX.Core.Searching;
 using SysBot.Base;
 using SysBot.Base.Util;
@@ -253,20 +254,15 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
             if (isMysteryGift)
             {
                 Log("Mystery Gift detected. Only applying OT info, preserving language.");
+                cln.OriginalTrainerName = LanguageHelper.SanitizeOTName(tradePartner.OT, cln.Language);
                 cln.OriginalTrainerGender = (byte)tradePartner.Gender;
                 cln.TrainerTID7 = (uint)Math.Abs(tradePartner.DisplayTID);
                 cln.TrainerSID7 = (uint)Math.Abs(tradePartner.DisplaySID);
-
-                // Truncate OT name based on language (Asian languages have 6-char limit, others 12-char)
-                string otName = LanguageHelper.SanitizeOTName(tradePartner.OT, cln.Language);
-                cln.OriginalTrainerName = otName;
+                
+                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: false);
             }
             else
             {
-                cln.OriginalTrainerGender = (byte)tradePartner.Gender;
-                cln.TrainerTID7 = (uint)Math.Abs(tradePartner.DisplayTID);
-                cln.TrainerSID7 = (uint)Math.Abs(tradePartner.DisplaySID);
-
                 // Preserve the originally requested language from the showdown set
                 // Only use trade partner's language if the original language is invalid
                 int originalLanguage = toSend.Language;
@@ -281,14 +277,13 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
                     // Original language is invalid, use trade partner's language
                     cln.Language = tradePartner.Language;
                 }
-                // else: use current (config) language
-
-                // Truncate OT name based on language (Asian languages have 6-char limit, others 12-char)
-                string otName = LanguageHelper.SanitizeOTName(tradePartner.OT, cln.Language);
-                cln.OriginalTrainerName = otName;
+                
+                cln.OriginalTrainerName = LanguageHelper.SanitizeOTName(tradePartner.OT, cln.Language);
+                cln.OriginalTrainerGender = (byte)tradePartner.Gender;
+                cln.TrainerTID7 = (uint)Math.Abs(tradePartner.DisplayTID);
+                cln.TrainerSID7 = (uint)Math.Abs(tradePartner.DisplaySID);
+                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: true);
             }
-
-            ClearOTTrash(cln, tradePartner);
 
             ushort species = toSend.Species;
             GameVersion version;

@@ -1,4 +1,5 @@
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 using PKHeX.Core.Searching;
 using SysBot.Base;
 using SysBot.Pokemon.Helpers;
@@ -905,7 +906,7 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
 
             var cln = toSend.Clone();
 #pragma warning disable CS8601 // Possible null reference assignment.
-            cln.OriginalTrainerName = tradeDetails.OT;
+            cln.OriginalTrainerName = LanguageHelper.SanitizeOTName(tradeDetails.OT ?? "", cln.Language);
 #pragma warning restore CS8601 // Possible null reference assignment.
             cln.SetDisplayTID((uint)tradeDetails.TID);
             cln.SetDisplaySID((uint)tradeDetails.SID);
@@ -918,17 +919,18 @@ public class PokeTradeBotLGPE(PokeTradeHub<PB7> Hub, PokeBotState Config) : Poke
             else
                 cln.Language = originalLanguage; // Preserve user's requested language
 
-            // Truncate OT name based on language (Asian languages have 6-char limit, others 12-char)
-            string otName = LanguageHelper.SanitizeOTName(tradeDetails.OT ?? "", cln.Language);
-            cln.OriginalTrainerName = otName;
-
-            ClearOTTrash(cln, tradeDetails);
+            if (isMysteryGift)
+            {
+                Log("Mystery Gift detected. Only applying OT info, preserving language.");
+                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: false);
+            }
+            else
+            {
+                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: true);
+            }
 
             if (!toSend.IsNicknamed)
                 cln.ClearNickname();
-
-            if (toSend.IsShiny)
-                cln.PID = (uint)((cln.TID16 ^ cln.SID16 ^ (cln.PID & 0xFFFF) ^ toSend.ShinyXor) << 16) | (cln.PID & 0xFFFF);
 
             if (!toSend.ChecksumValid)
                 cln.RefreshChecksum();

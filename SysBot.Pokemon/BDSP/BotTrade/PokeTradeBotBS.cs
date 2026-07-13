@@ -1,4 +1,5 @@
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 using PKHeX.Core.Searching;
 using SysBot.Base;
 using SysBot.Base.Util;
@@ -283,6 +284,8 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 // Truncate OT name based on language (Asian languages have 6-char limit, others 12-char)
                 string otName = LanguageHelper.SanitizeOTName(tradePartner, cln.Language);
                 cln.OriginalTrainerName = otName;
+                
+                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: false);
             }
             else
             {
@@ -303,10 +306,9 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 // Truncate OT name based on language (Asian languages have 6-char limit, others 12-char)
                 string otName = LanguageHelper.SanitizeOTName(tradePartner, cln.Language);
                 cln.OriginalTrainerName = otName;
-                // Any additional properties that would normally be set for BDSP
+                
+                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: true);
             }
-
-            ClearOTTrash(cln, tradePartner);
 
             if (!toSend.IsNicknamed)
                 cln.ClearNickname();
