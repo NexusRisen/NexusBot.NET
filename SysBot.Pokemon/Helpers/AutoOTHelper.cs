@@ -14,7 +14,7 @@ namespace SysBot.Pokemon.Helpers
             var tr = new SimpleTrainerInfo(pk.Version)
             {
                 OT = otName,
-                Gender = gender,
+                Gender = (byte)gender,
                 Language = language,
                 TID16 = (ushort)(tid & 0xFFFF),
                 SID16 = (ushort)(sid & 0xFFFF)
