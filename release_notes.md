@@ -1,10 +1,7 @@
-## NexusBot.NET v9.0.1
-
-### Features
-* **Per-Game Databases**: Local SQLite database storage now completely isolates each game mode into its own sandboxed file (e.g. `nexusbot_SV.db`, `nexusbot_PLZA.db`), preventing crossover and improving performance.
-* **UI Error Notifications**: Added explicit GUI message boxes when the Discord bot lacks sufficient permissions to operate, keeping you in the loop on server/channel issues.
-* **DM Fallbacks**: If direct messages fail (Error 50007), the bot will now automatically attempt to notify you of the issue directly within the server channel instead of silently failing.
+## NexusBot.NET v9.0.2
 
 ### Fixes
-* **Bot Stability**: Resolved thread-safety issues during shutdown (`StopAll`) by ensuring collections are iterated securely, preventing "Collection was modified" exceptions.
-* **Seamless Migration**: Old JSON files for Medals and Trade Codes are safely migrated and converted directly into SQLite.
+* **AutoOT Fixes**: Addressed an issue where short OT names were erroneously filling trailing trash bytes, causing legitimate legal AutoOT applications to fail legality checks.
+* **Legality Hardening**: Completely removed the legacy `isUnreleasedPA9` hack. The bot now explicitly enforces PKHeX/ALM legality checks for PLZA (PA9) Pokémon, ensuring users with updated PKHeX-Plugins can properly legalize and queue PLZA trades.
+* **Trade Injection Safeguards**: Introduced rigorous, mid-trade legality analysis for both single and batch link trades. If an illegal Pokémon slips through or fails generation, the trade is aborted and the user is instantly notified via Discord, effectively preventing the bot from soft-locking.
+

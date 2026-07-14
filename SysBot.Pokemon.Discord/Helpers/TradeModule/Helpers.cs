@@ -268,9 +268,7 @@ public static class Helpers<T> where T : PKM, new()
 
 
         var la = new LegalityAnalysis(pk!);
-        bool isUnreleasedPA9 = pk is PA9;
-
-        if (!la.Valid && !isUnreleasedPA9)
+        if (!la.Valid)
         {
             string responseMessage;
             if (pk?.IsEgg == true)

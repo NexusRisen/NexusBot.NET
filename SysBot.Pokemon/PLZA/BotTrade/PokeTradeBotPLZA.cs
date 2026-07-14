@@ -312,8 +312,6 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 var goClone = toSend.Clone();
                 goClone.OriginalTrainerName = tradePartner.OT;
 
-                ClearOTTrash(goClone, tradePartner);
-
                 if (!toSend.ChecksumValid)
                     goClone.RefreshChecksum();
 
@@ -413,24 +411,17 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
             var tradeSV = new LegalityAnalysis(cln);
 
-            if (tradeSV.Valid)
+            if (!tradeSV.Valid)
             {
-                Log("Pokemon is valid, applying AutoOT (PLZA).");
-                // Don't pass sav - we've already set handler info and don't want UpdateHandler to overwrite it
-                var boxOffset = await GetBoxStartOffset(token).ConfigureAwait(false);
-                await SetBoxPokemonAbsolute(boxOffset, cln, token, null).ConfigureAwait(false);
-                return cln;
-            }
-            else
-            {
-                Log($"Trade Pokemon can't have AutoOT applied (PLZA). Legality: {tradeSV.Report()}");
-                if (toSend.Species != 0)
-                {
-                    var boxOffset = await GetBoxStartOffset(token).ConfigureAwait(false);
-                    await SetBoxPokemonAbsolute(boxOffset, toSend, token, sav).ConfigureAwait(false);
-                }
+                Log($"Trade Pokemon fails legality check before trade. Skipping AutoOT. Legality: {tradeSV.Report()}");
                 return toSend;
             }
+
+            Log("Pokemon is valid, applying AutoOT (PLZA).");
+            // Don't pass sav - we've already set handler info and don't want UpdateHandler to overwrite it
+            var boxOffset = await GetBoxStartOffset(token).ConfigureAwait(false);
+            await SetBoxPokemonAbsolute(boxOffset, cln, token, null).ConfigureAwait(false);
+            return cln;
         }
         catch (Exception ex)
         {
@@ -440,25 +431,6 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         }
     }
 
-    private static void ClearOTTrash(PA9 pokemon, TradePartnerStatusPLZA tradePartner)
-    {
-        Span<byte> trash = pokemon.OriginalTrainerTrash;
-        trash.Clear();
-        string name = tradePartner.OT;
-        int maxLength = trash.Length / 2;
-        int actualLength = Math.Min(name.Length, maxLength);
-        for (int i = 0; i < actualLength; i++)
-        {
-            char value = name[i];
-            trash[i * 2] = (byte)value;
-            trash[(i * 2) + 1] = (byte)(value >> 8);
-        }
-        if (actualLength < maxLength)
-        {
-            trash[actualLength * 2] = 0x00;
-            trash[(actualLength * 2) + 1] = 0x00;
-        }
-    }
 
     #endregion
 
@@ -1043,6 +1015,14 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                         tradesToProcess[i + 1] = next;
                     }
 
+                    var nextLa = new LegalityAnalysis(next);
+                    if (!nextLa.Valid)
+                    {
+                        Log($"Illegal Pokémon detected mid-batch trade: {nextLa.Report()}");
+                        poke.SendNotification(this, $"**Hey!** Pokémon #{i + 2} in your batch is illegal, and the game will not allow it to be traded. Stopping batch trade early:\n\n{nextLa.Report()}");
+                        break;
+                    }
+
                     await SetBoxPokemonAbsolute(
                         await GetBoxStartOffset(token).ConfigureAwait(false),
                         next,
@@ -1154,6 +1134,19 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             SetTradeState(TradeState.Failed);
             poke.TradeCanceled(this, PokeTradeResult.UserCanceled);
             return PokeTradeResult.UserCanceled;
+        }
+
+        var toSendCheck = poke.TradeData;
+        if (toSendCheck.Species != 0)
+        {
+            var la = new LegalityAnalysis(toSendCheck);
+            if (!la.Valid)
+            {
+                Log($"Illegal Pokémon detected before trade: {la.Report()}");
+                poke.SendNotification(this, $"**Hey!** The Pokémon you generated is illegal, and the game will not allow it to be traded. Please fix it:\n\n{la.Report()}");
+                SetTradeState(TradeState.Failed);
+                return PokeTradeResult.IllegalTrade;
+            }
         }
 
         // Update Barrier Settings
@@ -1804,8 +1797,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             poke.SendNotification(this, offered, "Here's what you showed me!");
 
         var la = new LegalityAnalysis(offered);
-        bool isUnreleasedPA9 = offered is PA9;
-        if (!la.Valid && !isUnreleasedPA9)
+        if (!la.Valid)
         {
             Log($"Clone request (from {poke.Trainer.TrainerName}) has detected an invalid Pokémon: {GameInfo.GetStrings("en").Species[offered.Species]}.");
             SetTradeState(TradeState.Failed);

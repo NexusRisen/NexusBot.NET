@@ -226,9 +226,6 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 var goClone = toSend.Clone();
                 goClone.OriginalTrainerName = tradePartner;
 
-                // Update OT trash to match the new OT name
-                ClearOTTrash(goClone, tradePartner);
-
                 if (!toSend.ChecksumValid)
                     goClone.RefreshChecksum();
 
@@ -343,23 +340,7 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
         }
     }
 
-    private static void ClearOTTrash(PB8 pokemon, string trainerName)
-    {
-        Span<byte> trash = pokemon.OriginalTrainerTrash;
-        trash.Clear();
-        int maxLength = trash.Length / 2;
-        int actualLength = Math.Min(trainerName.Length, maxLength);
 
-        var charSpan = trainerName.AsSpan(0, actualLength);
-        var byteSpan = System.Runtime.InteropServices.MemoryMarshal.AsBytes(charSpan);
-        byteSpan.CopyTo(trash);
-
-        if (actualLength < maxLength)
-        {
-            trash[actualLength * 2] = 0x00;
-            trash[(actualLength * 2) + 1] = 0x00;
-        }
-    }
 
     private async Task<PokeTradeResult> ConfirmAndStartTrading(PokeTradeDetail<PB8> detail, CancellationToken token)
     {

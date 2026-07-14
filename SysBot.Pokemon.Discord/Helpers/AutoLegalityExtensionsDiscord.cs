@@ -90,9 +90,7 @@ public static class AutoLegalityExtensionsDiscord
 
             var la = new LegalityAnalysis(pkm);
             var spec = GameInfo.Strings.Species[set.Species];
-            bool isUnreleasedPA9 = pkm is PA9;
-
-            if (!la.Valid && !isUnreleasedPA9)
+            if (!la.Valid)
             {
                 var reason = result switch
                 {

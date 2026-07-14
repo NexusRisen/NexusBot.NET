@@ -118,8 +118,7 @@ public static class TradeModuleHelpers
                     continue;
 
                 var la = new LegalityAnalysis(validPk);
-                bool isUnreleasedPA9 = validPk is PA9;
-                if (la.Valid || isUnreleasedPA9)
+                if (la.Valid)
                     return validPk;
             }
         }
@@ -171,8 +170,7 @@ public static class TradeModuleHelpers
                     continue;
 
                 var la = new LegalityAnalysis(validPk);
-                bool isUnreleasedPA9 = validPk is PA9;
-                if (la.Valid || isUnreleasedPA9)
+                if (la.Valid)
                     return validPk;
             }
         }

@@ -450,9 +450,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
         TradeExtensions<T>.DittoTrade((T)pkm);
         var la = new LegalityAnalysis(pkm);
-        bool isUnreleasedPA9 = pkm is PA9;
-
-        if (pkm is not T pk || (!la.Valid && !isUnreleasedPA9))
+        if (pkm is not T pk || !la.Valid)
         {
             var reason = result == "Timeout" ? "That set took too long to generate." : "I wasn't able to create something from that.";
             var imsg = $"Oops! {reason} Here's my best attempt for that Ditto!";

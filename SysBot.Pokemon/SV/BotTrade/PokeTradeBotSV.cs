@@ -205,8 +205,6 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
                 var goClone = toSend.Clone();
                 goClone.OriginalTrainerName = tradePartner.OT;
 
-                ClearOTTrash(goClone, tradePartner);
-
                 if (!toSend.ChecksumValid)
                     goClone.RefreshChecksum();
 
@@ -345,24 +343,7 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
         }
     }
 
-    private static void ClearOTTrash(PK9 pokemon, TradeMyStatus tradePartner)
-    {
-        Span<byte> trash = pokemon.OriginalTrainerTrash;
-        trash.Clear();
-        string name = tradePartner.OT;
-        int maxLength = trash.Length / 2;
-        int actualLength = Math.Min(name.Length, maxLength);
 
-        var charSpan = name.AsSpan(0, actualLength);
-        var byteSpan = System.Runtime.InteropServices.MemoryMarshal.AsBytes(charSpan);
-        byteSpan.CopyTo(trash);
-
-        if (actualLength < maxLength)
-        {
-            trash[actualLength * 2] = 0;
-            trash[actualLength * 2 + 1] = 0;
-        }
-    }
 
     private async Task<PokeTradeResult> ConfirmAndStartTrading(PokeTradeDetail<PK9> detail, CancellationToken token)
     {

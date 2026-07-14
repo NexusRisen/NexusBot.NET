@@ -1368,9 +1368,6 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
                 var goClone = toSend.Clone();
                 goClone.OriginalTrainerName = tradePartner.TrainerName;
 
-                // Update OT trash to match the new OT name
-                ClearOTTrash(goClone, tradePartner.TrainerName);
-
                 if (!toSend.ChecksumValid)
                     goClone.RefreshChecksum();
 
@@ -1489,22 +1486,5 @@ public class PokeTradeBotLA(PokeTradeHub<PA8> Hub, PokeBotState Config) : PokeRo
         }
     }
 
-    private static void ClearOTTrash(PA8 pokemon, string trainerName)
-    {
-        Span<byte> trash = pokemon.OriginalTrainerTrash;
-        trash.Clear();
-        int maxLength = trash.Length / 2;
-        int actualLength = Math.Min(trainerName.Length, maxLength);
-        for (int i = 0; i < actualLength; i++)
-        {
-            char value = trainerName[i];
-            trash[i * 2] = (byte)value;
-            trash[(i * 2) + 1] = (byte)(value >> 8);
-        }
-        if (actualLength < maxLength)
-        {
-            trash[actualLength * 2] = 0x00;
-            trash[(actualLength * 2) + 1] = 0x00;
-        }
-    }
+
 }

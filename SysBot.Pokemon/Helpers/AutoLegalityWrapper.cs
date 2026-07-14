@@ -223,8 +223,7 @@ public static class AutoLegalityWrapper
                 return null;
 
             var la = new LegalityAnalysis(pk);
-            bool isUnreleasedPA9 = pk is PA9;
-            if ((!la.Valid && !isUnreleasedPA9) || IsFixedOT(la.EncounterOriginal, pk))
+            if (!la.Valid || IsFixedOT(la.EncounterOriginal, pk))
                 return null;
 
             return pk;
@@ -263,8 +262,7 @@ public static class AutoLegalityWrapper
                 return null;
 
             var la = new LegalityAnalysis(pk);
-            bool isUnreleasedPA9 = pk is PA9;
-            if (!la.Valid && !isUnreleasedPA9)
+            if (!la.Valid)
                 return null;
 
             return pk;
