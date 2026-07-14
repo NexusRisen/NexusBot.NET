@@ -1,66 +1,101 @@
 using SysBot.Base;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using PKHeX.Core;
-using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
 
 namespace SysBot.Pokemon;
 
 public class TradeCodeStorage
 {
-    private readonly string _fileName;
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true,
-        WriteIndented = true
+        WriteIndented = false
     };
-    private Dictionary<ulong, TradeCodeDetails>? _tradeCodeDetails;
+    
     private readonly string _game;
     
     public TradeCodeStorage(string game = "SV")
     {
         _game = game;
-        _fileName = Path.Combine("data", $"tradecodes_{_game}.json");
-        
-        if (!Directory.Exists("data"))
-            Directory.CreateDirectory("data");
+    }
 
-        LoadFromFile();
+    private TradeCodeDetails? LoadFromDb(ulong trainerID)
+    {
+        try
+        {
+            using var conn = DatabaseHelper.GetConnection();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT Data FROM TradeCodes WHERE TrainerID = @id";
+            cmd.Parameters.AddWithValue("@id", (long)trainerID);
+            
+            var result = cmd.ExecuteScalar() as string;
+            if (!string.IsNullOrEmpty(result))
+            {
+                return JsonSerializer.Deserialize<TradeCodeDetails>(result, SerializerOptions);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogError("TradeCodeStorage", $"Load error: {ex}");
+        }
+        return null;
+    }
+
+    private void SaveToDb(ulong trainerID, TradeCodeDetails details)
+    {
+        try
+        {
+            using var conn = DatabaseHelper.GetConnection();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "INSERT OR REPLACE INTO TradeCodes (TrainerID, Data) VALUES (@id, @data)";
+            cmd.Parameters.AddWithValue("@id", (long)trainerID);
+            cmd.Parameters.AddWithValue("@data", JsonSerializer.Serialize(details, SerializerOptions));
+            cmd.ExecuteNonQuery();
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogError("TradeCodeStorage", $"Save error: {ex}");
+        }
     }
 
     public bool DeleteTradeCode(ulong trainerID)
     {
-        LoadFromFile();
-        if (_tradeCodeDetails!.Remove(trainerID))
+        try
         {
-            SaveToFile();
-            return true;
+            using var conn = DatabaseHelper.GetConnection();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "DELETE FROM TradeCodes WHERE TrainerID = @id";
+            cmd.Parameters.AddWithValue("@id", (long)trainerID);
+            return cmd.ExecuteNonQuery() > 0;
         }
-        return false;
+        catch (Exception ex)
+        {
+            LogUtil.LogError("TradeCodeStorage", $"Delete error: {ex}");
+            return false;
+        }
     }
 
     public int GetTradeCode(ulong trainerID)
     {
-        LoadFromFile();
-        if (_tradeCodeDetails!.TryGetValue(trainerID, out var details))
+        var details = LoadFromDb(trainerID);
+        if (details != null)
         {
-
-            
             var existingCode = GetCodeForGame(details, _game);
             if (existingCode != null && int.TryParse(existingCode, out int codeInt))
             {
                 SyncGenericFields(details, true);
-                SaveToFile();
+                SaveToDb(trainerID, details);
                 return codeInt;
             }
 
             var newCode = GenerateRandomTradeCode();
             SetCodeForGame(details, _game, newCode.ToString());
             SyncGenericFields(details, true);
-            SaveToFile();
+            SaveToDb(trainerID, details);
             return newCode;
         }
 
@@ -68,39 +103,35 @@ public class TradeCodeStorage
         var newDetails = new TradeCodeDetails();
         SetCodeForGame(newDetails, _game, localCode.ToString());
         SyncGenericFields(newDetails, true);
-        _tradeCodeDetails![trainerID] = newDetails;
+        SaveToDb(trainerID, newDetails);
         new MedalStorage().AddTrade(trainerID, trainerID.ToString());
-        SaveToFile();
         return localCode;
     }
 
     public List<Pictocodes> GetLGTradeCode(ulong trainerID)
     {
-        LoadFromFile();
-        if (_tradeCodeDetails!.TryGetValue(trainerID, out var details))
+        var details = LoadFromDb(trainerID);
+        if (details != null)
         {
-
-            
             if (!string.IsNullOrEmpty(details.Code_LGPE))
             {
                 SyncGenericFields(details, true);
-                SaveToFile();
+                SaveToDb(trainerID, details);
                 return StringToLGCode(details.Code_LGPE);
             }
             
             var newLg = GenerateRandomLGCode();
             details.Code_LGPE = LGCodeToString(newLg);
             SyncGenericFields(details, true);
-            SaveToFile();
+            SaveToDb(trainerID, details);
             return newLg;
         }
 
         var localLg = GenerateRandomLGCode();
         var newDetails = new TradeCodeDetails { Code_LGPE = LGCodeToString(localLg) };
         SyncGenericFields(newDetails, true);
-        _tradeCodeDetails![trainerID] = newDetails;
+        SaveToDb(trainerID, newDetails);
         new MedalStorage().AddTrade(trainerID, trainerID.ToString());
-        SaveToFile();
         return localLg;
     }
 
@@ -157,12 +188,10 @@ public class TradeCodeStorage
         }
     }
 
-
-
     public TradeCodeDetails? GetTradeDetails(ulong trainerID)
     {
-        LoadFromFile();
-        if (_tradeCodeDetails!.TryGetValue(trainerID, out var details))
+        var details = LoadFromDb(trainerID);
+        if (details != null)
         {
             SyncGenericFields(details, true);
             return details;
@@ -172,39 +201,37 @@ public class TradeCodeStorage
 
     public void UpdateTradeDetails(ulong trainerID, string ot, int tid, int sid, string? quote = null, byte? gender = null, int? language = null)
     {
-        LoadFromFile();
-        if (_tradeCodeDetails!.TryGetValue(trainerID, out var details)) 
+        var details = LoadFromDb(trainerID);
+        if (details != null) 
         { 
             details.OT = ot; details.TID = tid; details.SID = sid;
             SyncGenericFields(details, false);
             if (quote != null) details.Quote = quote; 
             if (gender.HasValue) details.Gender = gender; 
             if (language.HasValue) details.Language = language; 
-            SaveToFile(); 
+            SaveToDb(trainerID, details); 
         }
     }
 
     public bool UpdateTradeCode(ulong trainerID, int newCode)
     {
-        LoadFromFile();
-        if (_tradeCodeDetails!.TryGetValue(trainerID, out var details)) { SetCodeForGame(details, _game, newCode.ToString()); SaveToFile(); return true; }
+        var details = LoadFromDb(trainerID);
+        if (details != null) { SetCodeForGame(details, _game, newCode.ToString()); SaveToDb(trainerID, details); return true; }
         return false;
     }
 
     public void UpdateUsername(ulong trainerID, string username)
     {
-        LoadFromFile();
-        if (_tradeCodeDetails!.TryGetValue(trainerID, out var details))
+        var details = LoadFromDb(trainerID);
+        if (details != null)
         {
             if (details.Username != username)
             {
                 details.Username = username;
-                SaveToFile();
+                SaveToDb(trainerID, details);
             }
         }
     }
-
-
 
     private static int GenerateRandomTradeCode() => new TradeSettings().GetRandomTradeCode();
 
@@ -219,63 +246,36 @@ public class TradeCodeStorage
     private static string LGCodeToString(List<Pictocodes> code) => string.Join(",", code.Select(c => (int)c));
     private static List<Pictocodes> StringToLGCode(string s) => s.Split(',').Select(x => (Pictocodes)int.Parse(x)).ToList();
 
-    private void LoadFromFile()
-    {
-        if (File.Exists(_fileName)) _tradeCodeDetails = JsonSerializer.Deserialize<Dictionary<ulong, TradeCodeDetails>>(File.ReadAllText(_fileName), SerializerOptions);
-        else _tradeCodeDetails = [];
-    }
-
-    private void SaveToFile()
-    {
-        try { File.WriteAllText(_fileName, JsonSerializer.Serialize(_tradeCodeDetails, SerializerOptions)); }
-        catch (Exception ex) { LogUtil.LogInfo("TradeCodeStorage", $"Error: {ex.Message}"); }
-    }
-
     public class TradeCodeDetails
     {
         public string? Username { get; set; }
-
-        // Bot Logic Compatibility Fields
         public string? OT { get; set; }
         public int TID { get; set; }
         public int SID { get; set; }
-
-        // Independent Game Codes
         public string? Code_SV { get; set; }
         public string? Code_SWSH { get; set; }
         public string? Code_BDSP { get; set; }
         public string? Code_LA { get; set; }
         public string? Code_PLZA { get; set; }
         public string? Code_LGPE { get; set; }
-
-        // Independent Game Trainer Info
         public string? OT_SV { get; set; }
         public int TID_SV { get; set; }
         public int SID_SV { get; set; }
-
         public string? OT_SWSH { get; set; }
         public int TID_SWSH { get; set; }
         public int SID_SWSH { get; set; }
-
         public string? OT_BDSP { get; set; }
         public int TID_BDSP { get; set; }
         public int SID_BDSP { get; set; }
-
         public string? OT_LA { get; set; }
         public int TID_LA { get; set; }
         public int SID_LA { get; set; }
-
         public string? OT_PLZA { get; set; }
         public int TID_PLZA { get; set; }
         public int SID_PLZA { get; set; }
-
         public string? OT_LGPE { get; set; }
         public int TID_LGPE { get; set; }
         public int SID_LGPE { get; set; }
-
-
-        
-        // Optional Shared Profile Data
         public string? Quote { get; set; }
         public byte? Gender { get; set; }
         public int? Language { get; set; }

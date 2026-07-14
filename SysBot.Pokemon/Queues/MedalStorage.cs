@@ -1,69 +1,58 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text.Json;
+using Microsoft.Data.Sqlite;
 using SysBot.Base;
 
 namespace SysBot.Pokemon;
 
 public class MedalStorage
 {
-    private static readonly string FileName = Path.Combine("data", "medals.json");
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        WriteIndented = true
-    };
-    
-    private Dictionary<ulong, MedalDetails>? _medals;
-
-    public MedalStorage()
-    {
-        if (!Directory.Exists("data"))
-            Directory.CreateDirectory("data");
-
-        LoadFromFile();
-    }
-
     public void AddTrade(ulong trainerID, string username)
     {
-        LoadFromFile();
-        if (!_medals!.TryGetValue(trainerID, out var details))
+        try
         {
-            details = new MedalDetails { Username = username, TradeCount = 0 };
-            _medals[trainerID] = details;
+            using var connection = DatabaseHelper.GetConnection();
+            using var cmd = connection.CreateCommand();
+            
+            // Increment existing or insert new
+            cmd.CommandText = @"
+                INSERT INTO Medals (TrainerID, Username, TradeCount, Medals)
+                VALUES (@id, @user, 1, 1)
+                ON CONFLICT(TrainerID) DO UPDATE SET
+                    Username = excluded.Username,
+                    TradeCount = TradeCount + 1,
+                    Medals = 1 + MIN(20, (TradeCount + 1) / 50)
+            ";
+            cmd.Parameters.AddWithValue("@id", (long)trainerID);
+            cmd.Parameters.AddWithValue("@user", username);
+            
+            cmd.ExecuteNonQuery();
         }
-
-        details.TradeCount++;
-        details.Username = username;
-        details.Medals = CalculateMedals(details.TradeCount);
-        SaveToFile();
+        catch (Exception ex)
+        {
+            LogUtil.LogInfo("MedalStorage", $"Error adding trade: {ex.Message}");
+        }
     }
 
     public int GetTradeCount(ulong trainerID)
     {
-        LoadFromFile();
-        return _medals!.TryGetValue(trainerID, out var details) ? details.TradeCount : 0;
-    }
-
-    private static int CalculateMedals(int tradeCount)
-    {
-        if (tradeCount < 1) return 0;
-        return 1 + Math.Min(20, tradeCount / 50);
-    }
-
-    private void LoadFromFile()
-    {
-        if (File.Exists(FileName))
-            _medals = JsonSerializer.Deserialize<Dictionary<ulong, MedalDetails>>(File.ReadAllText(FileName), SerializerOptions) ?? new Dictionary<ulong, MedalDetails>();
-        else
-            _medals = new Dictionary<ulong, MedalDetails>();
-    }
-
-    private void SaveToFile()
-    {
-        try { File.WriteAllText(FileName, JsonSerializer.Serialize(_medals, SerializerOptions)); }
-        catch (Exception ex) { LogUtil.LogInfo("MedalStorage", $"Error: {ex.Message}"); }
+        try
+        {
+            using var connection = DatabaseHelper.GetConnection();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT TradeCount FROM Medals WHERE TrainerID = @id";
+            cmd.Parameters.AddWithValue("@id", (long)trainerID);
+            
+            var result = cmd.ExecuteScalar();
+            if (result != null && result != DBNull.Value)
+            {
+                return Convert.ToInt32(result);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogUtil.LogInfo("MedalStorage", $"Error getting trade count: {ex.Message}");
+        }
+        return 0;
     }
 
     public class MedalDetails
