@@ -1,11 +1,12 @@
-## 9.0.9
+## 9.1.0
 
 ### Features
 * Added the Held Item string to the Pokémon title line in the Discord embed.
 * Re-organized the Discord embed slightly by separating the Overview and Stats on new lines instead of separating them with `|`, while keeping the Moves side-by-side using inline formatting.
 
 ### Bug Fixes
-* Fixed an issue where the Held Item (if validly requested) was being wiped by the ALM (Auto Legality Mod) generator for Pokémon Legends: Z-A and not re-applied before trades.
+* Fixed an issue where the Held Item was being forcibly wiped for Pokémon Legends: Z-A due to legacy Arceus logic.
+* Fixed an issue where the embed would display `Item: (None)` for Pokémon without an item.
 
 ## 9.0.8
 
