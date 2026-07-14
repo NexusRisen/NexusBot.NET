@@ -409,6 +409,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
             cln.RefreshChecksum();
 
+            Log($"AutoOT Debug: OTName='{cln.OriginalTrainerName}', Length={cln.OriginalTrainerName?.Length ?? 0}, Lang={cln.Language}");
             var tradeSV = new LegalityAnalysis(cln);
 
             if (!tradeSV.Valid)
@@ -678,8 +679,8 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
             // Read gender and language from TID location offset
             var genderLang = await SwitchConnection.ReadBytesAbsoluteAsync(tidAddr, 0x08, token).ConfigureAwait(false);
-            trader_info.Data[0x04] = genderLang[0x05]; // Gender at TID base + 0x05
-            trader_info.Data[0x05] = genderLang[0x07]; // Language at TID base + 0x07
+            trader_info.Data[0x04] = genderLang[0x04]; // Gender at TID base + 0x04
+            trader_info.Data[0x05] = genderLang[0x05]; // Language at TID base + 0x05
 
         }
         else

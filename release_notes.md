@@ -1,11 +1,10 @@
+## 9.0.5
+
+### Bug Fixes
+* Fixed an issue in PLZA where trades would fail legality checks with "OT Name too short" because the bot was reading the trade partner's Language and Gender from the wrong memory offsets.
+
 ## 9.0.4
 
 ### Bug Fixes
 * Fixed a bug where using simple species names (e.g., `.t pikachu`) would result in a failed trade with an empty Nickname and invalid Language ID.
 
-## 9.0.3
-
-### Changes
-* Ported detailed `LegalityReport` functionality from PokeBot to improve Discord embed feedback for failed trades.
-* Added `IsEffectivelyLegal` legality filter for PA9 (Legends Z-A) to allow trades of unreleased game origin Pokemon while maintaining strict legality checks on stats, moves, and abilities.
-* Fixed a compilation error in `SimpleLegalityFeedback` caused by deprecated `CheckIdentifier` values from PKHeX.Core.
