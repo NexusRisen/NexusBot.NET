@@ -1,6 +1,5 @@
-## NexusBot.NET v9.0.2
+## Unreleased
 
-### Fixes
-* **AutoOT Fixes**: Addressed an issue where short OT names were erroneously filling trailing trash bytes, causing legitimate legal AutoOT applications to fail legality checks.
-
-
+### Changes
+* Ported detailed `LegalityReport` functionality from PokeBot to improve Discord embed feedback for failed trades.
+* Added `IsEffectivelyLegal` legality filter for PA9 (Legends Z-A) to allow trades of unreleased game origin Pokemon while maintaining strict legality checks on stats, moves, and abilities.
