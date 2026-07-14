@@ -246,7 +246,8 @@ namespace SysBot.Pokemon.Discord
                         if (la.Valid) pk = clone;
                     }
 
-                    if (!la.Valid)
+                    bool isUnreleasedPA9 = pk is PA9;
+                    if (!la.Valid && !isUnreleasedPA9)
                     {
                         var report = la.Report().Split('\n', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? "Unknown legality error";
                         errors.Add($"Index {index} is not legal: {report}");
@@ -407,7 +408,8 @@ namespace SysBot.Pokemon.Discord
         {
             lgcode ??= Info.GetRandomLGTradeCode(usr.Id);
             var la = new LegalityAnalysis(pk);
-            if (!la.Valid)
+            bool isUnreleasedPA9 = pk is PA9;
+            if (!la.Valid && !isUnreleasedPA9)
             {
                 string responseMessage = pk.IsEgg ? "Invalid Showdown Set for this Egg. Please review your information and try again." :
                     $"{typeof(T).Name} attachment is not legal, and cannot be traded!\n\n{la.Report()}\n";

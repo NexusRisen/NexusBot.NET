@@ -1804,7 +1804,8 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             poke.SendNotification(this, offered, "Here's what you showed me!");
 
         var la = new LegalityAnalysis(offered);
-        if (!la.Valid)
+        bool isUnreleasedPA9 = offered is PA9;
+        if (!la.Valid && !isUnreleasedPA9)
         {
             Log($"Clone request (from {poke.Trainer.TrainerName}) has detected an invalid Pokémon: {GameInfo.GetStrings("en").Species[offered.Species]}.");
             SetTradeState(TradeState.Failed);

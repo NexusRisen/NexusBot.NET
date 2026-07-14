@@ -221,7 +221,8 @@ public static class PokeTradeHelper<T> where T : PKM, new()
         }
 
         var la = new LegalityAnalysis(pkm);
-        if (pkm is not T pk || !la.Valid)
+        bool isUnreleasedPA9 = pkm is PA9;
+        if (pkm is not T pk || (!la.Valid && !isUnreleasedPA9))
         {
             var reason = GetFailureReason(result, spec);
             var hint = result == "Failed" ? GetLegalizationHint(template, sav, pkm, spec) : null;
