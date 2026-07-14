@@ -315,8 +315,8 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 if (!toSend.ChecksumValid)
                     goClone.RefreshChecksum();
 
-                var boxOffset = await GetBoxStartOffset(token).ConfigureAwait(false);
-                await SetBoxPokemonAbsolute(boxOffset, goClone, token, sav).ConfigureAwait(false);
+                var goBoxOffset = await GetBoxStartOffset(token).ConfigureAwait(false);
+                await SetBoxPokemonAbsolute(goBoxOffset, goClone, token, sav).ConfigureAwait(false);
                 Log("Applied only OT name to Pokémon from GO (PLZA).");
                 return goClone;
             }
