@@ -49,7 +49,7 @@ public static class DetailsExtractor<T> where T : PKM, new()
         }
         if (settings.ShowAbility) overviewList.Add($"**Ability:** {embedData.Ability}");
         if (settings.ShowBall) overviewList.Add($"**Ball:** {embedData.Ball}");
-        if (settings.ShowItem && !string.IsNullOrWhiteSpace(embedData.HeldItem) && embedData.HeldItem != "None")
+        if (settings.ShowItem && !string.IsNullOrWhiteSpace(embedData.HeldItem) && !embedData.HeldItem.Contains("None", StringComparison.OrdinalIgnoreCase))
             overviewList.Add($"**Item:** {embedData.HeldItem}");
         if (settings.ShowLanguage) overviewList.Add($"**Lang:** {embedData.Language}");
         if (pk.Version is GameVersion.SL or GameVersion.VL && settings.ShowTeraType) 
@@ -68,7 +68,7 @@ public static class DetailsExtractor<T> where T : PKM, new()
         string movesContent = embedData.MovesDisplay ?? string.Empty;
 
         string speciesHeader = $"{embedData.SpeciesName}{(string.IsNullOrEmpty(embedData.FormName) ? "" : $"-{embedData.FormName}")} {embedData.SpecialSymbols}";
-        if (settings.ShowItem && !string.IsNullOrWhiteSpace(embedData.HeldItem) && embedData.HeldItem != "None")
+        if (settings.ShowItem && !string.IsNullOrWhiteSpace(embedData.HeldItem) && !embedData.HeldItem.Contains("None", StringComparison.OrdinalIgnoreCase))
         {
             speciesHeader += $" @ {embedData.HeldItem}";
         }

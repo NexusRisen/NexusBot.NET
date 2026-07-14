@@ -369,7 +369,7 @@ public static class PokeTradeHelper<T> where T : PKM, new()
     {
         pkm.HeldItem = pkm switch
         {
-            PA9 or PA8 => (int)HeldItem.None,
+            PA8 => (int)HeldItem.None,
             _ when pkm.HeldItem == 0 && !pkm.IsEgg => (int)config.Trade.TradeConfiguration.DefaultHeldItem,
             _ => pkm.HeldItem
         };
