@@ -2,6 +2,8 @@ using Discord;
 using Discord.Commands;
 using PKHeX.Core;
 using System.Threading.Tasks;
+using System;
+using SysBot.Base;
 
 namespace SysBot.Pokemon.Discord;
 
