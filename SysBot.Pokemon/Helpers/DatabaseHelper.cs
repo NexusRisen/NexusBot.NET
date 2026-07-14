@@ -17,23 +17,23 @@ namespace SysBot.Pokemon
             WriteIndented = false
         };
 
-        private static bool _initialized = false;
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> _initializedGames = new();
 
-        public static void Initialize()
+        public static void Initialize(string game)
         {
-            if (_initialized) return;
-            _initialized = true;
+            if (_initializedGames.ContainsKey(game)) return;
+            _initializedGames.TryAdd(game, true);
             
             if (!Directory.Exists("data"))
                 Directory.CreateDirectory("data");
 
-            InitializeSchema();
-            MigrateOldData();
+            InitializeSchema(game);
+            MigrateOldData(game);
         }
 
-        private static void InitializeSchema()
+        private static void InitializeSchema(string game)
         {
-            using var connection = new SqliteConnection(ConnectionString);
+            using var connection = new SqliteConnection($"Data Source={Path.Combine("data", $"nexusbot_{game}.db")}");
             connection.Open();
 
             using var command = connection.CreateCommand();
@@ -57,19 +57,19 @@ namespace SysBot.Pokemon
             command.ExecuteNonQuery();
         }
 
-        public static SqliteConnection GetConnection()
+        public static SqliteConnection GetConnection(string game)
         {
-            Initialize();
-            var conn = new SqliteConnection(ConnectionString);
+            Initialize(game);
+            var conn = new SqliteConnection($"Data Source={Path.Combine("data", $"nexusbot_{game}.db")}");
             conn.Open();
             return conn;
         }
 
-        private static void MigrateOldData()
+        private static void MigrateOldData(string game)
         {
             try
             {
-                using var connection = new SqliteConnection(ConnectionString);
+                using var connection = new SqliteConnection($"Data Source={Path.Combine("data", $"nexusbot_{game}.db")}");
                 connection.Open();
 
                 // Migrate Medals
@@ -105,14 +105,14 @@ namespace SysBot.Pokemon
                     LogUtil.LogInfo("DatabaseHelper", "Medals migration complete. Old file backed up.");
                 }
 
-                // Migrate Trade Codes
+                // Migrate Trade Codes for this specific game
                 var dataDir = new DirectoryInfo("data");
                 if (dataDir.Exists)
                 {
-                    foreach (var file in dataDir.GetFiles("tradecodes_*.json"))
+                    var file = new FileInfo(Path.Combine("data", $"tradecodes_{game.ToLower()}.json"));
+                    if (file.Exists)
                     {
-                        var gameName = file.Name.Replace("tradecodes_", "").Replace(".json", "");
-                        LogUtil.LogInfo("DatabaseHelper", $"Migrating {file.Name} (Game: {gameName}) to SQLite...");
+                        LogUtil.LogInfo("DatabaseHelper", $"Migrating {file.Name} (Game: {game}) to SQLite...");
                         var dict = JsonSerializer.Deserialize<Dictionary<ulong, TradeCodeStorage.TradeCodeDetails>>(File.ReadAllText(file.FullName), SerializerOptions);
                         if (dict != null)
                         {
@@ -128,7 +128,7 @@ namespace SysBot.Pokemon
                             foreach (var kvp in dict)
                             {
                                 pId.Value = (long)kvp.Key;
-                                pGame.Value = gameName;
+                                pGame.Value = game;
                                 pData.Value = JsonSerializer.Serialize(kvp.Value, SerializerOptions);
                                 cmd.ExecuteNonQuery();
                             }

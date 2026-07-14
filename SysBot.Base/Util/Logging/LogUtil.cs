@@ -24,6 +24,10 @@ public static class LogUtil
     /// </summary>
     public static Func<string, string>? MessageTranslator { get; set; }
 
+    public static event Action<string>? OnDiscordPermissionError;
+
+    public static void InvokeDiscordPermissionError(string msg) => OnDiscordPermissionError?.Invoke(msg);
+
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
     // Cache of per-bot loggers to avoid recreating them

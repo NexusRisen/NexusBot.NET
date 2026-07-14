@@ -17,7 +17,7 @@ public class MedalStorage
     {
         try
         {
-            using var connection = DatabaseHelper.GetConnection();
+            using var connection = DatabaseHelper.GetConnection(_game);
             using var cmd = connection.CreateCommand();
             
             // Increment existing or insert new
@@ -45,7 +45,7 @@ public class MedalStorage
     {
         try
         {
-            using var connection = DatabaseHelper.GetConnection();
+            using var connection = DatabaseHelper.GetConnection(_game);
             using var cmd = connection.CreateCommand();
             cmd.CommandText = "SELECT TradeCount FROM Medals WHERE TrainerID = @id AND Game = @game";
             cmd.Parameters.AddWithValue("@id", (long)trainerID);

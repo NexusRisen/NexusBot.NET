@@ -252,7 +252,21 @@ public sealed partial class Main : Form
         LogUtil.Forwarders.RemoveAll(x => x is TextBoxForwarder);
         LogUtil.Forwarders.Add(new TextBoxForwarder(RTB_Logs));
 
+        LogUtil.OnDiscordPermissionError -= OnDiscordPermissionError;
+        LogUtil.OnDiscordPermissionError += OnDiscordPermissionError;
+
         PB_CreditsLogo.Image = Resources.icon.ToBitmap();
+    }
+
+    private void OnDiscordPermissionError(string msg)
+    {
+        if (InvokeRequired)
+        {
+            Invoke(new Action(() => OnDiscordPermissionError(msg)));
+            return;
+        }
+
+        WinFormsUtil.Alert(true, msg);
     }
 
     private void UpdateDropdownTranslations(string lang)

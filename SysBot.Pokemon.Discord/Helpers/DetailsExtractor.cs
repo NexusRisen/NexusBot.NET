@@ -50,7 +50,12 @@ public static class DetailsExtractor<T> where T : PKM, new()
         if (settings.ShowAbility) overviewList.Add($"**Ability:** {embedData.Ability}");
         if (settings.ShowBall) overviewList.Add($"**Ball:** {embedData.Ball}");
         if (settings.ShowLanguage) overviewList.Add($"**Lang:** {embedData.Language}");
-        if (pk.Version is GameVersion.SL or GameVersion.VL && settings.ShowTeraType) overviewList.Add($"**Tera:** {embedData.TeraType}");
+        if (pk.Version is GameVersion.SL or GameVersion.VL && settings.ShowTeraType) 
+            overviewList.Add($"**Tera:** {embedData.TeraType}");
+        else if (pk.Version is GameVersion.ZA && settings.ShowTeraType)
+        {
+            overviewList.Add($"**Mega:** {(string.IsNullOrEmpty(embedData.FormName) ? "None" : embedData.FormName)}");
+        }
 
         var statsList = new List<string>();
         if (settings.ShowLevel) statsList.Add($"**Level:** {embedData.Level}");

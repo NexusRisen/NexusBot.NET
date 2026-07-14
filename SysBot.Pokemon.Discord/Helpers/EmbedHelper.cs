@@ -150,7 +150,7 @@ public static class EmbedHelper
         }
     }
 
-    public static async Task SendTradeInitializingEmbedAsync(IUser user, string speciesName, int code, bool isMysteryEgg, string? message = null)
+    public static async Task SendTradeInitializingEmbedAsync(IUser user, string speciesName, int code, bool isMysteryEgg, string? message = null, IMessageChannel? fallbackChannel = null)
     {
         try
         {
@@ -185,6 +185,12 @@ public static class EmbedHelper
         {
             LogUtil.LogError($"Opening DMs too fast! User: {user.Username} ({user.Id})", "SendTradeInitializingEmbedAsync");
             SysCordSettings.Manager.ClearDMChannelCache(user.Id);
+        }
+        catch (HttpException ex) when (ex.DiscordCode.HasValue && ex.DiscordCode.Value == DiscordErrorCode.CannotSendMessageToUser)
+        {
+            LogUtil.LogError($"Cannot DM {user.Username}. DMs are likely disabled.", "SendTradeInitializingEmbedAsync");
+            if (fallbackChannel != null)
+                await fallbackChannel.SendMessageAsync($"{user.Mention}, I couldn't send you a DM with your trade info. Please enable DMs from server members!").ConfigureAwait(false);
         }
         catch (Exception ex)
         {

@@ -188,7 +188,7 @@ public abstract class PokeBotRunner<T> : RecoverableBotRunner<PokeBotState>, IPo
         BotStopped?.Invoke(this, EventArgs.Empty);
 
         IntegrationTokenSource.Cancel();
-        foreach (var integration in Integrations)
+        foreach (var integration in new System.Collections.Generic.List<IDisposable>(Integrations))
         {
             try { integration.Dispose(); } catch { }
         }

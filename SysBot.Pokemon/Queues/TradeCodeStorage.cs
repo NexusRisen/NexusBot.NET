@@ -27,7 +27,7 @@ public class TradeCodeStorage
     {
         try
         {
-            using var conn = DatabaseHelper.GetConnection();
+            using var conn = DatabaseHelper.GetConnection(_game);
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "SELECT Data FROM TradeCodes WHERE TrainerID = @id AND Game = @game";
             cmd.Parameters.AddWithValue("@id", (long)trainerID);
@@ -50,7 +50,7 @@ public class TradeCodeStorage
     {
         try
         {
-            using var conn = DatabaseHelper.GetConnection();
+            using var conn = DatabaseHelper.GetConnection(_game);
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "INSERT OR REPLACE INTO TradeCodes (TrainerID, Game, Data) VALUES (@id, @game, @data)";
             cmd.Parameters.AddWithValue("@id", (long)trainerID);
@@ -68,7 +68,7 @@ public class TradeCodeStorage
     {
         try
         {
-            using var conn = DatabaseHelper.GetConnection();
+            using var conn = DatabaseHelper.GetConnection(_game);
             using var cmd = conn.CreateCommand();
             cmd.CommandText = "DELETE FROM TradeCodes WHERE TrainerID = @id AND Game = @game";
             cmd.Parameters.AddWithValue("@id", (long)trainerID);

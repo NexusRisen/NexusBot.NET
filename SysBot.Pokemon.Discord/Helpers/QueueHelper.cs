@@ -74,7 +74,7 @@ public static class QueueHelper<T> where T : PKM, new()
         var name = user.Username;
         var trainer = new PokeTradeTrainerInfo(trainerName, userID);
         var notifier = new DiscordTradeNotifier<T>(pk, trainer, code, trader, batchTradeNumber, totalBatchTrades,
-            isMysteryEgg, lgcode: lgcode!);
+            isMysteryEgg, lgcode: lgcode!, fallbackChannel: context.Channel);
 
         int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
 
@@ -256,7 +256,7 @@ public static class QueueHelper<T> where T : PKM, new()
         var userID = trader.Id;
         var name = trader.Username;
         var trainer_info = new PokeTradeTrainerInfo(trainer, userID);
-        var notifier = new DiscordTradeNotifier<T>(firstTrade, trainer_info, code, trader, 1, totalBatchTrades, false, lgcode: []);
+        var notifier = new DiscordTradeNotifier<T>(firstTrade, trainer_info, code, trader, 1, totalBatchTrades, false, lgcode: [], fallbackChannel: context.Channel);
 
         int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
 

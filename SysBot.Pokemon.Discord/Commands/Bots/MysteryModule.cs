@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using SysBot.Pokemon.Helpers;
 using PKHeX.Core;
@@ -257,7 +257,7 @@ namespace SysBot.Pokemon.Discord
             var sig = context.User.GetFavor();
             var firstItem = batchList[0];
             var trainer = new PokeTradeTrainerInfo(context.User.Username, context.User.Id);
-            var notifier = new DiscordTradeNotifier<T>(firstItem, trainer, batchTradeCode, context.User, 1, totalItems, true, lgcode: []);
+            var notifier = new DiscordTradeNotifier<T>(firstItem, trainer, batchTradeCode, context.User, 1, totalItems, true, lgcode: [], fallbackChannel: context.Channel);
 
             int uniqueTradeID = TradeUtil.GenerateUniqueTradeID();
 

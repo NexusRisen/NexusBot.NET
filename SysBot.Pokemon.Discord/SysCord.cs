@@ -857,6 +857,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         {
             await SendPermissionErrorAsync(channel, "send messages").ConfigureAwait(false);
             await Log(new LogMessage(LogSeverity.Warning, "Command", $"Missing permissions to send message in channel {channel.Name}")).ConfigureAwait(false);
+            Base.LogUtil.InvokeDiscordPermissionError($"Missing permissions to send message in channel: {channel.Name}");
         }
         catch (Exception ex)
         {

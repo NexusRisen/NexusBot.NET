@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using PKHeX.Core;
 using PKHeX.Core.AutoMod;
@@ -34,10 +34,11 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
     private bool _initialUpdateSent = false;
     private bool _almostUpNotificationSent = false;
     private int _lastReportedPosition = -1;
+    private IMessageChannel? _fallbackChannel;
 
     public readonly PokeTradeHub<T> Hub = SysCord<T>.Runner.Hub;
 
-    public DiscordTradeNotifier(T data, PokeTradeTrainerInfo info, int code, SocketUser trader, int batchTradeNumber, int totalBatchTrades, bool isMysteryEgg, List<Pictocodes> lgcode)
+    public DiscordTradeNotifier(T data, PokeTradeTrainerInfo info, int code, SocketUser trader, int batchTradeNumber, int totalBatchTrades, bool isMysteryEgg, List<Pictocodes> lgcode, IMessageChannel? fallbackChannel = null)
     {
         Data = data;
         Info = info;
@@ -49,6 +50,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
         LGCode = lgcode;
         _traderID = trader.Id;
         _uniqueTradeID = GetUniqueTradeID();
+        _fallbackChannel = fallbackChannel;
     }
 
     public Action<PokeRoutineExecutor<T>>? OnFinish { private get; set; }
@@ -118,7 +120,17 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
                             Timestamp = DateTimeOffset.Now
                         }.Build();
 
-                        await Trader.SendMessageAsync(embed: upNextEmbed).ConfigureAwait(false);
+                        try
+                        {
+                            await Trader.SendMessageAsync(embed: upNextEmbed).ConfigureAwait(false);
+                        }
+                        catch (global::Discord.Net.HttpException ex) when (ex.DiscordCode == DiscordErrorCode.CannotSendMessageToUser)
+                        {
+                            if (_fallbackChannel != null)
+                            {
+                                await _fallbackChannel.SendMessageAsync($"{Trader.Mention}, your trade is up next but I couldn't send you a DM. Please enable DMs for more info!").ConfigureAwait(false);
+                            }
+                        }
                     }
                     // No other periodic updates - this prevents Discord spam
                 }
@@ -227,7 +239,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
                 message = $"Initializing trade{receive}. Please be ready.";
             }
 
-            EmbedHelper.SendTradeInitializingEmbedAsync(Trader, speciesName, Code, IsMysteryEgg, message).ConfigureAwait(false);
+            EmbedHelper.SendTradeInitializingEmbedAsync(Trader, speciesName, Code, IsMysteryEgg, message, _fallbackChannel).ConfigureAwait(false);
         }
         else if (Data is PB7)
         {
@@ -236,7 +248,7 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
         }
         else
         {
-            EmbedHelper.SendTradeInitializingEmbedAsync(Trader, speciesName, Code, IsMysteryEgg).ConfigureAwait(false);
+            EmbedHelper.SendTradeInitializingEmbedAsync(Trader, speciesName, Code, IsMysteryEgg, null, _fallbackChannel).ConfigureAwait(false);
         }
     }
 
