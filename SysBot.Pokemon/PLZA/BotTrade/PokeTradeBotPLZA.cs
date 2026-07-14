@@ -382,13 +382,18 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 
                 // Re-sanitize OT Name in case language changed
                 cln.OriginalTrainerName = LanguageHelper.SanitizeOTName(tradePartner.OT, cln.Language);
-                Log($"AutoOT Debug 1: After SanitizeOTName - OTName='{cln.OriginalTrainerName}'");
                 
                 var details = new PokeTrainerDetails(cln);
-                Log($"AutoOT Debug 2: PokeTrainerDetails - OTName='{details.OT}'");
+                
+                // PKHeX's ApplyAutoOT has a bug in PA9 where it clears the OriginalTrainerName.
+                // We cache the details and restore them manually to ensure they persist.
+                string correctOT = details.OT;
+                int correctGender = details.Gender;
                 
                 cln.ApplyAutoOT(details, overwriteOT: true);
-                Log($"AutoOT Debug 3: After ApplyAutoOT - OTName='{cln.OriginalTrainerName}'");
+                
+                cln.OriginalTrainerName = correctOT;
+                cln.OriginalTrainerGender = (byte)correctGender;
             }
             else
             {

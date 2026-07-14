@@ -1,7 +1,9 @@
-## 9.0.6
+## 9.0.7
 
-### Diagnostics / Debugging
-* Added deeper debug logging to PLZA AutoOT logic to help track down where the OT name is cleared during trade legality initialization.
+### Bug Fixes
+* Fixed a core issue where AutoOT would fail during PLZA legality checks because PKHeX's internal `ApplyAutoOT` method unexpectedly clears the Original Trainer Name for PA9 format Pokémon. The bot now manually restores the correct trainer name immediately after this routine.
+
+## 9.0.6
 
 ## 9.0.5
 
