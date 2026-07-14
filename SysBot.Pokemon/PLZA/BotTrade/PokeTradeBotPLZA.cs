@@ -382,7 +382,13 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 
                 // Re-sanitize OT Name in case language changed
                 cln.OriginalTrainerName = LanguageHelper.SanitizeOTName(tradePartner.OT, cln.Language);
-                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: true);
+                Log($"AutoOT Debug 1: After SanitizeOTName - OTName='{cln.OriginalTrainerName}'");
+                
+                var details = new PokeTrainerDetails(cln);
+                Log($"AutoOT Debug 2: PokeTrainerDetails - OTName='{details.OT}'");
+                
+                cln.ApplyAutoOT(details, overwriteOT: true);
+                Log($"AutoOT Debug 3: After ApplyAutoOT - OTName='{cln.OriginalTrainerName}'");
             }
             else
             {

@@ -1,3 +1,8 @@
+## 9.0.6
+
+### Diagnostics / Debugging
+* Added deeper debug logging to PLZA AutoOT logic to help track down where the OT name is cleared during trade legality initialization.
+
 ## 9.0.5
 
 ### Bug Fixes
