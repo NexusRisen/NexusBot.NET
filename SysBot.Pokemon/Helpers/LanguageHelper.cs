@@ -1,4 +1,4 @@
-﻿using PKHeX.Core;
+using PKHeX.Core;
 using PKHeX.Core.AutoMod;
 using System;
 using System.Linq;
@@ -79,7 +79,15 @@ public static class LanguageHelper
         byte detectedLanguage = detectLanguageFunc(content);
 
         // If no language was detected (0), use the config language setting
-        return detectedLanguage == 0 ? configLanguage : detectedLanguage;
+        byte result = detectedLanguage == 0 ? configLanguage : detectedLanguage;
+        
+        // Failsafe: if the config language was somehow 0 (None), default to English (2)
+        if (result == 0)
+        {
+            result = (byte)LanguageID.English;
+        }
+
+        return result;
     }
 
     public static ITrainerInfo GetTrainerInfoWithLanguage<T>(LanguageID language) where T : PKM, new()
