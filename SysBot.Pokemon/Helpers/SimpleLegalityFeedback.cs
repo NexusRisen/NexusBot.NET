@@ -141,11 +141,9 @@ public static class SimpleLegalityFeedback
         CheckIdentifier.IVs => "IVs",
         CheckIdentifier.EVs => "EVs",
         CheckIdentifier.PID => "PID/Nature",
-        CheckIdentifier.OT => "Trainer Info",
         CheckIdentifier.Nickname => "Nickname",
         CheckIdentifier.Ribbon => "Ribbons/Marks",
         CheckIdentifier.HeldItem => "Held Item",
-        CheckIdentifier.Stat => "Stats",
         _ => "Other Check"
     };
 }
