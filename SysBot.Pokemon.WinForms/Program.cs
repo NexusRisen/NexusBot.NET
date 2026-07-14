@@ -41,7 +41,7 @@ static class Program
         TaskScheduler.UnobservedTaskException += (sender, args) =>
         {
             args.SetObserved();
-            MessageBox.Show($"A background task error occurred: {args.Exception.Message}", "Task Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            SysBot.Base.LogUtil.LogText($"A background task error occurred: {args.Exception.Message}");
         };
 
         AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
