@@ -297,8 +297,11 @@ public class TradeSettings : IBotStateSettings, ICountSettings
         [Category(EmbedSettings), Description("Will show Level in trade embed (Discord only)."), DisplayName("Show Level")]
         public bool ShowLevel { get; set; } = true;
 
-        [Category(EmbedSettings), Description("Will show Ball in trade embed (Discord only)."), DisplayName("Show Ball")]
+        [Category(EmbedSettings), Description("Show the Ball of the Pokémon in the Embed Message"), DisplayName("Show Ball")]
         public bool ShowBall { get; set; } = true;
+
+        [Category(EmbedSettings), Description("Show the Held Item of the Pokémon in the Embed Message"), DisplayName("Show Item")]
+        public bool ShowItem { get; set; } = true;
 
         [Category(EmbedSettings), Description("Will show Met Level in trade embed (Discord only)."), DisplayName("Show Met Level")]
         public bool ShowMetLevel { get; set; } = true;

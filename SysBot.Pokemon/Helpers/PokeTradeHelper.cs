@@ -96,6 +96,10 @@ public static class PokeTradeHelper<T> where T : PKM, new()
             if (regenTemplate.Regen.Extra.Ball != Ball.None && regenTemplate.Regen.Extra.Ball != Ball.Poke)
                 pkm.Ball = (byte)regenTemplate.Regen.Extra.Ball;
 
+            // Re-apply Item customization as ALM can override it
+            if (set.HeldItem > 0)
+                pkm.HeldItem = set.HeldItem;
+
             // Re-apply batch commands after ALM generation
             if (APILegality.AllowBatchCommands && regenTemplate.Regen.HasBatchSettings)
             {

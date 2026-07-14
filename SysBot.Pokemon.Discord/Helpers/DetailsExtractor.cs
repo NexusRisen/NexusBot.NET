@@ -49,6 +49,8 @@ public static class DetailsExtractor<T> where T : PKM, new()
         }
         if (settings.ShowAbility) overviewList.Add($"**Ability:** {embedData.Ability}");
         if (settings.ShowBall) overviewList.Add($"**Ball:** {embedData.Ball}");
+        if (settings.ShowItem && !string.IsNullOrWhiteSpace(embedData.HeldItem) && embedData.HeldItem != "None")
+            overviewList.Add($"**Item:** {embedData.HeldItem}");
         if (settings.ShowLanguage) overviewList.Add($"**Lang:** {embedData.Language}");
         if (pk.Version is GameVersion.SL or GameVersion.VL && settings.ShowTeraType) 
             overviewList.Add($"**Tera:** {embedData.TeraType}");
@@ -66,17 +68,21 @@ public static class DetailsExtractor<T> where T : PKM, new()
         string movesContent = embedData.MovesDisplay ?? string.Empty;
 
         string speciesHeader = $"{embedData.SpeciesName}{(string.IsNullOrEmpty(embedData.FormName) ? "" : $"-{embedData.FormName}")} {embedData.SpecialSymbols}";
+        if (settings.ShowItem && !string.IsNullOrWhiteSpace(embedData.HeldItem) && embedData.HeldItem != "None")
+        {
+            speciesHeader += $" @ {embedData.HeldItem}";
+        }
         embedBuilder.WithTitle(speciesHeader);
         embedBuilder.WithDescription($"**User:** {trainerMention}");
 
         if (overviewList.Count > 0)
-            embedBuilder.AddField("📋 Overview", string.Join(" | ", overviewList), false);
+            embedBuilder.AddField("📋 Overview", string.Join("\n", overviewList), false);
         
         if (statsList.Count > 0)
             embedBuilder.AddField("📊 Stats", string.Join("\n", statsList), false);
 
         if (!string.IsNullOrEmpty(movesContent))
-            embedBuilder.AddField("⚔️ Moves", movesContent, false);
+            embedBuilder.AddField("⚔️ Moves", movesContent, true);
 
         // Additional Information (Met, Scale, etc.)
         var additionalInfo = new List<string>();
@@ -89,7 +95,7 @@ public static class DetailsExtractor<T> where T : PKM, new()
 
         if (additionalInfo.Count > 0)
         {
-            embedBuilder.AddField("📍 Origin & Physical", string.Join(" | ", additionalInfo), false);
+            embedBuilder.AddField("📍 Origin & Physical", string.Join(" • ", additionalInfo), false);
         }
     }
 
