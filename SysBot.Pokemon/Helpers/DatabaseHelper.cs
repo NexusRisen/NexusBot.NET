@@ -39,10 +39,12 @@ namespace SysBot.Pokemon
             using var command = connection.CreateCommand();
             command.CommandText = @"
                 CREATE TABLE IF NOT EXISTS Medals (
-                    TrainerID INTEGER PRIMARY KEY,
+                    TrainerID INTEGER,
+                    Game TEXT,
                     Username TEXT,
                     TradeCount INTEGER,
-                    Medals INTEGER
+                    Medals INTEGER,
+                    PRIMARY KEY (TrainerID, Game)
                 );
 
                 CREATE TABLE IF NOT EXISTS TradeCodes (
@@ -82,8 +84,8 @@ namespace SysBot.Pokemon
                         using var cmd = connection.CreateCommand();
                         cmd.Transaction = transaction;
                         cmd.CommandText = @"
-                            INSERT OR IGNORE INTO Medals (TrainerID, Username, TradeCount, Medals) 
-                            VALUES (@id, @user, @count, @medals)";
+                            INSERT OR IGNORE INTO Medals (TrainerID, Game, Username, TradeCount, Medals) 
+                            VALUES (@id, 'SV', @user, @count, @medals)";
                         var pId = cmd.Parameters.Add("@id", SqliteType.Integer);
                         var pUser = cmd.Parameters.Add("@user", SqliteType.Text);
                         var pCount = cmd.Parameters.Add("@count", SqliteType.Integer);

@@ -33,8 +33,8 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             return;
         }
 
-        var tradeCodeStorage = new TradeCodeStorage();
-        int totalTrades = new MedalStorage().GetTradeCount(Context.User.Id);
+        var tradeCodeStorage = new TradeCodeStorage(TradeQueueInfo<T>.GetGame());
+        int totalTrades = new MedalStorage(TradeQueueInfo<T>.GetGame()).GetTradeCount(Context.User.Id);
 
         if (totalTrades == 0)
         {

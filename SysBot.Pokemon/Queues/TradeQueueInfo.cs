@@ -19,7 +19,7 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
     public readonly PokeTradeHub<T> Hub = Hub;
     private readonly TradeCodeStorage _tradeCodeStorage = new(GetGame());
 
-    private static string GetGame()
+    public static string GetGame()
     {
         var typeName = typeof(T).Name;
         if (typeName.Contains("PK9")) return "SV";
@@ -456,7 +456,7 @@ public sealed record TradeQueueInfo<T>(PokeTradeHub<T> Hub)
     }
 
     public bool DeleteTradeCode(ulong trainerID) => _tradeCodeStorage.DeleteTradeCode(trainerID);
-    public int GetTradeCount(ulong trainerID) => new MedalStorage().GetTradeCount(trainerID);
+    public int GetTradeCount(ulong trainerID) => new MedalStorage(GetGame()).GetTradeCount(trainerID);
     public TradeCodeStorage.TradeCodeDetails? GetTradeDetails(ulong trainerID) => _tradeCodeStorage.GetTradeDetails(trainerID);
 
     public void UpdateTradeDetails(ulong trainerID, string ot, int tid, int sid, string? quote = null, byte? gender = null, int? language = null)

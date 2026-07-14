@@ -99,8 +99,8 @@ public static class QueueHelper<T> where T : PKM, new()
         TradeCodeStorage.TradeCodeDetails? tradeDetails = null;
         if (SysCord<T>.Runner.Config.Trade.TradeConfiguration.StoreTradeCodes)
         {
-            var tradeCodeStorage = new TradeCodeStorage();
-            totalTradeCount = new MedalStorage().GetTradeCount(trader.Id);
+            var tradeCodeStorage = new TradeCodeStorage(TradeQueueInfo<T>.GetGame());
+            totalTradeCount = new MedalStorage(TradeQueueInfo<T>.GetGame()).GetTradeCount(trader.Id);
             tradeDetails = tradeCodeStorage.GetTradeDetails(trader.Id);
         }
 
@@ -243,8 +243,8 @@ public static class QueueHelper<T> where T : PKM, new()
 
         if (SysCord<T>.Runner.Hub.Config.Trade.TradeConfiguration.StoreTradeCodes)
         {
-            var tradeCodeStorage = new TradeCodeStorage();
-            int tradeCount = new MedalStorage().GetTradeCount(trader.Id);
+            var tradeCodeStorage = new TradeCodeStorage(TradeQueueInfo<T>.GetGame());
+            int tradeCount = new MedalStorage(TradeQueueInfo<T>.GetGame()).GetTradeCount(trader.Id);
             _ = SendMilestoneEmbed(tradeCount, context.Channel, trader);
         }
 
@@ -322,8 +322,8 @@ public static class QueueHelper<T> where T : PKM, new()
         TradeCodeStorage.TradeCodeDetails? tradeDetails = null;
         if (SysCord<T>.Runner.Config.Trade.TradeConfiguration.StoreTradeCodes)
         {
-            var tradeCodeStorage = new TradeCodeStorage();
-            totalTradeCount = new MedalStorage().GetTradeCount(trader.Id);
+            var tradeCodeStorage = new TradeCodeStorage(TradeQueueInfo<T>.GetGame());
+            totalTradeCount = new MedalStorage(TradeQueueInfo<T>.GetGame()).GetTradeCount(trader.Id);
             tradeDetails = tradeCodeStorage.GetTradeDetails(trader.Id);
         }
 
@@ -427,8 +427,8 @@ public static class QueueHelper<T> where T : PKM, new()
         // Send milestone embed if applicable
         if (SysCord<T>.Runner.Hub.Config.Trade.TradeConfiguration.StoreTradeCodes)
         {
-            var tradeCodeStorage = new TradeCodeStorage();
-            int tradeCount = new MedalStorage().GetTradeCount(trader.Id);
+            var tradeCodeStorage = new TradeCodeStorage(TradeQueueInfo<T>.GetGame());
+            int tradeCount = new MedalStorage(TradeQueueInfo<T>.GetGame()).GetTradeCount(trader.Id);
             _ = SendMilestoneEmbed(tradeCount, context.Channel, trader);
         }
     }
