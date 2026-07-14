@@ -46,8 +46,10 @@ namespace SysBot.Pokemon
                 );
 
                 CREATE TABLE IF NOT EXISTS TradeCodes (
-                    TrainerID INTEGER PRIMARY KEY,
-                    Data TEXT
+                    TrainerID INTEGER,
+                    Game TEXT,
+                    Data TEXT,
+                    PRIMARY KEY (TrainerID, Game)
                 );
             ";
             command.ExecuteNonQuery();
@@ -107,56 +109,25 @@ namespace SysBot.Pokemon
                 {
                     foreach (var file in dataDir.GetFiles("tradecodes_*.json"))
                     {
-                        LogUtil.LogInfo("DatabaseHelper", $"Migrating {file.Name} to SQLite...");
+                        var gameName = file.Name.Replace("tradecodes_", "").Replace(".json", "");
+                        LogUtil.LogInfo("DatabaseHelper", $"Migrating {file.Name} (Game: {gameName}) to SQLite...");
                         var dict = JsonSerializer.Deserialize<Dictionary<ulong, TradeCodeStorage.TradeCodeDetails>>(File.ReadAllText(file.FullName), SerializerOptions);
                         if (dict != null)
                         {
                             using var transaction = connection.BeginTransaction();
                             using var cmd = connection.CreateCommand();
                             cmd.Transaction = transaction;
-                            
-                            var selCmd = connection.CreateCommand();
-                            selCmd.Transaction = transaction;
-                            selCmd.CommandText = "SELECT Data FROM TradeCodes WHERE TrainerID = @id";
-                            var pSelId = selCmd.Parameters.Add("@id", SqliteType.Integer);
 
-                            cmd.CommandText = "INSERT OR REPLACE INTO TradeCodes (TrainerID, Data) VALUES (@id, @data)";
+                            cmd.CommandText = "INSERT OR REPLACE INTO TradeCodes (TrainerID, Game, Data) VALUES (@id, @game, @data)";
                             var pId = cmd.Parameters.Add("@id", SqliteType.Integer);
+                            var pGame = cmd.Parameters.Add("@game", SqliteType.Text);
                             var pData = cmd.Parameters.Add("@data", SqliteType.Text);
 
                             foreach (var kvp in dict)
                             {
-                                pSelId.Value = (long)kvp.Key;
-                                string? existingData = selCmd.ExecuteScalar() as string;
-                                TradeCodeStorage.TradeCodeDetails finalDetails = kvp.Value;
-                                
-                                if (!string.IsNullOrEmpty(existingData))
-                                {
-                                    var existing = JsonSerializer.Deserialize<TradeCodeStorage.TradeCodeDetails>(existingData, SerializerOptions);
-                                    if (existing != null)
-                                    {
-                                        if (finalDetails.OT == null) finalDetails.OT = existing.OT;
-                                        if (finalDetails.TID == 0) finalDetails.TID = existing.TID;
-                                        if (finalDetails.SID == 0) finalDetails.SID = existing.SID;
-                                        
-                                        finalDetails.Code_SV ??= existing.Code_SV;
-                                        finalDetails.Code_SWSH ??= existing.Code_SWSH;
-                                        finalDetails.Code_BDSP ??= existing.Code_BDSP;
-                                        finalDetails.Code_LA ??= existing.Code_LA;
-                                        finalDetails.Code_PLZA ??= existing.Code_PLZA;
-                                        finalDetails.Code_LGPE ??= existing.Code_LGPE;
-                                        
-                                        finalDetails.OT_SV ??= existing.OT_SV;
-                                        finalDetails.OT_SWSH ??= existing.OT_SWSH;
-                                        finalDetails.OT_BDSP ??= existing.OT_BDSP;
-                                        finalDetails.OT_LA ??= existing.OT_LA;
-                                        finalDetails.OT_PLZA ??= existing.OT_PLZA;
-                                        finalDetails.OT_LGPE ??= existing.OT_LGPE;
-                                    }
-                                }
-
                                 pId.Value = (long)kvp.Key;
-                                pData.Value = JsonSerializer.Serialize(finalDetails, SerializerOptions);
+                                pGame.Value = gameName;
+                                pData.Value = JsonSerializer.Serialize(kvp.Value, SerializerOptions);
                                 cmd.ExecuteNonQuery();
                             }
                             transaction.Commit();

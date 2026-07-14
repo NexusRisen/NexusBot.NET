@@ -29,8 +29,9 @@ public class TradeCodeStorage
         {
             using var conn = DatabaseHelper.GetConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "SELECT Data FROM TradeCodes WHERE TrainerID = @id";
+            cmd.CommandText = "SELECT Data FROM TradeCodes WHERE TrainerID = @id AND Game = @game";
             cmd.Parameters.AddWithValue("@id", (long)trainerID);
+            cmd.Parameters.AddWithValue("@game", _game);
             
             var result = cmd.ExecuteScalar() as string;
             if (!string.IsNullOrEmpty(result))
@@ -51,8 +52,9 @@ public class TradeCodeStorage
         {
             using var conn = DatabaseHelper.GetConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "INSERT OR REPLACE INTO TradeCodes (TrainerID, Data) VALUES (@id, @data)";
+            cmd.CommandText = "INSERT OR REPLACE INTO TradeCodes (TrainerID, Game, Data) VALUES (@id, @game, @data)";
             cmd.Parameters.AddWithValue("@id", (long)trainerID);
+            cmd.Parameters.AddWithValue("@game", _game);
             cmd.Parameters.AddWithValue("@data", JsonSerializer.Serialize(details, SerializerOptions));
             cmd.ExecuteNonQuery();
         }
@@ -68,8 +70,9 @@ public class TradeCodeStorage
         {
             using var conn = DatabaseHelper.GetConnection();
             using var cmd = conn.CreateCommand();
-            cmd.CommandText = "DELETE FROM TradeCodes WHERE TrainerID = @id";
+            cmd.CommandText = "DELETE FROM TradeCodes WHERE TrainerID = @id AND Game = @game";
             cmd.Parameters.AddWithValue("@id", (long)trainerID);
+            cmd.Parameters.AddWithValue("@game", _game);
             return cmd.ExecuteNonQuery() > 0;
         }
         catch (Exception ex)
