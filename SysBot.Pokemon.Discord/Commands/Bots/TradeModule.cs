@@ -450,7 +450,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
 
         TradeExtensions<T>.DittoTrade((T)pkm);
         var la = new LegalityAnalysis(pkm);
-        if (pkm is not T pk || !la.Valid)
+        if (pkm is not T pk || !SimpleLegalityFeedback.IsEffectivelyLegal(pk, la))
         {
             var reason = result == "Timeout" ? "That set took too long to generate." : "I wasn't able to create something from that.";
             var imsg = $"Oops! {reason} Here's my best attempt for that Ditto!";
@@ -582,7 +582,7 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
             }
 
             var la = new LegalityAnalysis(pkm);
-            if (pkm is not T pk || !la.Valid)
+            if (pkm is not T pk || !SimpleLegalityFeedback.IsEffectivelyLegal(pk, la))
             {
                 var reason = result == "Timeout" ? "That set took too long to generate." : "I wasn't able to create something from that.";
                 errors.Add(new BatchTradeError { TradeNumber = i + 1, SpeciesName = baseSpeciesName, ErrorMessage = reason, ShowdownSet = itemName });

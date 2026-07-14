@@ -1015,6 +1015,14 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                         tradesToProcess[i + 1] = next;
                     }
 
+                    var nextLa = new LegalityAnalysis(next);
+                    if (!SimpleLegalityFeedback.IsEffectivelyLegal(next, nextLa))
+                    {
+                        Log($"Illegal Pokémon detected mid-batch trade: {nextLa.Report()}");
+                        poke.SendNotification(this, $"**Hey!** Pokémon #{i + 2} in your batch is illegal, and the game will not allow it to be traded. Stopping batch trade early:\n\n{SimpleLegalityFeedback.GetLegalityReport(next, nextLa, GameInfo.GetStrings("en").Species[next.Species])}");
+                        break;
+                    }
+
                     await SetBoxPokemonAbsolute(
                         await GetBoxStartOffset(token).ConfigureAwait(false),
                         next,
@@ -1126,6 +1134,19 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             SetTradeState(TradeState.Failed);
             poke.TradeCanceled(this, PokeTradeResult.UserCanceled);
             return PokeTradeResult.UserCanceled;
+        }
+
+        var toSendCheck = poke.TradeData;
+        if (toSendCheck.Species != 0)
+        {
+            var la = new LegalityAnalysis(toSendCheck);
+            if (!SimpleLegalityFeedback.IsEffectivelyLegal(toSendCheck, la))
+            {
+                Log($"Illegal Pokémon detected before trade: {la.Report()}");
+                poke.SendNotification(this, $"**Hey!** The Pokémon you generated is illegal, and the game will not allow it to be traded. Please fix it:\n\n{SimpleLegalityFeedback.GetLegalityReport(toSendCheck, la, GameInfo.GetStrings("en").Species[toSendCheck.Species])}");
+                SetTradeState(TradeState.Failed);
+                return PokeTradeResult.IllegalTrade;
+            }
         }
 
         // Update Barrier Settings
@@ -1776,8 +1797,7 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
             poke.SendNotification(this, offered, "Here's what you showed me!");
 
         var la = new LegalityAnalysis(offered);
-        bool isUnreleasedPA9 = offered is PA9;
-        if (!la.Valid && !isUnreleasedPA9)
+        if (!SimpleLegalityFeedback.IsEffectivelyLegal(offered, la))
         {
             Log($"Clone request (from {poke.Trainer.TrainerName}) has detected an invalid Pokémon: {GameInfo.GetStrings("en").Species[offered.Species]}.");
             SetTradeState(TradeState.Failed);

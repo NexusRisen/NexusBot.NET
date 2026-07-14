@@ -118,7 +118,7 @@ public static class TradeModuleHelpers
                     continue;
 
                 var la = new LegalityAnalysis(validPk);
-                if (la.Valid)
+                if (SimpleLegalityFeedback.IsEffectivelyLegal(validPk, la))
                     return validPk;
             }
         }
@@ -170,7 +170,7 @@ public static class TradeModuleHelpers
                     continue;
 
                 var la = new LegalityAnalysis(validPk);
-                if (la.Valid)
+                if (SimpleLegalityFeedback.IsEffectivelyLegal(validPk, la))
                     return validPk;
             }
         }

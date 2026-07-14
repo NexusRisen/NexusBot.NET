@@ -9,6 +9,48 @@ namespace SysBot.Pokemon.Helpers;
 /// </summary>
 public static class SimpleLegalityFeedback
 {
+    public static bool IsEffectivelyLegal(PKM pkm, LegalityAnalysis la)
+    {
+        if (la.Valid)
+            return true;
+
+        if (pkm is PA9)
+        {
+            var invalidChecks = la.Results.Where(r => !r.Valid).ToList();
+            
+            var localizationSet = LegalityLocalizationSet.GetLocalization(GameLanguage.DefaultLanguage);
+            var context = LegalityLocalizationContext.Create(la, localizationSet);
+            
+            foreach (var issue in invalidChecks)
+            {
+                var comment = context.Humanize(issue).ToLower();
+                
+                // Ignore Unreleased Encounter
+                if (issue.Identifier == CheckIdentifier.Encounter && 
+                   (comment.Contains("unreleased") || comment.Contains("cannot verify") || comment.Contains("mystery gift")))
+                    continue;
+                    
+                // Ignore Unreleased Form/GameOrigin
+                if ((issue.Identifier == CheckIdentifier.Form || issue.Identifier == CheckIdentifier.GameOrigin) && 
+                   (comment.Contains("unreleased") || comment.Contains("origin")))
+                    continue;
+
+                // Ignore Unreleased Move Transfers
+                if ((issue.Identifier == CheckIdentifier.CurrentMove || issue.Identifier == CheckIdentifier.RelearnMove) &&
+                    (comment.Contains("transfer") || comment.Contains("unreleased")))
+                    continue;
+                    
+                // If we reach here, it's a real legality issue (e.g. impossible stats, illegal ability)
+                return false;
+            }
+            
+            // All invalid checks were due to the game being unreleased
+            return true;
+        }
+
+        return false;
+    }
+
     public static string GetLegalityReport(PKM pkm, LegalityAnalysis la, string speciesName)
     {
         var sb = new StringBuilder();
