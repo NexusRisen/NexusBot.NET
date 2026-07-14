@@ -36,10 +36,13 @@ public static class BatchHelpers<T> where T : PKM, new()
         var embed = new EmbedBuilder()
             .WithTitle("❌ Batch Trade Validation Failed")
             .WithColor(Color.Red)
-            .WithDescription($"{errors.Count} out of {totalTrades} Pokémon could not be processed.")
-            .WithFooter("Please fix the invalid sets and try again.");
+            .WithDescription($"**{errors.Count}** out of **{totalTrades}** Pokémon could not be processed.\n*Showing up to 24 errors.*")
+            .WithFooter("Please fix the invalid sets and try again.")
+            .WithTimestamp(DateTimeOffset.Now);
 
-        foreach (var error in errors)
+        int fieldsLimit = errors.Count > 25 ? 24 : 25;
+
+        foreach (var error in errors.Take(fieldsLimit))
         {
             var fieldValue = $"**Error:** {error.ErrorMessage}";
             if (!string.IsNullOrEmpty(error.LegalizationHint))
@@ -59,6 +62,11 @@ public static class BatchHelpers<T> where T : PKM, new()
             }
 
             embed.AddField($"Trade #{error.TradeNumber} - {error.SpeciesName}", fieldValue);
+        }
+
+        if (errors.Count > 25)
+        {
+            embed.AddField("⚠️ And More...", $"There are {errors.Count - 24} more errors not shown here.", inline: false);
         }
 
         var replyMessage = await context.Channel.SendMessageAsync(embed: embed.Build());

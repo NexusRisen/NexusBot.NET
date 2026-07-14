@@ -620,6 +620,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         }
         catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.InsufficientPermissions) // Missing Permissions
         {
+            await SendPermissionErrorAsync(arg.Channel, "handle messages properly").ConfigureAwait(false);
             await Log(new LogMessage(LogSeverity.Warning, "Command", $"Missing permissions to handle a message in channel {arg.Channel.Name}")).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -779,7 +780,16 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                 return false;
 
             if (!result.IsSuccess)
-                await SysCord<T>.SafeSendMessageAsync(msg.Channel, result.ErrorReason).ConfigureAwait(false);
+            {
+                if (result.ErrorReason.Contains("50013") || result.ErrorReason.Contains("Missing Permissions", StringComparison.OrdinalIgnoreCase))
+                {
+                    await SendPermissionErrorAsync(msg.Channel).ConfigureAwait(false);
+                }
+                else
+                {
+                    await SysCord<T>.SafeSendMessageAsync(msg.Channel, result.ErrorReason).ConfigureAwait(false);
+                }
+            }
 
             return true;
         }
@@ -845,12 +855,39 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         }
         catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.InsufficientPermissions) // Missing Permissions
         {
+            await SendPermissionErrorAsync(channel, "send messages").ConfigureAwait(false);
             await Log(new LogMessage(LogSeverity.Warning, "Command", $"Missing permissions to send message in channel {channel.Name}")).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             await Log(new LogMessage(LogSeverity.Error, "Command", $"Error sending message: {ex.Message}", ex)).ConfigureAwait(false);
         }
+    }
+
+    private static async Task SendPermissionErrorAsync(IMessageChannel channel, string action = "execute a command")
+    {
+        var embed = new EmbedBuilder()
+            .WithTitle("⚠️ Missing Permissions")
+            .WithDescription($"I do not have the required permissions in this channel to {action}.\n\nPlease ensure my role has the following permissions:\n- **Send Messages**\n- **Embed Links**\n- **Manage Messages**\n- **Attach Files**")
+            .WithColor(Color.Red)
+            .WithFooter("Contact the server administrator to fix this.")
+            .WithTimestamp(DateTimeOffset.Now)
+            .Build();
+
+        try
+        {
+            await channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+        }
+        catch (HttpException)
+        {
+            // Fallback to plain text if Embed Links is missing, or silently fail if Send Messages is missing
+            try
+            {
+                await channel.SendMessageAsync($"⚠️ **Missing Permissions**\nI lack permissions to {action}. Please grant me **Embed Links**, **Manage Messages**, and **Attach Files**.").ConfigureAwait(false);
+            }
+            catch { }
+        }
+        catch { }
     }
 
     private async Task TryHandleAIAsync(SocketUserMessage msg, string userRequest)

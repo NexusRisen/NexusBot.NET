@@ -183,15 +183,29 @@ public static class ReusableActions
 
         _ = Task.Run(async () =>
         {
-            await Task.Delay(2000).ConfigureAwait(false);
-            await userMessage.DeleteAsync().ConfigureAwait(false);
+            try
+            {
+                await Task.Delay(2000).ConfigureAwait(false);
+                await userMessage.DeleteAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogError($"Failed to delete user message: {ex.Message}", "SendPKMAsShowdownSetAsync");
+            }
         });
 
         _ = Task.Run(async () =>
         {
-            await Task.Delay(20000).ConfigureAwait(false);
-            await botMessage.DeleteAsync().ConfigureAwait(false);
-            await warningMessage.DeleteAsync().ConfigureAwait(false);
+            try
+            {
+                await Task.Delay(20000).ConfigureAwait(false);
+                await botMessage.DeleteAsync().ConfigureAwait(false);
+                await warningMessage.DeleteAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogError($"Failed to delete bot messages: {ex.Message}", "SendPKMAsShowdownSetAsync");
+            }
         });
     }
 

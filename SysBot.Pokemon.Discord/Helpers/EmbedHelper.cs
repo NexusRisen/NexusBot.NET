@@ -58,9 +58,10 @@ public static class EmbedHelper
             }
 
             var embed = new EmbedBuilder()
-                .WithTitle("Trade Canceled")
-                .WithDescription(reason)
+                .WithTitle("❌ Trade Canceled")
+                .AddField("Reason", reason, inline: false)
                 .WithTimestamp(DateTimeOffset.Now)
+                .WithFooter("Please fix any issues and try again.")
                 .WithThumbnailUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-uhoherror.gif"))
                 .WithColor(Color.Red)
                 .Build();
@@ -94,9 +95,10 @@ public static class EmbedHelper
             }
 
             var embed = new EmbedBuilder()
-                .WithTitle("Link Trade Code")
-                .WithDescription($"**Code:** `{code:0000 0000}`\n\n*I will notify you when it is time to search.*")
+                .WithTitle("🔗 Link Trade Code")
+                .AddField("Code", $"`{code:0000 0000}`", inline: false)
                 .WithTimestamp(DateTimeOffset.Now)
+                .WithFooter("I will notify you when it is time to search.")
                 .WithThumbnailUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-tradecode.gif"))
                 .WithColor(Color.Gold)
                 .Build();
@@ -128,9 +130,10 @@ public static class EmbedHelper
                 : TradeExtensions<T>.PokeImg(pk, false, true, null);
 
             var embed = new EmbedBuilder()
-                .WithTitle("Trade Completed")
-                .WithDescription(message)
+                .WithTitle("✅ Trade Completed")
+                .AddField("Summary", message, inline: false)
                 .WithTimestamp(DateTimeOffset.Now)
+                .WithFooter("Thank you for using the bot!")
                 .WithThumbnailUrl(thumbnailUrl)
                 .WithColor(Color.Teal)
                 .Build();
@@ -159,15 +162,17 @@ public static class EmbedHelper
             }
 
             var embed = new EmbedBuilder()
-                .WithTitle("Initializing Trade")
-                .WithDescription($"**Pokémon:** {(isMysteryEgg ? "Mystery Egg" : speciesName)}\n**Code:** `{code:0000 0000}`")
+                .WithTitle("🔄 Initializing Trade")
+                .AddField("Pokémon", isMysteryEgg ? "Mystery Egg" : speciesName, inline: false)
+                .AddField("Link Code", $"`{code:0000 0000}`", inline: false)
                 .WithTimestamp(DateTimeOffset.Now)
+                .WithFooter("Please wait for me to start searching.")
                 .WithThumbnailUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-initializingbot.gif"))
                 .WithColor(Color.Blue);
 
             if (!string.IsNullOrEmpty(message))
             {
-                embed.WithDescription($"{embed.Description}\n\n{message}");
+                embed.AddField("Message", message, inline: false);
             }
 
             await dm.SendMessageAsync(embed: embed.Build()).ConfigureAwait(false);
@@ -199,15 +204,17 @@ public static class EmbedHelper
             }
 
             var embed = new EmbedBuilder()
-                .WithTitle("Searching for Trade")
-                .WithDescription($"**Waiting For:** {trainerName}\n**My IGN:** {inGameName}\n\n*Please begin searching now using your code.*")
+                .WithTitle("🔍 Searching for Trade")
+                .AddField("Waiting For", trainerName, inline: false)
+                .AddField("My IGN", inGameName, inline: false)
                 .WithTimestamp(DateTimeOffset.Now)
+                .WithFooter("Please begin searching now using your code.")
                 .WithThumbnailUrl(SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Bot/DM/dm-nowsearching.gif"))
                 .WithColor(Color.Green);
 
             if (!string.IsNullOrEmpty(message))
             {
-                embed.WithDescription($"{embed.Description}\n\n{message}");
+                embed.AddField("Notice", message, inline: false);
             }
 
             await dm.SendMessageAsync(embed: embed.Build()).ConfigureAwait(false);

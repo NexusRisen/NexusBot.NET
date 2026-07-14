@@ -32,23 +32,23 @@ public class InfoModule<T> : ModuleBase<SocketCommandContext> where T : PKM, new
             .WithDescription("A high-performance Pokemon automation bot powered by PKHeX.Core.")
             .WithColor(Color.Gold)
             .WithThumbnailUrl(ThumbnailUrl)
-            .AddField("ðŸ“Š Project Info",
+            .AddField("📊 Project Info",
                 $"{Format.Bold("Main Developer")}: [Nexus Risen]({WebsiteUrl})\n" +
                 $"{Format.Bold("Owner")}: {app.Owner.Mention}\n" +
                 $"{Format.Bold("Mode")}: {gameName}\n" +
                 $"{Format.Bold("Version")}: {NexusBot.Version}", inline: true)
-            .AddField("ðŸ› ï¸  System Stats",
+            .AddField("🛠️ System Stats",
                 $"{Format.Bold("Uptime")}: {uptime}\n" +
                 $"{Format.Bold("Guilds")}: {Context.Client.Guilds.Count}\n" +
                 $"{Format.Bold("Users")}: {Context.Client.Guilds.Sum(g => (long)g.MemberCount)}\n" +
                 $"{Format.Bold("Memory")}: {heapSize} MiB", inline: true)
-            .AddField("ðŸ‘¥ Contributors",
+            .AddField("👥 Contributors",
                 $"{Format.Bold("Nexus Risen")}: Project Lead & Developer\n" +
                 $"{Format.Bold("Secludedly")}: Medals, Refactoring & Feature Enhancements\n" +
                 $"{Format.Bold("Lusamine")}: Research & Data Analysis\n" +
                 $"{Format.Bold("Hexbyt3")}: Core Engine Enhancements\n" +
                 $"{Format.Bold("SantaCrab2")}: Auto-Legality Mod (ALM)")
-            .AddField("ðŸ“¦ Dependencies",
+            .AddField("📦 Dependencies",
                 $"{Format.Bold("PKHeX.Core")}: {GetVersionInfo("PKHeX.Core")}\n" +
                 $"{Format.Bold("AutoLegality")}: {GetVersionInfo("PKHeX.Core.AutoMod")}\n" +
                 $"{Format.Bold("Base System")}: [SysBot.NET](https://github.com/kwsch/SysBot.NET)")

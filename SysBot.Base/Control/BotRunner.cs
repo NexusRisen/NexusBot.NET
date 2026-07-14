@@ -31,7 +31,7 @@ public class BotRunner<T> where T : class, IConsoleBotConfig
     public virtual void PauseAll()
     {
         // Tell all the bots to go to Idle after finishing.
-        foreach (var b in Bots)
+        foreach (var b in Bots.ToList())
             b.Pause();
     }
 
@@ -49,19 +49,19 @@ public class BotRunner<T> where T : class, IConsoleBotConfig
     public virtual void ResumeAll()
     {
         // Tell all the bots to go to Idle after finishing.
-        foreach (var b in Bots)
+        foreach (var b in Bots.ToList())
             b.Resume();
     }
 
     public virtual void StartAll()
     {
-        foreach (var b in Bots)
+        foreach (var b in Bots.ToList())
             b.Start();
     }
 
     public virtual void StopAll()
     {
-        foreach (var b in Bots)
+        foreach (var b in Bots.ToList())
             b.Stop();
     }
 }

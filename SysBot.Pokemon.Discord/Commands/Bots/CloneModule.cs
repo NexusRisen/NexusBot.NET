@@ -40,14 +40,20 @@ public class CloneModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         // Immediately send a confirmation message without waiting
         var confirmationMessage = await ReplyAsync("Processing your clone request...").ConfigureAwait(false);
 
-        // Use a fire-and-forget approach for the delay and deletion
         _ = Task.Delay(2000).ContinueWith(async _ =>
         {
-            if (Context.Message is IUserMessage userMessage)
-                await userMessage.DeleteAsync().ConfigureAwait(false);
+            try
+            {
+                if (Context.Message is IUserMessage userMessage)
+                    await userMessage.DeleteAsync().ConfigureAwait(false);
 
-            if (confirmationMessage != null)
-                await confirmationMessage.DeleteAsync().ConfigureAwait(false);
+                if (confirmationMessage != null)
+                    await confirmationMessage.DeleteAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogError($"Failed to delete clone clone messages: {ex.Message}", "CloneAsync");
+            }
         }).ConfigureAwait(false);
     }
 
@@ -82,14 +88,20 @@ public class CloneModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         // Immediately send a confirmation message without waiting
         var confirmationMessage = await ReplyAsync("Processing your clone request...").ConfigureAwait(false);
 
-        // Use a fire-and-forget approach for the delay and deletion
         _ = Task.Delay(2000).ContinueWith(async _ =>
         {
-            if (Context.Message is IUserMessage userMessage)
-                await userMessage.DeleteAsync().ConfigureAwait(false);
+            try
+            {
+                if (Context.Message is IUserMessage userMessage)
+                    await userMessage.DeleteAsync().ConfigureAwait(false);
 
-            if (confirmationMessage != null)
-                await confirmationMessage.DeleteAsync().ConfigureAwait(false);
+                if (confirmationMessage != null)
+                    await confirmationMessage.DeleteAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogError($"Failed to delete clone clone messages: {ex.Message}", "CloneAsync");
+            }
         }).ConfigureAwait(false);
     }
 
@@ -111,13 +123,20 @@ public class CloneModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
     public async Task GetListAsync()
     {
         string msg = Info.GetTradeList(PokeRoutineType.Clone);
-        var embed = new EmbedBuilder();
-        embed.AddField(x =>
+        var embed = new EmbedBuilder()
+            .WithTitle("📋 Clone Queue")
+            .WithColor(Color.Blue)
+            .WithTimestamp(DateTimeOffset.Now);
+
+        if (string.IsNullOrWhiteSpace(msg))
         {
-            x.Name = "Pending Trades";
-            x.Value = msg;
-            x.IsInline = false;
-        });
-        await ReplyAsync("These are the users who are currently waiting:", embed: embed.Build()).ConfigureAwait(false);
+            embed.WithDescription("*The clone queue is currently empty.*");
+        }
+        else
+        {
+            embed.AddField("Pending Trades", msg, inline: false);
+        }
+
+        await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
     }
 }

@@ -244,8 +244,15 @@ public class QueueModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         var sentMessage = await ReplyAsync(message).ConfigureAwait(false);
         _ = Task.Run(async () =>
         {
-            await Task.Delay(TimeSpan.FromSeconds(10));
-            await sentMessage.DeleteAsync().ConfigureAwait(false);
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                await sentMessage.DeleteAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                LogUtil.LogError($"Failed to delete temp message: {ex.Message}", "SendTemporaryMessageAsync");
+            }
         });
     }
 

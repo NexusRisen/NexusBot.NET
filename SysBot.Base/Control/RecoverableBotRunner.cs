@@ -113,7 +113,7 @@ public class RecoverableBotRunner<T> : BotRunner<T>, IDisposable where T : class
     public override void StopAll()
     {
         // Mark all bots as intentionally stopped before stopping
-        foreach (var bot in Bots)
+        foreach (var bot in Bots.ToList())
         {
             if (bot is RecoverableBotSource<T> recoverableBot)
             {
