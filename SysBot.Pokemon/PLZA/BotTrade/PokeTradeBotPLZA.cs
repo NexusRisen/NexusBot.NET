@@ -389,11 +389,15 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
                 // We cache the details and restore them manually to ensure they persist.
                 string correctOT = details.OT;
                 int correctGender = details.Gender;
+                ushort correctTID = details.TID16;
+                ushort correctSID = details.SID16;
                 
                 cln.ApplyAutoOT(details, overwriteOT: true);
                 
                 cln.OriginalTrainerName = correctOT;
                 cln.OriginalTrainerGender = (byte)correctGender;
+                cln.TID16 = correctTID;
+                cln.SID16 = correctSID;
             }
             else
             {

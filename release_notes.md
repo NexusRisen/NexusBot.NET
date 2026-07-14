@@ -1,3 +1,8 @@
+## 9.0.8
+
+### Bug Fixes
+* Also restore TID and SID manually after PKHeX's PA9 AutoOT logic executes, as a precautionary measure to prevent the trainer IDs from being wiped along with the OT Name.
+
 ## 9.0.7
 
 ### Bug Fixes
