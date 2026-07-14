@@ -1,3 +1,8 @@
+## 9.0.4
+
+### Bug Fixes
+* Fixed a bug where using simple species names (e.g., `.t pikachu`) would result in a failed trade with an empty Nickname and invalid Language ID.
+
 ## 9.0.3
 
 ### Changes
