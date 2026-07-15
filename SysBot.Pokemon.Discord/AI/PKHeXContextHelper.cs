@@ -91,6 +91,16 @@ public static class PKHeXContextHelper
         _ => PersonalTable.SV
     };
 
+    private static GameVersion GetGameVersion(string gameName) => gameName switch
+    {
+        "Sword and Shield" => GameVersion.SWSH,
+        "Brilliant Diamond and Shining Pearl" => GameVersion.BDSP,
+        "Legends: Arceus" => GameVersion.PLA,
+        "Let's Go Pikachu and Eevee" => GameVersion.GG,
+        "Ultra Sun and Ultra Moon" => GameVersion.USUM,
+        _ => GameVersion.SV
+    };
+
     private static string GetSpeciesInfo(ushort speciesId, string gameName)
     {
         try
@@ -123,6 +133,7 @@ public static class PKHeXContextHelper
             sb.AppendLine($"CRITICAL RULE: Only use extremely common or universally legal moves for this species (e.g., standard level-up or highly common competitive TMs/TRs). Do NOT guess random moves (like Scald on Bagon) or the set will fail legality checks.");
             sb.AppendLine($"Legality Note: Ensure all moves and the Pokeball are legal for {name} in {gameName}.");
 
+            var gameVersion = GetGameVersion(gameName);
             var ls = PKHeX.Core.GameData.GetLearnSource(gameVersion);
             var learnset = ls.GetLearnset((ushort)speciesId, 0);
             var rawMoves = learnset.GetAllMoves().ToArray();
