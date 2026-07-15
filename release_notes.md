@@ -1,3 +1,8 @@
+## 9.1.6
+
+### Bug Fixes
+* **Critical AI Fix**: Fixed a bug where the Hugging Face AI Chatbot would return \HTTP 404 Not Found\. The API endpoint string was incorrectly formatting the URL when a model identifier contained a slash (like \Qwen/Qwen2.5-7B-Instruct\). It now correctly uses the standard \1/chat/completions\ OpenAPI endpoint and injects the model ID in the JSON body.
+
 ## 9.1.5
 
 ### Bug Fixes
