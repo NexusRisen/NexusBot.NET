@@ -40,7 +40,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
     private readonly IServiceProvider _services;
     private readonly AI.HuggingFaceService? _aiService;
-    private readonly System.Collections.Concurrent.ConcurrentDictionary<ulong, string> _pendingAIRequests = new();
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<ulong, (string showdownSet, SocketUserMessage msg)> _pendingAIRequests = new();
 
     private readonly SemaphoreSlim _commandSemaphore = new(1, 1);
 
@@ -589,16 +589,23 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
             var content = msg.Content;
             var argPos = 0;
 
-            if (msg.HasMentionPrefix(_client.CurrentUser, ref argPos) || msg.HasStringPrefix(correctPrefix, ref argPos))
-            {
-                var context = new SocketCommandContext(_client, msg);
-                var handled = await TryHandleCommandAsync(msg, context, argPos);
-                if (handled)
-                    return;
+            var isMention = msg.HasMentionPrefix(_client.CurrentUser, ref argPos);
+            var isReplyToBot = msg.Type == MessageType.Reply && msg.ReferencedMessage?.Author.Id == _client.CurrentUser.Id;
 
-                if (msg.HasMentionPrefix(_client.CurrentUser, ref argPos) && _aiService != null)
+            if (isMention || msg.HasStringPrefix(correctPrefix, ref argPos) || isReplyToBot)
+            {
+                if (isMention || msg.HasStringPrefix(correctPrefix, ref argPos))
                 {
-                    await TryHandleAIAsync(msg, content[argPos..].Trim()).ConfigureAwait(false);
+                    var context = new SocketCommandContext(_client, msg);
+                    var handled = await TryHandleCommandAsync(msg, context, argPos);
+                    if (handled)
+                        return;
+                }
+
+                if ((isMention || isReplyToBot) && _aiService != null)
+                {
+                    var aiContent = isMention ? content[argPos..].Trim() : content.Trim();
+                    await TryHandleAIAsync(msg, aiContent).ConfigureAwait(false);
                     return;
                 }
             }
@@ -808,7 +815,50 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
     {
         try
         {
-            if (interaction is SocketMessageComponent component && component.Data.CustomId == "report_issue_btn")
+            if (interaction is SocketMessageComponent component && component.Data.CustomId.StartsWith("ai_btn_"))
+            {
+                var parts = component.Data.CustomId.Split('_', 4);
+                if (parts.Length >= 4)
+                {
+                    var userIdStr = parts[2];
+                    var optionText = parts[3];
+
+                    if (ulong.TryParse(userIdStr, out ulong targetUserId))
+                    {
+                        if (interaction.User.Id != targetUserId)
+                        {
+                            await component.RespondAsync("These options are not for you!", ephemeral: true);
+                            return;
+                        }
+
+                        await component.UpdateAsync(x => x.Components = null);
+
+                        var lowerOpt = optionText.ToLower().Trim();
+                        if ((lowerOpt == "queue" || lowerOpt == "file" || lowerOpt == "no") && _pendingAIRequests.TryRemove(targetUserId, out var pendingData))
+                        {
+                            if (lowerOpt == "queue")
+                            {
+                                await ProcessAIShowdownSetAsync(pendingData.msg, pendingData.showdownSet);
+                            }
+                            else if (lowerOpt == "file")
+                            {
+                                await ProcessAIShowdownFileAsync(pendingData.msg, pendingData.showdownSet);
+                            }
+                            else
+                            {
+                                await SafeSendMessageAsync(interaction.Channel, "Understood. I won't add you to the queue.");
+                            }
+                            return;
+                        }
+
+                        if (_aiService != null)
+                        {
+                            await TryHandleAIInternalAsync(interaction.Channel, interaction.User, optionText).ConfigureAwait(false);
+                        }
+                    }
+                }
+            }
+            else if (interaction is SocketMessageComponent componentReport && componentReport.Data.CustomId == "report_issue_btn")
             {
                 var mb = new ModalBuilder()
                     .WithTitle("Report an Issue")
@@ -816,7 +866,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                     .AddTextInput("Title", "title", TextInputStyle.Short, placeholder: "Brief summary of the issue", required: true)
                     .AddTextInput("Description", "description", TextInputStyle.Paragraph, placeholder: "Detailed description of the issue", required: true);
 
-                await component.RespondWithModalAsync(mb.Build());
+                await componentReport.RespondWithModalAsync(mb.Build());
             }
             else if (interaction is SocketModal modal && modal.Data.CustomId == "report_issue_modal")
             {
@@ -893,12 +943,17 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
     private async Task TryHandleAIAsync(SocketUserMessage msg, string userRequest)
     {
+        await TryHandleAIInternalAsync(msg.Channel, msg.Author, userRequest, msg).ConfigureAwait(false);
+    }
+
+    private async Task TryHandleAIInternalAsync(IMessageChannel channel, IUser author, string userRequest, SocketUserMessage? originalMsg = null)
+    {
         if (_aiService == null)
             return;
 
         try
         {
-            await msg.Channel.TriggerTypingAsync();
+            await channel.TriggerTypingAsync();
 
             var botName = _client.CurrentUser?.Username ?? NexusBot.Name;
             var defaultGame = new T() switch
@@ -913,7 +968,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                 _ => "Scarlet and Violet"
             };
             var gameName = AI.PKHeXContextHelper.GetGameName(userRequest, defaultGame);
-            var legalityContext = AI.PKHeXContextHelper.GetLegalityContext(userRequest, gameName);
+            var legalityContext = await AI.PKHeXContextHelper.GetLegalityContextAsync(userRequest, gameName);
             var useAutoOT = Hub.Config.Legality.UseTradePartnerInfo;
             var otFallback = useAutoOT ? "match your trainer info (Auto OT)" : "use the default bot OT/TID/SID";
             
@@ -922,12 +977,14 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                          $"\n\nENGINE INFO: You are running on the latest PKHeXth engine (v26.05.05-rev.3) with AutoLegality Mod (ALM) integration." +
                          $"\n\nSTRICT RULES:" +
                          $"\n1. LEGALITY: You MUST only provide legal Pokemon. Never suggest shiny-locked Pokemon as shiny (e.g., Koraidon, Miraidon, Victini, Hoopa). Verify that moves, abilities, and Pokeballs are legal for the specific species and game." +
-                         $"\n2. SHOWDOWN FORMAT: Always provide sets in standard Pokemon Showdown format. Wrap them in [SHOWDOWN] and [/SHOWDOWN] tags." +
+                         $"\n2. SHOWDOWN FORMAT: If the user asks for a competitive set, a battle-ready Pokemon, or a specific build, provide it in standard Pokemon Showdown format wrapped in [SHOWDOWN] and [/SHOWDOWN] tags. If the user is just chatting normally, you can respond conversationally without providing a set." +
                          $"\n3. ALM OVERRIDES: You can use `~` overrides for complex legality requirements (e.g., `~Level: 50`, `~Shiny: Yes`, `~TeraType: Water`). This ensures the AutoLegality Mod (ALM) handles the specifics correctly." +
                          $"\n4. AUTO OT: The bot is currently configured to {otFallback}. If a user wants a SPECIFIC OT/TID/SID, you MUST include them in the Showdown set. However, for most requests, you don't need to specify OT info. Note that personalization is automatically skipped for Event Pokemon and specific Mystery Gifts to preserve their authenticity." +
                          $"\n5. COMPETITIVE KNOWLEDGE: Use top-tier Smogon or VGC builds for competitive requests. Include optimized EVs, IVs, Natures, and Items." +
                          $"\n6. EVENTS & EGGS: You have complete knowledge of all historical events and egg moves. If an event Pokemon is requested, match its original OT, ID, and moveset perfectly." +
                          $"\n7. NO ILLEGALS: If a user asks for something illegal, politely explain why it's illegal and offer the closest legal alternative." +
+                         $"\n8. INTERACTIVE BUTTONS: If you want the user to choose between options (like Yes/No, or picking a specific build), append exactly: [OPTIONS: Option1, Option2, Option3] at the very end of your message." +
+                         $"\n9. EDUCATION & CONVERSATION: You are an expert on Pokemon mechanics, PKHeX, and Sysbots. If the user asks how Sysbots work, how to generate Pokemon, or has general Pokemon questions, teach them! Be helpful, conversational, and informative." +
                          $"\n\n{legalityContext}" +
                          $"\nExample Output:" +
                          $"\nUser: Give me a competitive Garchomp for {gameName}." +
@@ -949,30 +1006,95 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
 
             var userPrompt = $"Answer the following user request: {userRequest}";
 
-            var response = await _aiService.GetAIResponseAsync(msg.Author.Id, userPrompt, systemPrompt);
+            var response = await _aiService.GetAIResponseAsync(author.Id, userPrompt, systemPrompt);
 
             if (string.IsNullOrWhiteSpace(response))
             {
-                await SafeSendMessageAsync(msg.Channel, "I'm sorry, I couldn't think of a response right now.");
+                await SafeSendMessageAsync(channel, "I'm sorry, I couldn't think of a response right now.");
                 return;
             }
 
-            await SafeSendMessageAsync(msg.Channel, response);
+            var optionsTag = "[OPTIONS:";
+            var optionsEndTag = "]";
+            MessageComponent? components = null;
+            Embed? embed = null;
+
+            if (response.Contains(optionsTag))
+            {
+                var startIndex = response.IndexOf(optionsTag);
+                var endIndex = response.IndexOf(optionsEndTag, startIndex);
+                
+                if (endIndex > startIndex)
+                {
+                    var optionsString = response.Substring(startIndex + optionsTag.Length, endIndex - startIndex - optionsTag.Length).Trim();
+                    var options = optionsString.Split(',').Select(o => o.Trim()).Where(o => !string.IsNullOrEmpty(o)).ToList();
+
+                    response = response.Remove(startIndex, endIndex - startIndex + optionsEndTag.Length).Trim();
+
+                    if (options.Count > 0)
+                    {
+                        var builder = new ComponentBuilder();
+                        int row = 0;
+                        int count = 0;
+                        foreach (var opt in options)
+                        {
+                            if (count >= 5)
+                            {
+                                row++;
+                                count = 0;
+                                if (row >= 5) break;
+                            }
+                            var safeOpt = opt.Length > 50 ? opt.Substring(0, 50) : opt;
+                            builder.WithButton(opt, $"ai_btn_{author.Id}_{safeOpt}", row: row);
+                            count++;
+                        }
+                        components = builder.Build();
+
+                        embed = new EmbedBuilder()
+                            .WithColor(Color.Blue)
+                            .WithDescription(response)
+                            .Build();
+                    }
+                }
+            }
+
+            var displayResponse = response.Replace("[SHOWDOWN]", "```text\n").Replace("[/SHOWDOWN]", "\n```");
+
+            if (embed != null)
+            {
+                embed = embed.ToEmbedBuilder().WithDescription(displayResponse).Build();
+            }
+
+            if (components != null && embed != null)
+            {
+                try
+                {
+                    await channel.SendMessageAsync(embed: embed, components: components).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    await SafeSendMessageAsync(channel, displayResponse);
+                }
+            }
+            else
+            {
+                await SafeSendMessageAsync(channel, displayResponse);
+            }
 
             // Check if there's a Showdown set in the response
             if (response.Contains("[SHOWDOWN]") && response.Contains("[/SHOWDOWN]"))
             {
-                await HandleAIShowdownValidationAsync(msg, response, userRequest);
+                await HandleAIShowdownValidationAsync(channel, author, response, userRequest, originalMsg);
             }
         }
         catch (Exception ex)
         {
             await Log(new LogMessage(LogSeverity.Error, "AI", $"Error in TryHandleAIAsync: {ex.Message}", ex));
-            await SafeSendMessageAsync(msg.Channel, $"Internal AI Error: {ex.Message}");
+            await SafeSendMessageAsync(channel, $"Internal AI Error: {ex.Message}");
         }
     }
 
-    private async Task HandleAIShowdownValidationAsync(SocketUserMessage msg, string response, string userRequest, int retryCount = 0)
+    private async Task HandleAIShowdownValidationAsync(IMessageChannel channel, IUser author, string response, string userRequest, SocketUserMessage? originalMsg, int retryCount = 0)
     {
         var startIndex = response.IndexOf("[SHOWDOWN]") + "[SHOWDOWN]".Length;
         var endIndex = response.IndexOf("[/SHOWDOWN]");
@@ -1000,7 +1122,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                     _ => "Scarlet and Violet"
                 };
                 var gameName = AI.PKHeXContextHelper.GetGameName(userRequest, defaultGame);
-                var legalityContext = AI.PKHeXContextHelper.GetLegalityContext(userRequest, gameName);
+                var legalityContext = await AI.PKHeXContextHelper.GetLegalityContextAsync(userRequest, gameName);
                 var fixPrompt = $"{legalityContext}\n" +
                                 $"The Showdown set you provided for '{userRequest}' is ILLEGAL. " +
                                 $"Error: {result.Error}\n" +
@@ -1008,20 +1130,34 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                                 $"Please provide a FIXED, 100% LEGAL version of this Pokemon set. " +
                                 $"Remember to wrap the fixed set in [SHOWDOWN] and [/SHOWDOWN] tags.";
                 
-                var fixedResponse = await _aiService.GetAIResponseAsync(msg.Author.Id, fixPrompt);
+                var fixedResponse = await _aiService.GetAIResponseAsync(author.Id, fixPrompt);
                 if (!string.IsNullOrWhiteSpace(fixedResponse) && fixedResponse.Contains("[SHOWDOWN]"))
                 {
-                    await HandleAIShowdownValidationAsync(msg, fixedResponse, userRequest, retryCount + 1);
+                    await HandleAIShowdownValidationAsync(channel, author, fixedResponse, userRequest, originalMsg, retryCount + 1);
                     return;
                 }
             }
 
-            await SafeSendMessageAsync(msg.Channel, $"I found a set, but it appears to be illegal: {result.Error}. I'm sorry I couldn't provide a legal version.");
+            await SafeSendMessageAsync(channel, $"I found a set, but it appears to be illegal: {result.Error}. I'm sorry I couldn't provide a legal version.");
             return;
         }
 
-        _pendingAIRequests[msg.Author.Id] = showdownSet;
-        await SafeSendMessageAsync(msg.Channel, "Would you like to be put in the queue for this Pokemon, or receive the PKM file? (Reply 'Yes' to queue, 'File' for file, or 'No')");
+        if (originalMsg != null)
+        {
+            _pendingAIRequests[author.Id] = (showdownSet, originalMsg);
+        }
+        
+        var builder = new ComponentBuilder()
+            .WithButton("Queue", $"ai_btn_{author.Id}_Queue")
+            .WithButton("File", $"ai_btn_{author.Id}_File")
+            .WithButton("No", $"ai_btn_{author.Id}_No", style: ButtonStyle.Danger);
+
+        var embed = new EmbedBuilder()
+            .WithColor(Color.Green)
+            .WithDescription("I have your Pokémon ready! Would you like to be put in the queue to trade it, or receive the PKM file?")
+            .Build();
+
+        await channel.SendMessageAsync(embed: embed, components: builder.Build());
     }
 
     private async Task<bool> HandleAIPendingAsync(SocketUserMessage msg)
@@ -1029,17 +1165,17 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         var content = msg.Content.ToLower().Trim();
         if (content == "yes" || content == "y" || content == "queue")
         {
-            if (_pendingAIRequests.TryRemove(msg.Author.Id, out var showdownSet))
+            if (_pendingAIRequests.TryRemove(msg.Author.Id, out var pendingData))
             {
-                await ProcessAIShowdownSetAsync(msg, showdownSet);
+                await ProcessAIShowdownSetAsync(msg, pendingData.showdownSet);
                 return true;
             }
         }
         else if (content == "file" || content == "f" || content == "pkm")
         {
-            if (_pendingAIRequests.TryRemove(msg.Author.Id, out var showdownSet))
+            if (_pendingAIRequests.TryRemove(msg.Author.Id, out var pendingData))
             {
-                await ProcessAIShowdownFileAsync(msg, showdownSet);
+                await ProcessAIShowdownFileAsync(msg, pendingData.showdownSet);
                 return true;
             }
         }

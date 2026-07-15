@@ -3,7 +3,7 @@ namespace SysBot.Pokemon.Helpers
     public static class NexusBot
     {
         public static string Name { get; set; } = "NexusBot";
-        public static string Version => "9.1.10";
+        public static string Version => "9.1.11";
         public const string ConfigPath = "config.json";
     }
 }

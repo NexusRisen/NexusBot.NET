@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using PKHeX.Core;
 using PKHeX.Core.AutoMod;
 
@@ -9,7 +10,7 @@ namespace SysBot.Pokemon.Discord.AI;
 
 public static class PKHeXContextHelper
 {
-    public static string GetLegalityContext(string userRequest, string gameName)
+    public static async Task<string> GetLegalityContextAsync(string userRequest, string gameName)
     {
         var context = new StringBuilder();
         
@@ -28,11 +29,24 @@ public static class PKHeXContextHelper
             context.AppendLine($"### RELEVANT POKÉMON DATA (FROM PKHEX.CORE) - {gameName.ToUpper()}");
             foreach (var species in speciesList)
             {
+                var name = GameInfo.Strings.Species[species];
                 var info = GetSpeciesInfo(species, gameName);
                 if (string.IsNullOrEmpty(info))
                     continue;
 
                 context.AppendLine(info);
+
+                // Fetch Smogon set online
+                string smogonSet = await SmogonFetcher.GetShowdownSetAsync(name, gameName);
+                if (!string.IsNullOrEmpty(smogonSet))
+                {
+                    context.AppendLine($"### OFFICIAL COMPETITIVE SMOGON SET FOR {name.ToUpper()}");
+                    context.AppendLine($"CRITICAL RULE: The user wants a competitive/battle-ready {name}. You MUST use the following exact Showdown set (do not invent illegal moves or abilities):");
+                    context.AppendLine("[SHOWDOWN]");
+                    context.AppendLine(smogonSet);
+                    context.AppendLine("[/SHOWDOWN]");
+                }
+
                 context.AppendLine("---");
             }
         }

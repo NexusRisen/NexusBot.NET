@@ -26,6 +26,20 @@ public static class AutoLegalityWrapper
     private static void InitializeAutoLegality(LegalitySettings cfg)
     {
         InitializeCoreStrings();
+        
+        // Default to a local 'mgdb' directory if none is provided
+        if (string.IsNullOrWhiteSpace(cfg.MGDBPath))
+            cfg.MGDBPath = "mgdb";
+
+        try
+        {
+            SysBot.Pokemon.Helpers.MGDBUpdater.UpdateMGDBAsync(cfg.MGDBPath).Wait();
+        }
+        catch (Exception ex)
+        {
+            SysBot.Base.LogUtil.LogError($"Failed to update MGDB: {ex.Message}", "AutoLegality");
+        }
+
         // Updated to convert the string to a ReadOnlySpan<string> array as required by the method signature.
         EncounterEvent.RefreshMGDB([cfg.MGDBPath]);
         InitializeTrainerDatabase(cfg);
