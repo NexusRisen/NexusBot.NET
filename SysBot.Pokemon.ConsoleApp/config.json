@@ -98,7 +98,7 @@
       },
       "AISettings": {
         "HuggingFaceApiKey": "",
-        "HuggingFaceModel": "mistralai/Mistral-7B-Instruct-v0.3",
+        "HuggingFaceModel": "meta-llama/Meta-Llama-3-8B-Instruct",
         "MaxTokens": 800,
         "Temperature": 0.7,
         "TopP": 0.9,
@@ -202,7 +202,7 @@
       },
       "AISettings": {
         "HuggingFaceApiKey": "",
-        "HuggingFaceModel": "mistralai/Mistral-7B-Instruct-v0.3",
+        "HuggingFaceModel": "meta-llama/Meta-Llama-3-8B-Instruct",
         "MaxTokens": 800,
         "Temperature": 0.7,
         "TopP": 0.9,
