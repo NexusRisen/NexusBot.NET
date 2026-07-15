@@ -18,7 +18,7 @@ public class AITests
             return;
         }
 
-        string model = "meta-llama/Meta-Llama-3-8B-Instruct";
+        string model = "Qwen/Qwen2.5-7B-Instruct";
         using var service = new HuggingFaceService(apiKey, model);
 
         string prompt = "Hello, can you provide a Pokemon Showdown set for a competitive Pikachu?";

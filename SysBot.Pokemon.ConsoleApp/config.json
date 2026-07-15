@@ -98,7 +98,7 @@
       },
       "AISettings": {
         "HuggingFaceApiKey": "",
-        "HuggingFaceModel": "meta-llama/Meta-Llama-3-8B-Instruct",
+        "HuggingFaceModel": "Qwen/Qwen2.5-7B-Instruct",
         "MaxTokens": 800,
         "Temperature": 0.7,
         "TopP": 0.9,
@@ -202,7 +202,7 @@
       },
       "AISettings": {
         "HuggingFaceApiKey": "",
-        "HuggingFaceModel": "meta-llama/Meta-Llama-3-8B-Instruct",
+        "HuggingFaceModel": "Qwen/Qwen2.5-7B-Instruct",
         "MaxTokens": 800,
         "Temperature": 0.7,
         "TopP": 0.9,

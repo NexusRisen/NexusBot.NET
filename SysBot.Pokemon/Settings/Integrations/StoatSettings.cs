@@ -194,8 +194,8 @@ public class StoatSettings
         [Category(AICategory), Description("Hugging Face API Key."), DisplayName("Hugging Face API Key")]
         public string HuggingFaceApiKey { get; set; } = string.Empty;
 
-        [Category(AICategory), Description("Hugging Face Model ID (e.g., 'meta-llama/Meta-Llama-3-8B-Instruct')."), DisplayName("Hugging Face Model")]
-        public string HuggingFaceModel { get; set; } = "meta-llama/Meta-Llama-3-8B-Instruct";
+        [Category(AICategory), Description("Hugging Face Model ID (e.g., 'Qwen/Qwen2.5-7B-Instruct')."), DisplayName("Hugging Face Model")]
+        public string HuggingFaceModel { get; set; } = "Qwen/Qwen2.5-7B-Instruct";
 
         [Category(AICategory), Description("The maximum number of tokens the AI can generate."), DisplayName("Max Tokens")]
         public int MaxTokens { get; set; } = 800;
