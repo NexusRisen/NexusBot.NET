@@ -51,7 +51,8 @@ public class HuggingFaceService : IDisposable
 
                 if (!string.IsNullOrWhiteSpace(systemPrompt))
                 {
-                    messages.Add(new Message { Role = "system", Content = systemPrompt });
+                    messages.Add(new Message { Role = "user", Content = systemPrompt });
+                    messages.Add(new Message { Role = "assistant", Content = "Understood. I will follow these instructions." });
                 }
 
                 // Add history
@@ -80,22 +81,26 @@ public class HuggingFaceService : IDisposable
 
                 var response = await _httpClient.PostAsync($"https://api-inference.huggingface.co/models/{_model}/v1/chat/completions", content);
 
-                if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+                if (!response.IsSuccessStatusCode)
                 {
-                    LogUtil.LogInfo("HuggingFaceService", $"Model is loading. Retrying in {5 * (i + 1)} seconds...");
-                    await Task.Delay(5000 * (i + 1));
-                    continue;
-                }
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+                    {
+                        LogUtil.LogInfo("HuggingFaceService", $"Model is loading. Retrying in {5 * (i + 1)} seconds... {errorContent}");
+                        await Task.Delay(5000 * (i + 1));
+                        continue;
+                    }
 
-                if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-                {
-                    var retryAfter = response.Headers.RetryAfter?.Delta?.TotalSeconds ?? (5 * (i + 1));
-                    LogUtil.LogInfo("HuggingFaceService", $"Rate limited (429). Retrying in {retryAfter} seconds...");
-                    await Task.Delay(TimeSpan.FromSeconds(retryAfter));
-                    continue;
-                }
+                    if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                    {
+                        var retryAfter = response.Headers.RetryAfter?.Delta?.TotalSeconds ?? (5 * (i + 1));
+                        LogUtil.LogInfo("HuggingFaceService", $"Rate limited (429). Retrying in {retryAfter} seconds... {errorContent}");
+                        await Task.Delay(TimeSpan.FromSeconds(retryAfter));
+                        continue;
+                    }
 
-                response.EnsureSuccessStatusCode();
+                    throw new Exception($"HTTP {(int)response.StatusCode} {response.ReasonPhrase}: {errorContent}");
+                }
 
                 var responseJson = await response.Content.ReadAsStringAsync();
                 var result = JsonConvert.DeserializeObject<ChatCompletionResponse>(responseJson);
