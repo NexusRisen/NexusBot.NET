@@ -118,7 +118,8 @@ public static class PKHeXContextHelper
 
             // We can't easily get the full movepool without a specific method, 
             // but we can tell the AI to prioritize legal moves for this species.
-            sb.AppendLine($"Legality Note: Ensure all moves and the Pokeball are legal for {name} in the requested game.");
+            sb.AppendLine($"CRITICAL RULE: You MUST use one of the Abilities listed above. Do NOT invent, hallucinate, or use any other Ability.");
+            sb.AppendLine($"Legality Note: Ensure all moves and the Pokeball are legal for {name} in {gameName}. Do not use illegal moves (like removed TMs/Tutors) that cause errors.");
 
             return sb.ToString();
         }
