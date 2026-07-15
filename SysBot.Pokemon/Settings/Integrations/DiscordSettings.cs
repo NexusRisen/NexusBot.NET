@@ -209,8 +209,8 @@ public class DiscordSettings
         [Category(AICategory), Description("Hugging Face API Key."), DisplayName("Hugging Face API Key")]
         public string HuggingFaceApiKey { get; set; } = string.Empty;
 
-        [Category(AICategory), Description("Hugging Face Model ID (e.g., 'gpt2', 'mistralai/Mistral-7B-Instruct-v0.2')."), DisplayName("Hugging Face Model")]
-        public string HuggingFaceModel { get; set; } = "mistralai/Mistral-7B-Instruct-v0.2";
+        [Category(AICategory), Description("Hugging Face Model ID (e.g., 'gpt2', 'mistralai/Mistral-7B-Instruct-v0.3')."), DisplayName("Hugging Face Model")]
+        public string HuggingFaceModel { get; set; } = "mistralai/Mistral-7B-Instruct-v0.3";
 
         [Category(AICategory), Description("The maximum number of tokens the AI can generate."), DisplayName("Max Tokens")]
         public int MaxTokens { get; set; } = 800;

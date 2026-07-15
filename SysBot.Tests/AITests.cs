@@ -18,7 +18,7 @@ public class AITests
             return;
         }
 
-        string model = "mistralai/Mistral-7B-Instruct-v0.2";
+        string model = "mistralai/Mistral-7B-Instruct-v0.3";
         using var service = new HuggingFaceService(apiKey, model);
 
         string prompt = "Hello, can you provide a Pokemon Showdown set for a competitive Pikachu?";
