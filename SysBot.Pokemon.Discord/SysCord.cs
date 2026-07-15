@@ -956,6 +956,7 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
         catch (Exception ex)
         {
             await Log(new LogMessage(LogSeverity.Error, "AI", $"Error in TryHandleAIAsync: {ex.Message}", ex));
+            await SafeSendMessageAsync(msg.Channel, $"Internal AI Error: {ex.Message}");
         }
     }
 

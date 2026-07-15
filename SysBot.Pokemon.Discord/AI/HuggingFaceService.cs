@@ -43,108 +43,112 @@ public class HuggingFaceService : IDisposable
         try
         {
             int maxRetries = 3;
-        for (int i = 0; i < maxRetries; i++)
-        {
-            try
+            string lastError = string.Empty;
+            
+            for (int i = 0; i < maxRetries; i++)
             {
-                var messages = new List<Message>();
-
-                if (!string.IsNullOrWhiteSpace(systemPrompt))
+                try
                 {
-                    messages.Add(new Message { Role = "user", Content = systemPrompt });
-                    messages.Add(new Message { Role = "assistant", Content = "Understood. I will follow these instructions." });
-                }
+                    var messages = new List<Message>();
 
-                // Add history
-                if (_chatHistory.TryGetValue(userId, out var history))
-                {
-                    lock (history)
+                    if (!string.IsNullOrWhiteSpace(systemPrompt))
                     {
-                        messages.AddRange(history);
-                    }
-                }
-
-                // Add current prompt
-                messages.Add(new Message { Role = "user", Content = prompt });
-
-                var requestBody = new
-                {
-                    model = _model,
-                    messages = messages.Select(m => new { role = m.Role, content = m.Content }),
-                    max_tokens = _maxTokens,
-                    temperature = _temperature,
-                    top_p = _topP
-                };
-
-                var json = JsonConvert.SerializeObject(requestBody);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync("https://router.huggingface.co/hf-inference/v1/chat/completions", content);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
-                    {
-                        LogUtil.LogInfo("HuggingFaceService", $"Model is loading. Retrying in {5 * (i + 1)} seconds... {errorContent}");
-                        await Task.Delay(5000 * (i + 1));
-                        continue;
+                        messages.Add(new Message { Role = "user", Content = systemPrompt });
+                        messages.Add(new Message { Role = "assistant", Content = "Understood. I will follow these instructions." });
                     }
 
-                    if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                    // Add history
+                    if (_chatHistory.TryGetValue(userId, out var history))
                     {
-                        var retryAfter = response.Headers.RetryAfter?.Delta?.TotalSeconds ?? (5 * (i + 1));
-                        LogUtil.LogInfo("HuggingFaceService", $"Rate limited (429). Retrying in {retryAfter} seconds... {errorContent}");
-                        await Task.Delay(TimeSpan.FromSeconds(retryAfter));
-                        continue;
-                    }
-
-                    throw new Exception($"HTTP {(int)response.StatusCode} {response.ReasonPhrase}: {errorContent}");
-                }
-
-                var responseJson = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<ChatCompletionResponse>(responseJson);
-
-                if (result?.Choices != null && result.Choices.Length > 0)
-                {
-                    var responseText = result.Choices[0].Message?.Content;
-                    if (!string.IsNullOrEmpty(responseText))
-                    {
-                        // Update history
-                        var userHistory = _chatHistory.GetOrAdd(userId, _ => new List<Message>());
-                        lock (userHistory)
+                        lock (history)
                         {
-                            userHistory.Add(new Message { Role = "user", Content = prompt });
-                            userHistory.Add(new Message { Role = "assistant", Content = responseText });
+                            messages.AddRange(history);
+                        }
+                    }
 
-                            // Trim history
-                            if (userHistory.Count > MaxHistoryMessages)
+                    // Add current prompt
+                    messages.Add(new Message { Role = "user", Content = prompt });
+
+                    var requestBody = new
+                    {
+                        model = _model,
+                        messages = messages.Select(m => new { role = m.Role, content = m.Content }),
+                        max_tokens = _maxTokens,
+                        temperature = _temperature,
+                        top_p = _topP
+                    };
+
+                    var json = JsonConvert.SerializeObject(requestBody);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                    var response = await _httpClient.PostAsync($"https://api-inference.huggingface.co/models/{_model}/v1/chat/completions", content);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        var errorContent = await response.Content.ReadAsStringAsync();
+                        if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+                        {
+                            LogUtil.LogInfo("HuggingFaceService", $"Model is loading. Retrying in {5 * (i + 1)} seconds... {errorContent}");
+                            await Task.Delay(5000 * (i + 1));
+                            continue;
+                        }
+
+                        if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                        {
+                            var retryAfter = response.Headers.RetryAfter?.Delta?.TotalSeconds ?? (5 * (i + 1));
+                            LogUtil.LogInfo("HuggingFaceService", $"Rate limited (429). Retrying in {retryAfter} seconds... {errorContent}");
+                            await Task.Delay(TimeSpan.FromSeconds(retryAfter));
+                            continue;
+                        }
+
+                        throw new Exception($"HTTP {(int)response.StatusCode} {response.ReasonPhrase}: {errorContent}");
+                    }
+
+                    var responseJson = await response.Content.ReadAsStringAsync();
+                    var result = JsonConvert.DeserializeObject<ChatCompletionResponse>(responseJson);
+
+                    if (result?.Choices != null && result.Choices.Length > 0)
+                    {
+                        var responseText = result.Choices[0].Message?.Content;
+                        if (string.IsNullOrWhiteSpace(responseText))
+                            throw new Exception("Received empty content from Hugging Face API.");
+
+                        // Save to history
+                        if (!_chatHistory.ContainsKey(userId))
+                            _chatHistory[userId] = new List<Message>();
+
+                        lock (_chatHistory[userId])
+                        {
+                            _chatHistory[userId].Add(new Message { Role = "user", Content = prompt });
+                            _chatHistory[userId].Add(new Message { Role = "assistant", Content = responseText });
+
+                            if (_chatHistory[userId].Count > MaxHistoryMessages * 2)
                             {
-                                userHistory.RemoveRange(0, userHistory.Count - MaxHistoryMessages);
+                                _chatHistory[userId] = _chatHistory[userId].Skip(_chatHistory[userId].Count - MaxHistoryMessages * 2).ToList();
                             }
                         }
 
                         return responseText;
                     }
+
+                    throw new Exception("Received empty response or choices from Hugging Face API.");
                 }
-                
-                throw new Exception("Received empty response or choices from Hugging Face API.");
+                catch (Exception ex)
+                {
+                    lastError = ex.Message;
+                    LogUtil.LogInfo("HuggingFaceService", $"Error calling Hugging Face API: {ex.Message}");
+                    if (i == maxRetries - 1)
+                        break;
+                    await Task.Delay(2000 * (i + 1));
+                }
             }
-            catch (Exception ex)
-            {
-                LogUtil.LogInfo("HuggingFaceService", $"Error calling Hugging Face API: {ex.Message}");
-                if (i == maxRetries - 1)
-                    break;
-                await Task.Delay(2000 * (i + 1));
-            }
-        }
+            
+            return $"AI Error: {lastError}";
         }
         finally
         {
             _requestSemaphore.Release();
         }
-
-        return string.Empty;
     }
 
     public void ClearHistory(ulong userId) => _chatHistory.TryRemove(userId, out _);
