@@ -119,7 +119,9 @@ public static class PKHeXContextHelper
             // We can't easily get the full movepool without a specific method, 
             // but we can tell the AI to prioritize legal moves for this species.
             sb.AppendLine($"CRITICAL RULE: You MUST use one of the Abilities listed above. Do NOT invent, hallucinate, or use any other Ability.");
-            sb.AppendLine($"Legality Note: Ensure all moves and the Pokeball are legal for {name} in {gameName}. Do not use illegal moves (like removed TMs/Tutors) that cause errors.");
+            sb.AppendLine($"CRITICAL RULE: NEVER use made-up PokeBalls like 'Choice Ball'. ONLY use valid standard balls (e.g., Poke Ball, Great Ball, Ultra Ball, Master Ball, Premier Ball, Luxury Ball, Beast Ball, Apricorn Balls).");
+            sb.AppendLine($"CRITICAL RULE: Only use extremely common or universally legal moves for this species (e.g., standard level-up or highly common competitive TMs/TRs). Do NOT guess random moves (like Scald on Bagon) or the set will fail legality checks.");
+            sb.AppendLine($"Legality Note: Ensure all moves and the Pokeball are legal for {name} in {gameName}.");
 
             return sb.ToString();
         }
