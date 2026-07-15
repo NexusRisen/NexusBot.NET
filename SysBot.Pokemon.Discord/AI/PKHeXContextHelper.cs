@@ -123,6 +123,26 @@ public static class PKHeXContextHelper
             sb.AppendLine($"CRITICAL RULE: Only use extremely common or universally legal moves for this species (e.g., standard level-up or highly common competitive TMs/TRs). Do NOT guess random moves (like Scald on Bagon) or the set will fail legality checks.");
             sb.AppendLine($"Legality Note: Ensure all moves and the Pokeball are legal for {name} in {gameName}.");
 
+            var ls = PKHeX.Core.GameData.GetLearnSource(gameVersion);
+            var learnset = ls.GetLearnset((ushort)speciesId, 0);
+            var rawMoves = learnset.GetAllMoves().ToArray();
+            var validMoves = rawMoves
+                .Select(m => GameInfo.Strings.Move[m])
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Distinct()
+                .ToList();
+
+            if (validMoves.Count > 0)
+            {
+                var movesStr = string.Join(", ", validMoves);
+                sb.AppendLine($"LEGAL MOVES WARNING: The following are known level-up moves for {name} in {gameName}: {movesStr}.");
+                sb.AppendLine($"CRITICAL RULE: If you add TM/TR/Egg moves not listed here, you MUST be absolutely certain they are legal for {name} in {gameName}. (e.g. Do not give Scald to Bagon in Gen 9).");
+            }
+            else
+            {
+                sb.AppendLine($"CRITICAL WARNING: PKHeX data shows NO known level-up moves for {name} in {gameName}. This usually means the Pokemon is NOT AVAILABLE in {gameName} (or the game hasn't been released yet, e.g. Legends Z-A). Proceed with caution and provide a standard Gen 9 / SV set if you must.");
+            }
+
             return sb.ToString();
         }
         catch
