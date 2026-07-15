@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +9,7 @@ namespace SysBot.Pokemon.Discord.AI;
 
 public static class PKHeXContextHelper
 {
-    public static string GetLegalityContext(string userRequest)
+    public static string GetLegalityContext(string userRequest, string gameName)
     {
         var context = new StringBuilder();
         
@@ -25,10 +25,10 @@ public static class PKHeXContextHelper
         var speciesList = DetectSpecies(userRequest);
         if (speciesList.Count > 0)
         {
-            context.AppendLine("### RELEVANT POKÃ‰MON DATA (FROM PKHEX.CORE)");
+            context.AppendLine($"### RELEVANT POKÉMON DATA (FROM PKHEX.CORE) - {gameName.ToUpper()}");
             foreach (var species in speciesList)
             {
-                var info = GetSpeciesInfo(species);
+                var info = GetSpeciesInfo(species, gameName);
                 if (string.IsNullOrEmpty(info))
                     continue;
 
@@ -64,7 +64,34 @@ public static class PKHeXContextHelper
         return found.Distinct().ToList();
     }
 
-    private static string GetSpeciesInfo(ushort speciesId)
+    public static string GetGameName(string text, string defaultGame)
+    {
+        var lower = text.ToLowerInvariant();
+        if (lower.Contains("sword") || lower.Contains("shield") || lower.Contains("swsh") || lower.Contains("gen 8") || lower.Contains("gen8"))
+            return "Sword and Shield";
+        if (lower.Contains("brilliant diamond") || lower.Contains("shining pearl") || lower.Contains("bdsp"))
+            return "Brilliant Diamond and Shining Pearl";
+        if (lower.Contains("arceus") || lower.Contains(" pla ") || lower.Contains(" la ") || lower.Contains("legends"))
+            return "Legends: Arceus";
+        if (lower.Contains("let's go") || lower.Contains("lgpe"))
+            return "Let's Go Pikachu and Eevee";
+        if (lower.Contains("sun") || lower.Contains("moon") || lower.Contains("usum") || lower.Contains("sm") || lower.Contains("gen 7"))
+            return "Ultra Sun and Ultra Moon";
+        
+        return defaultGame;
+    }
+
+    private static IPersonalTable GetPersonalTable(string gameName) => gameName switch
+    {
+        "Sword and Shield" => PersonalTable.SWSH,
+        "Brilliant Diamond and Shining Pearl" => PersonalTable.BDSP,
+        "Legends: Arceus" => PersonalTable.LA,
+        "Let's Go Pikachu and Eevee" => PersonalTable.GG,
+        "Ultra Sun and Ultra Moon" => PersonalTable.USUM,
+        _ => PersonalTable.SV
+    };
+
+    private static string GetSpeciesInfo(ushort speciesId, string gameName)
     {
         try
         {
@@ -72,18 +99,19 @@ public static class PKHeXContextHelper
             var name = GameInfo.Strings.Species[speciesId];
             sb.AppendLine($"Pokémon: {name}");
 
-            // Accessing PersonalTable for Gen 9
-            var personal = PersonalTable.SV[speciesId];
-            if (personal != null)
+            // Accessing PersonalTable for requested game
+            var personalTable = GetPersonalTable(gameName);
+            var personal = personalTable.GetFormEntry(speciesId, 0);
+            if (personal is IPersonalAbility12 piAbility)
             {
                 sb.Append("Abilities: ");
                 var abilities = new List<string>();
-                if (personal.Ability1 != 0 && personal.Ability1 < GameInfo.Strings.Ability.Count) 
-                    abilities.Add(GameInfo.Strings.Ability[personal.Ability1]);
-                if (personal.Ability2 != 0 && personal.Ability2 < GameInfo.Strings.Ability.Count) 
-                    abilities.Add(GameInfo.Strings.Ability[personal.Ability2]);
-                if (personal.AbilityH != 0 && personal.AbilityH < GameInfo.Strings.Ability.Count) 
-                    abilities.Add(GameInfo.Strings.Ability[personal.AbilityH] + " (Hidden)");
+                if (piAbility.Ability1 != 0 && piAbility.Ability1 < GameInfo.Strings.Ability.Count) 
+                    abilities.Add(GameInfo.Strings.Ability[piAbility.Ability1]);
+                if (piAbility.Ability2 != 0 && piAbility.Ability2 < GameInfo.Strings.Ability.Count) 
+                    abilities.Add(GameInfo.Strings.Ability[piAbility.Ability2]);
+                if (personal is IPersonalAbility12H piH && piH.AbilityH != 0 && piH.AbilityH < GameInfo.Strings.Ability.Count) 
+                    abilities.Add(GameInfo.Strings.Ability[piH.AbilityH] + " (Hidden)");
                 
                 sb.AppendLine(string.Join(", ", abilities.Distinct()));
             }

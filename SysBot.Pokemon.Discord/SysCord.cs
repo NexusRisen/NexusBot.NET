@@ -901,7 +901,19 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
             await msg.Channel.TriggerTypingAsync();
 
             var botName = _client.CurrentUser?.Username ?? NexusBot.Name;
-            var legalityContext = AI.PKHeXContextHelper.GetLegalityContext(userRequest);
+            var defaultGame = new T() switch
+            {
+                PKHeX.Core.PA9 => "Legends Z-A",
+                PKHeX.Core.PK9 => "Scarlet and Violet",
+                PKHeX.Core.PB8 => "Brilliant Diamond and Shining Pearl",
+                PKHeX.Core.PA8 => "Legends: Arceus",
+                PKHeX.Core.PK8 => "Sword and Shield",
+                PKHeX.Core.PB7 => "Let's Go Pikachu and Eevee",
+                PKHeX.Core.PK7 => "Ultra Sun and Ultra Moon",
+                _ => "Scarlet and Violet"
+            };
+            var gameName = AI.PKHeXContextHelper.GetGameName(userRequest, defaultGame);
+            var legalityContext = AI.PKHeXContextHelper.GetLegalityContext(userRequest, gameName);
             var useAutoOT = Hub.Config.Legality.UseTradePartnerInfo;
             var otFallback = useAutoOT ? "match your trainer info (Auto OT)" : "use the default bot OT/TID/SID";
             
@@ -918,8 +930,8 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
                          $"\n7. NO ILLEGALS: If a user asks for something illegal, politely explain why it's illegal and offer the closest legal alternative." +
                          $"\n\n{legalityContext}" +
                          $"\nExample Output:" +
-                         $"\nUser: Give me a competitive Garchomp for Scarlet and Violet." +
-                         $"\nAssistant: Here is a top-tier Jolly Garchomp for Scarlet and Violet singles:" +
+                         $"\nUser: Give me a competitive Garchomp for {gameName}." +
+                         $"\nAssistant: Here is a top-tier Jolly Garchomp for {gameName} singles:" +
                          $"\n[SHOWDOWN]" +
                          $"\nGarchomp @ Life Orb" +
                          $"\nAbility: Rough Skin" +
@@ -976,7 +988,19 @@ public sealed class SysCord<T> : IDisposable where T : PKM, new()
             {
                 await Log(new LogMessage(LogSeverity.Info, "AI", $"AI provided illegal set, requesting fix (Attempt {retryCount + 1}). Error: {result.Error}"));
                 
-                var legalityContext = AI.PKHeXContextHelper.GetLegalityContext(userRequest);
+                var defaultGame = new T() switch
+                {
+                    PKHeX.Core.PA9 => "Legends Z-A",
+                    PKHeX.Core.PK9 => "Scarlet and Violet",
+                    PKHeX.Core.PB8 => "Brilliant Diamond and Shining Pearl",
+                    PKHeX.Core.PA8 => "Legends: Arceus",
+                    PKHeX.Core.PK8 => "Sword and Shield",
+                    PKHeX.Core.PB7 => "Let's Go Pikachu and Eevee",
+                    PKHeX.Core.PK7 => "Ultra Sun and Ultra Moon",
+                    _ => "Scarlet and Violet"
+                };
+                var gameName = AI.PKHeXContextHelper.GetGameName(userRequest, defaultGame);
+                var legalityContext = AI.PKHeXContextHelper.GetLegalityContext(userRequest, gameName);
                 var fixPrompt = $"{legalityContext}\n" +
                                 $"The Showdown set you provided for '{userRequest}' is ILLEGAL. " +
                                 $"Error: {result.Error}\n" +
