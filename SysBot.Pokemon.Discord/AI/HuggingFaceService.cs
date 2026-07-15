@@ -81,7 +81,7 @@ public class HuggingFaceService : IDisposable
                     var json = JsonConvert.SerializeObject(requestBody);
                     var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                    var response = await _httpClient.PostAsync($"https://router.huggingface.co/hf-inference/models/{_model}/v1/chat/completions", content);
+                    var response = await _httpClient.PostAsync($"https://router.huggingface.co/models/{_model}/v1/chat/completions", content);
 
                     if (!response.IsSuccessStatusCode)
                     {

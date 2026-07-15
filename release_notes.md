@@ -1,4 +1,5 @@
-## 9.1.4
+## 9.1.5
 
 ### Bug Fixes
-* Fixed a severe issue where the HuggingFace AI Chatbot would fail to respond due to DNS blocking by local routers/ISPs for `api-inference.huggingface.co`. The bot now uses the newer `router.huggingface.co` endpoint to bypass these restrictions.
+* Fixed an issue with the AI Chatbot where Hugging Face returned \"Model not supported by provider hf-inference"\. The API router no longer forces the hf-inference provider, allowing dynamic model routing to active providers.
+* Updated the default AI Chatbot model to \Qwen/Qwen2.5-7B-Instruct\ which is entirely ungated (Apache 2.0) and requires zero user verification to use on Hugging Face.
