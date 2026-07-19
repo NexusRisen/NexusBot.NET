@@ -7,7 +7,7 @@ namespace SysBot.Pokemon.Discord;
 public static class MedalHelpers
 {
     private const int MaxMedalMilestone = 1000;
-    private static readonly string DefaultBaseUrl = SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl("Assets/Medals/Progress/{0:D4}.png?v=4");
+    private const string RelativeMedalPathFormat = "Assets/Medals/Progress/{0:D4}.png";
 
     public static int GetCurrentMilestone(int totalTrades)
     {
@@ -74,7 +74,8 @@ public static class MedalHelpers
     {
         // Clamp the milestone so requesting >1000 trades falls back to the max 1000 medal image
         int clampedMilestone = GetCurrentMilestone(milestone);
-        return string.Format(DefaultBaseUrl, clampedMilestone);
+        string relativePath = string.Format(RelativeMedalPathFormat, clampedMilestone);
+        return SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl(relativePath);
     }
 
     public static Embed CreateMedalsEmbed(SocketUser user, int milestone, int totalTrades)

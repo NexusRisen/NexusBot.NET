@@ -5,7 +5,6 @@ namespace SysBot.Pokemon.Helpers;
 public static class AssetManager
 {
     private const string BaseUrl = "https://raw.githubusercontent.com/NexusRisen/Nexus-Risen-Edition-Sprite-Images/main/";
-    private const string CacheBuster = "?v=4";
 
     /// <summary>
     /// Gets the full centralized URL for a specific GitHub repository asset.
@@ -32,7 +31,9 @@ public static class AssetManager
             hasParams = true;
         }
 
-        url += $"{(hasParams ? "&" : "?")}v=4";
+        // Use the current date and hour to automatically bust the cache without manual version bumps
+        string hourlyCacheBuster = DateTime.UtcNow.ToString("yyyyMMddHH");
+        url += $"{(hasParams ? "&" : "?")}v={hourlyCacheBuster}";
 
         return url;
     }
