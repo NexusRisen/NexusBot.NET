@@ -503,7 +503,7 @@ namespace SysBot.Pokemon.Helpers
             }
             else
             {
-                return $".SetEVs={val}";
+                return $"EVs: {val}";
             }
         }
 
@@ -564,7 +564,7 @@ namespace SysBot.Pokemon.Helpers
                     return GeneratePresetIVs(ivCount);
             }
 
-            return $".SetIVs={val}";
+            return $"IVs: {val}";
         }
 
         private static string GenerateRandomIVs()

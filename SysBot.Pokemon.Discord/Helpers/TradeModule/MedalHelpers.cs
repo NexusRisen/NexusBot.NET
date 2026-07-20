@@ -20,10 +20,7 @@ public static class MedalHelpers
 
     public static bool IsExactMilestone(int totalTrades)
     {
-        if (totalTrades == 1) return true;
-        if (totalTrades <= 0) return false;
-        // Congratulate infinitely every 50 trades
-        return totalTrades % 50 == 0;
+        return totalTrades == 1; // Only congratulate on the first trade
     }
 
     public static int CalculateTotalMedals(int tradeCount)
