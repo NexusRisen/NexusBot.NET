@@ -282,7 +282,21 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 string otName = LanguageHelper.SanitizeOTName(tradePartner, cln.Language);
                 cln.OriginalTrainerName = otName;
                 
-                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: false);
+                var details = new PokeTrainerDetails(cln);
+                
+                // PKHeX's ApplyAutoOT has a bug where it can clear the OriginalTrainerName.
+                // We cache the details and restore them manually to ensure they persist.
+                string correctOT = details.OT;
+                int correctGender = details.Gender;
+                ushort correctTID = details.TID16;
+                ushort correctSID = details.SID16;
+                
+                cln.ApplyAutoOT(details, overwriteOT: false);
+                
+                cln.OriginalTrainerName = correctOT;
+                cln.OriginalTrainerGender = (byte)correctGender;
+                cln.TID16 = correctTID;
+                cln.SID16 = correctSID;
             }
             else
             {
@@ -304,7 +318,21 @@ public class PokeTradeBotBS : PokeRoutineExecutor8BS, ICountBot, ITradeBot, IDis
                 string otName = LanguageHelper.SanitizeOTName(tradePartner, cln.Language);
                 cln.OriginalTrainerName = otName;
                 
-                cln.ApplyAutoOT(new PokeTrainerDetails(cln), overwriteOT: true);
+                var details = new PokeTrainerDetails(cln);
+                
+                // PKHeX's ApplyAutoOT has a bug where it can clear the OriginalTrainerName.
+                // We cache the details and restore them manually to ensure they persist.
+                string correctOT = details.OT;
+                int correctGender = details.Gender;
+                ushort correctTID = details.TID16;
+                ushort correctSID = details.SID16;
+                
+                cln.ApplyAutoOT(details, overwriteOT: true);
+                
+                cln.OriginalTrainerName = correctOT;
+                cln.OriginalTrainerGender = (byte)correctGender;
+                cln.TID16 = correctTID;
+                cln.SID16 = correctSID;
             }
 
             if (!toSend.IsNicknamed)
