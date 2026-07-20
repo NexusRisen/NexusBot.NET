@@ -1,6 +1,6 @@
 # Release Notes
 
-## [Unreleased]
+## [9.1.12]
 
 - Fixed an issue where the SV bot would get stuck on the news screen.
 - Implemented a workaround for a bug in PKHeX's Auto Legality Mod where `ApplyAutoOT` clears the Original Trainer Name (fixing the "OT Name too short" error). This fix has been applied across all supported games (SV, SWSH, BDSP, LA, LGPE, and PLZA).
