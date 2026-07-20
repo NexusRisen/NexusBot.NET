@@ -390,8 +390,11 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
         if (await SwitchConnection.IsProgramRunning(LibAppletWeID, token).ConfigureAwait(false))
         {
             Log("News detected, will close once it's loaded!");
-            await Task.Delay(5_000, token).ConfigureAwait(false);
-            await Click(B, 2_000, token).ConfigureAwait(false);
+            int newsAttempts = 0;
+            while (await SwitchConnection.IsProgramRunning(LibAppletWeID, token).ConfigureAwait(false) && newsAttempts++ < 30)
+            {
+                await Click(B, 2_000, token).ConfigureAwait(false);
+            }
         }
 
         // Scroll to the bottom of the Main Menu, so we don't need to care if Picnic is unlocked.
@@ -1878,8 +1881,11 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
         if (await SwitchConnection.IsProgramRunning(LibAppletWeID, token).ConfigureAwait(false))
         {
             Log("News detected, will close once it's loaded!");
-            await Task.Delay(5_000, token).ConfigureAwait(false);
-            await Click(B, 2_000 + Hub.Config.Timings.ExtraTimeLoadPortal, token).ConfigureAwait(false);
+            int newsAttempts = 0;
+            while (await SwitchConnection.IsProgramRunning(LibAppletWeID, token).ConfigureAwait(false) && newsAttempts++ < 30)
+            {
+                await Click(B, 2_000 + Hub.Config.Timings.ExtraTimeLoadPortal, token).ConfigureAwait(false);
+            }
         }
 
         Log("Adjusting the cursor in the Portal.");
