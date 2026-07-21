@@ -136,6 +136,7 @@ public sealed partial class Main : Form
 
         Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "NexusBot.NET" : Config.Hub.BotName)} {NexusBot.Version} ({Config.Mode})";
         L_Version.Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "NexusBot.NET" : Config.Hub.BotName)} {NexusBot.Version}";
+        UpdateTrayIconText();
         _ = Task.Run(BotMonitor);
         InitUtil.InitializeStubs(Config.Mode);
         
@@ -494,6 +495,7 @@ public sealed partial class Main : Form
         }
 
         Text = $"{(string.IsNullOrEmpty(Config.Hub.BotName) ? "NexusBot.NET" : Config.Hub.BotName)} {NexusBot.Version} ({Config.Mode})";
+        UpdateTrayIconText();
     }
 
     private void B_Start_Click(object sender, EventArgs e)
@@ -516,8 +518,8 @@ public sealed partial class Main : Form
             SaveCurrentConfig();
             LogUtil.LogInfo("Restarting all the consoles...", "Form");
             SendAll(BotControlCommand.RebootAndStop);
-            await Task.Delay(5_000).ConfigureAwait(false); // Add a delay before restarting the bot
-            SendAll(BotControlCommand.Start); // Start the bot after the delay
+            await Task.Delay(500).ConfigureAwait(false); // Immediate start after command dispatch
+            SendAll(BotControlCommand.Start); // Start the bot after dispatch
             
             Invoke(new Action(() => 
             {
@@ -727,9 +729,17 @@ public sealed partial class Main : Form
         base.OnResize(e);
         if (WindowState == FormWindowState.Minimized && Config.Hub.MinimizeToTray)
         {
+            UpdateTrayIconText();
             Hide();
             trayIcon.Visible = true;
         }
+    }
+
+    private void UpdateTrayIconText()
+    {
+        var botName = string.IsNullOrEmpty(Config.Hub.BotName) ? "NexusBot.NET" : Config.Hub.BotName;
+        var text = $"{botName} - {Config.Mode}";
+        trayIcon.Text = text.Length > 63 ? text[..63] : text;
     }
 
     private void trayRestore_Click(object sender, EventArgs e)
@@ -751,6 +761,7 @@ public sealed partial class Main : Form
 
     private void B_HideTray_Click(object sender, EventArgs e)
     {
+        UpdateTrayIconText();
         Hide();
         trayIcon.Visible = true;
     }
