@@ -241,10 +241,11 @@ public static class QueueHelper<T> where T : PKM, new()
             return new TradeQueueResult(false);
         }
 
-        if (SysCord<T>.Runner.Hub.Config.Trade.TradeConfiguration.StoreTradeCodes)
+        if (SysCord<T>.Runner.Hub.Config.Discord.EnableMedals)
         {
-            var tradeCodeStorage = new TradeCodeStorage(TradeQueueInfo<T>.GetGame());
-            int tradeCount = new MedalStorage(TradeQueueInfo<T>.GetGame()).GetTradeCount(trader.Id);
+            var medalStorage = new MedalStorage(TradeQueueInfo<T>.GetGame());
+            medalStorage.AddTrade(trader.Id, trader.Username);
+            int tradeCount = medalStorage.GetTradeCount(trader.Id);
             _ = SendMilestoneEmbed(tradeCount, context.Channel, trader);
         }
 
@@ -425,10 +426,11 @@ public static class QueueHelper<T> where T : PKM, new()
         }
 
         // Send milestone embed if applicable
-        if (SysCord<T>.Runner.Hub.Config.Trade.TradeConfiguration.StoreTradeCodes)
+        if (SysCord<T>.Runner.Hub.Config.Discord.EnableMedals)
         {
-            var tradeCodeStorage = new TradeCodeStorage(TradeQueueInfo<T>.GetGame());
-            int tradeCount = new MedalStorage(TradeQueueInfo<T>.GetGame()).GetTradeCount(trader.Id);
+            var medalStorage = new MedalStorage(TradeQueueInfo<T>.GetGame());
+            medalStorage.AddTrade(trader.Id, trader.Username);
+            int tradeCount = medalStorage.GetTradeCount(trader.Id);
             _ = SendMilestoneEmbed(tradeCount, context.Channel, trader);
         }
     }
