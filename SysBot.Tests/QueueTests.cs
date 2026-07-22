@@ -332,4 +332,54 @@ public class QueueTests
             detail.IsFavored.Should().Be(true);
         }
     }
+
+    [Fact]
+    public void TradeCanceled_SetsIsCanceled_AndPreventsDuplicateUserCanceled()
+    {
+        var hub = new PokeTradeHub<PK9>(new PokeTradeHubConfig());
+        var info = new TradeQueueInfo<PK9>(hub);
+        int canceledCount = 0;
+        PokeTradeResult? lastResult = null;
+
+        var notifier = new TestNotifier<PK9>
+        {
+            OnCanceled = res =>
+            {
+                canceledCount++;
+                lastResult = res;
+            }
+        };
+
+        var detail = new PokeTradeDetail<PK9>(new PK9 { Species = 1 }, new PokeTradeTrainerInfo("Test"), notifier, PokeTradeType.Specific, 1234);
+        var entry = new TradeEntry<PK9>(detail, 100, PokeRoutineType.LinkTrade, "Test Trade", 1234);
+        info.AddToTradeQueue(entry, entry.UserID);
+
+        // Cancel trade with NoTrainerFound
+        entry.Trade.IsProcessing = false;
+        entry.Trade.TradeCanceled(null!, PokeTradeResult.NoTrainerFound);
+
+        entry.Trade.IsCanceled.Should().BeTrue();
+        canceledCount.Should().Be(1);
+        lastResult.Should().Be(PokeTradeResult.NoTrainerFound);
+
+        // Queue removal should NOT fire a second TradeCanceled with UserCanceled
+        info.Remove(entry);
+        canceledCount.Should().Be(1);
+    }
+
+    private class TestNotifier<T> : IPokeTradeNotifier<T> where T : PKM, new()
+    {
+        public Action<PokeRoutineExecutor<T>>? OnFinish { get; set; }
+        public Action<PokeTradeResult>? OnCanceled { get; set; }
+
+        public void TradeInitialize(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info) { }
+        public void TradeSearching(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info) { }
+        public void TradeCanceled(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeResult msg) => OnCanceled?.Invoke(msg);
+        public void TradeFinished(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, T result) { }
+        public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, string message) { }
+        public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeSummary message) { }
+        public void SendNotification(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, T result, string message) { }
+        public Task SendInitialQueueUpdate() => Task.CompletedTask;
+        public void UpdateBatchProgress(int currentTradeNumber, T receivedMon, int totalBatchTrades) { }
+    }
 }

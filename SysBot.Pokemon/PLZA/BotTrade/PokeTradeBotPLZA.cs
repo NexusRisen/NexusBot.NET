@@ -1317,7 +1317,6 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
         {
             // Partner never showed up - their fault, don't requeue
             poke.IsProcessing = false;
-            poke.SendNotification(this, "No trading partner found. Canceling the trade.");
             poke.TradeCanceled(this, PokeTradeResult.NoTrainerFound);
 
             await RecoverToOverworld(token).ConfigureAwait(false);
@@ -1515,6 +1514,9 @@ public class PokeTradeBotPLZA(PokeTradeHub<PA9> Hub, PokeBotState Config) : Poke
 
     private async Task HandleAbortedBatchTrade(PokeTradeDetail<PA9> detail, PokeRoutineType type, uint priority, PokeTradeResult result, CancellationToken token)
     {
+        if (result == PokeTradeResult.NoTrainerFound)
+            return;
+
         detail.IsProcessing = false;
 
         // Always remove from UsersInQueue on abort

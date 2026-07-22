@@ -70,7 +70,7 @@ namespace SysBot.Pokemon.Twitch
         public void TradeCanceled(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, PokeTradeResult msg)
         {
             OnFinish?.Invoke(routine);
-            var line = $"@{info.Trainer.TrainerName}: Trade canceled, {msg}";
+            var line = $"@{info.Trainer.TrainerName}: Trade canceled, {msg.ToUserString()}";
             LogUtil.LogText(line);
             SendMessage(line, Settings.TradeCanceledDestination);
         }

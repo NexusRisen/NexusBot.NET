@@ -121,7 +121,11 @@ namespace SysBot.Pokemon
 
         public void TradeSearching(PokeRoutineExecutor<TPoke> routine) => Notifier.TradeSearching(routine, this);
 
-        public void TradeCanceled(PokeRoutineExecutor<TPoke> routine, PokeTradeResult msg) => Notifier.TradeCanceled(routine, this, msg);
+        public void TradeCanceled(PokeRoutineExecutor<TPoke> routine, PokeTradeResult msg)
+        {
+            IsCanceled = true;
+            Notifier.TradeCanceled(routine, this, msg);
+        }
 
         public virtual void TradeFinished(PokeRoutineExecutor<TPoke> routine, TPoke result)
         {

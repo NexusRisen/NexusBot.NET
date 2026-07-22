@@ -301,8 +301,8 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
         StopPeriodicUpdates();
 
         var cancelMessage = TotalBatchTrades > 1
-            ? $"Batch trade canceled: {msg}. All remaining trades have been canceled."
-            : msg.ToString();
+            ? $"Batch trade canceled: {msg.ToUserString()}. All remaining trades have been canceled."
+            : msg.ToUserString();
 
         EmbedHelper.SendTradeCanceledEmbedAsync(_client, UserId, cancelMessage).ConfigureAwait(false);
     }

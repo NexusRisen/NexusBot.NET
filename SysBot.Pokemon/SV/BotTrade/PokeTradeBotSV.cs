@@ -1079,7 +1079,6 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
                 if (!partnerFound)
                 {
                     poke.IsProcessing = false;
-                    poke.SendNotification(this, "No trading partner found. Canceling the batch trades.");
                     TradeProgressChanged?.Invoke(0);
 
                     poke.TradeCanceled(this, PokeTradeResult.NoTrainerFound);
@@ -1510,7 +1509,6 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
         {
             // Fast-path for no trainer found - handle immediately
             poke.IsProcessing = false;
-            poke.SendNotification(this, "No trading partner found. Canceling the trade.");
             TradeProgressChanged?.Invoke(0);
 
             poke.TradeCanceled(this, PokeTradeResult.NoTrainerFound);
@@ -1715,6 +1713,9 @@ public class PokeTradeBotSV(PokeTradeHub<PK9> Hub, PokeBotState Config) : PokeRo
 
     private async Task HandleAbortedBatchTrade(PokeTradeDetail<PK9> detail, PokeRoutineType type, uint priority, PokeTradeResult result, CancellationToken token)
     {
+        if (result == PokeTradeResult.NoTrainerFound)
+            return;
+
         detail.IsProcessing = false;
 
         // Always remove from UsersInQueue on abort

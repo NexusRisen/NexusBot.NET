@@ -294,8 +294,8 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
         StopPeriodicUpdates();
 
         var cancelMessage = TotalBatchTrades > 1
-            ? $"Batch trade canceled: {msg}. All remaining trades have been canceled."
-            : msg.ToString();
+            ? $"Batch trade canceled: {msg.ToUserString()}. All remaining trades have been canceled."
+            : msg.ToUserString();
 
         EmbedHelper.SendTradeCanceledEmbedAsync(Trader, cancelMessage).ConfigureAwait(false);
     }

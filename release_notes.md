@@ -1,8 +1,8 @@
 # Release Notes
 
-## [9.1.15]
-- **Medals System Fix & Integrations**:
-  - Fixed trade count incrementing logic so user trade counts increase strictly upon trade completion (preventing duplicate/premature increments).
-  - Fixed the `$medals` (`$ml`) command to properly display the 0-trade status embed card for new users.
-  - Implemented `$medals` / `$ml` command handling and configuration settings for Stoat and Kook integrations.
-  - Centralized milestone calculation and congratulatory messaging logic in core `SysBot.Pokemon`.
+## [9.1.16]
+- **Trade Notification & Cancellation Fixes**:
+  - Fixed an issue where trade timeouts (such as "No trading partner found") spammed redundant `NoTrainerFound` and false `UserCanceled` notifications.
+  - Set `IsCanceled` state when trades are canceled so queue removal does not emit secondary `UserCanceled` messages.
+  - Formatted `PokeTradeResult` cancellation reasons into human-readable notifications across Discord, Stoat, Twitch, and Kook notifiers.
+  - Added abort checks to batch and single trade routines to prevent duplicate failure notifications.
