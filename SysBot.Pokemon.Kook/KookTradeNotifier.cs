@@ -82,6 +82,8 @@ public class KookTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
 
     public void TradeFinished(PokeRoutineExecutor<T> routine, PokeTradeDetail<T> info, T result)
     {
+        var medalStorage = new MedalStorage(TradeQueueInfo<T>.GetGame());
+        medalStorage.AddTrade(Trader.Id, Trader.Username);
         Trader.SendTextAsync("Trade finished. Enjoy!").ConfigureAwait(false);
     }
 

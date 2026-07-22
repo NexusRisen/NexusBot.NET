@@ -309,6 +309,32 @@ public class DiscordTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable
                 OnFinish?.Invoke(routine);
                 
             StopPeriodicUpdates();
+
+            if (Hub.Config.Discord.EnableMedals)
+            {
+                var medalStorage = new MedalStorage(TradeQueueInfo<T>.GetGame());
+                medalStorage.AddTrade(Trader.Id, Trader.Username);
+                int tradeCount = medalStorage.GetTradeCount(Trader.Id);
+
+                if (MedalHelpers.IsExactMilestone(tradeCount))
+                {
+                    var embed = new EmbedBuilder()
+                        .WithColor(new Color(255, 215, 0))
+                        .WithTitle($"{Trader.Username}'s Milestone Medal")
+                        .WithDescription(MedalHelpers.GetMilestoneCongratulations(tradeCount))
+                        .WithThumbnailUrl(MedalHelpers.GetMedalImageUrl(tradeCount))
+                        .Build();
+
+                    if (_fallbackChannel != null)
+                    {
+                        _fallbackChannel.SendMessageAsync(embed: embed).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        Trader.SendMessageAsync(embed: embed).ConfigureAwait(false);
+                    }
+                }
+            }
         }
 
         var tradedToUser = Data.Species;

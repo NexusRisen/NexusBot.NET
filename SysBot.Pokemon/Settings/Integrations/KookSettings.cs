@@ -28,6 +28,9 @@ public class KookSettings
     [Category(Users), Description("Comma separated Kook user IDs that will have sudo access to the Bot Hub."), DisplayName("Global Sudo List")]
     public RemoteControlAccessList GlobalSudoList { get; set; } = new();
 
+    [Category(Operation), Description("When enabled, users can earn medals and check their status with the $medals command."), DisplayName("Enable Medals System")]
+    public bool EnableMedals { get; set; } = true;
+
     [Category(Operation), Description("When enabled, the bot will automatically delete error messages and user commands after a delay."), DisplayName("Message Deletion")]
     public bool MessageDeletionEnabled { get; set; } = true;
 

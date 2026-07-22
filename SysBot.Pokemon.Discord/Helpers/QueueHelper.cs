@@ -241,13 +241,7 @@ public static class QueueHelper<T> where T : PKM, new()
             return new TradeQueueResult(false);
         }
 
-        if (SysCord<T>.Runner.Hub.Config.Discord.EnableMedals)
-        {
-            var medalStorage = new MedalStorage(TradeQueueInfo<T>.GetGame());
-            medalStorage.AddTrade(trader.Id, trader.Username);
-            int tradeCount = medalStorage.GetTradeCount(trader.Id);
-            _ = SendMilestoneEmbed(tradeCount, context.Channel, trader);
-        }
+
 
         return new TradeQueueResult(true);
     }
@@ -425,14 +419,7 @@ public static class QueueHelper<T> where T : PKM, new()
             }
         }
 
-        // Send milestone embed if applicable
-        if (SysCord<T>.Runner.Hub.Config.Discord.EnableMedals)
-        {
-            var medalStorage = new MedalStorage(TradeQueueInfo<T>.GetGame());
-            medalStorage.AddTrade(trader.Id, trader.Username);
-            int tradeCount = medalStorage.GetTradeCount(trader.Id);
-            _ = SendMilestoneEmbed(tradeCount, context.Channel, trader);
-        }
+
     }
 
     private static string GetImageFolderPath()

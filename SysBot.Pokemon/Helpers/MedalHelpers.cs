@@ -1,0 +1,75 @@
+using System;
+
+namespace SysBot.Pokemon;
+
+public static class MedalHelpers
+{
+    private const int MaxMedalMilestone = 1000;
+    private const string RelativeMedalPathFormat = "Assets/Medals/Progress/{0:D4}.png";
+
+    public static int GetCurrentMilestone(int totalTrades)
+    {
+        if (totalTrades < 1) return 0;
+        if (totalTrades < 50) return 1;
+        
+        int milestone = (totalTrades / 50) * 50;
+        return Math.Min(milestone, MaxMedalMilestone);
+    }
+
+    public static bool IsExactMilestone(int totalTrades)
+    {
+        return totalTrades == 1 || (totalTrades > 0 && totalTrades % 50 == 0);
+    }
+
+    public static int CalculateTotalMedals(int tradeCount)
+    {
+        if (tradeCount < 1) return 0;
+        return 1 + Math.Min(MaxMedalMilestone / 50, tradeCount / 50);
+    }
+
+    public static string GetMilestoneStatus(int milestone)
+    {
+        int clampedMilestone = GetCurrentMilestone(milestone);
+        return clampedMilestone switch
+        {
+            1 => "Beginner Trainer",
+            50 => "Rookie Trainer",
+            100 => "Rising Star",
+            150 => "Challenger",
+            200 => "Advanced Trainer",
+            250 => "Star Trainer",
+            300 => "Ace Trainer",
+            350 => "Veteran Trainer",
+            400 => "Expert Trainer",
+            450 => "Pokémon Trader",
+            500 => "Pokémon Professor",
+            550 => "Pokémon Champion",
+            600 => "Pokémon Specialist",
+            650 => "Pokémon Hero",
+            700 => "Pokémon Elite",
+            750 => "Pokémon Legend",
+            800 => "Region Master",
+            850 => "Pokémon Master",
+            900 => "World Famous",
+            950 => "Master Trader",
+            1000 => "Pokémon God",
+            _ => "New Trainer"
+        };
+    }
+
+    public static string GetMilestoneCongratulations(int tradeCount)
+    {
+        if (tradeCount == 1)
+            return $"Congratulations on your first trade!\n**Status:** {GetMilestoneStatus(1)}.";
+        
+        return $"You've reached {tradeCount} trades!\n**Status:** {GetMilestoneStatus(tradeCount)}.";
+    }
+
+    public static string GetMedalImageUrl(int milestone)
+    {
+        // Clamp the milestone so requesting >1000 trades falls back to the max 1000 medal image
+        int clampedMilestone = GetCurrentMilestone(milestone);
+        string relativePath = string.Format(RelativeMedalPathFormat, clampedMilestone);
+        return SysBot.Pokemon.Helpers.AssetManager.GetAssetUrl(relativePath);
+    }
+}

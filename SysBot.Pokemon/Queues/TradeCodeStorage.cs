@@ -107,7 +107,6 @@ public class TradeCodeStorage
         SetCodeForGame(newDetails, _game, localCode.ToString());
         SyncGenericFields(newDetails, true);
         SaveToDb(trainerID, newDetails);
-        new MedalStorage(_game).AddTrade(trainerID, trainerID.ToString());
         return localCode;
     }
 
@@ -134,7 +133,6 @@ public class TradeCodeStorage
         var newDetails = new TradeCodeDetails { Code_LGPE = LGCodeToString(localLg) };
         SyncGenericFields(newDetails, true);
         SaveToDb(trainerID, newDetails);
-        new MedalStorage(_game).AddTrade(trainerID, trainerID.ToString());
         return localLg;
     }
 

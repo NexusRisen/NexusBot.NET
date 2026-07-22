@@ -1,4 +1,4 @@
-﻿using Kook;
+using Kook;
 using Kook.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using PKHeX.Core;
@@ -36,7 +36,8 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         "egg", "Egg", "hidetrade", "ht", "batchTrade", "bt",
         "pokepaste", "pp",
         "PokePaste", "PP", "randomteam", "rt", "RandomTeam", "Rt", "specialrequestpokemon", "srp",
-        "queueStatus", "qs", "queueClear", "qc", "ts", "tc", "deleteTradeCode", "dtc", "mysteryegg", "me"
+        "queueStatus", "qs", "queueClear", "qc", "ts", "tc", "deleteTradeCode", "dtc", "mysteryegg", "me",
+        "medals", "ml"
     };
 
     private readonly KookManager Manager;
@@ -352,6 +353,10 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
         {
             await HandleDeleteTradeCodeCommandAsync(message);
         }
+        else if (cmd == "medals" || cmd == "ml")
+        {
+            await HandleMedalsCommandAsync(message);
+        }
 
     }
 
@@ -591,6 +596,24 @@ public sealed class SysKook<T> : IDisposable where T : PKM, new()
             await message.Channel.SendTextAsync("Deleted stored trade code.");
         else
             await message.Channel.SendTextAsync("No stored trade code found.");
+    }
+
+    private async Task HandleMedalsCommandAsync(SocketMessage message)
+    {
+        if (!Hub.Config.Kook.EnableMedals)
+        {
+            await message.Channel.SendTextAsync("The medals system is currently disabled.");
+            return;
+        }
+
+        int totalTrades = new MedalStorage(TradeQueueInfo<T>.GetGame()).GetTradeCount(message.Author.Id);
+        int milestone = MedalHelpers.GetCurrentMilestone(totalTrades);
+        string status = MedalHelpers.GetMilestoneStatus(milestone);
+        string text = $"**{message.Author.Username}'s Trading Status**\nTotal Trades: **{totalTrades}**\n**Current Status:** {status}";
+        if (totalTrades == 0)
+            text += "\nNo trades on record yet, thank you for participating!";
+
+        await message.Channel.SendTextAsync(text);
     }
 
     private async Task HandleEggCommandAsync(SocketMessage message, List<string> args)

@@ -505,4 +505,24 @@ public partial class SysStoat<T>
                 await StoatHelper<T>.AddToQueueAsync(_client, message.ChannelId, Hub.Queues.Info.GetRandomTradeCode(userIdNumeric), message.Author!.Username, pk, message.AuthorId, message.Author!.Username);
         }
     }
+
+    [StoatCommand("medals", "ml")]
+    private async Task HandleMedalsCommandAsync(UserMessage message, List<string> args)
+    {
+        if (!Hub.Config.Stoat.EnableMedals)
+        {
+            await StoatHelper<T>.SendAsync(_client, message.ChannelId, "The medals system is currently disabled.");
+            return;
+        }
+
+        ulong userIdNumeric = StoatHelper<T>.ConvertId(message.AuthorId);
+        int totalTrades = new MedalStorage(TradeQueueInfo<T>.GetGame()).GetTradeCount(userIdNumeric);
+        int milestone = MedalHelpers.GetCurrentMilestone(totalTrades);
+        string status = MedalHelpers.GetMilestoneStatus(milestone);
+        string text = $"**{message.Author!.Username}'s Trading Status**\nTotal Trades: **{totalTrades}**\n**Current Status:** {status}";
+        if (totalTrades == 0)
+            text += "\nNo trades on record yet, thank you for participating!";
+
+        await StoatHelper<T>.SendAsync(_client, message.ChannelId, text);
+    }
 }

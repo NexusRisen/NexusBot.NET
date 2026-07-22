@@ -1,4 +1,4 @@
-﻿using PKHeX.Core;
+using PKHeX.Core;
 using StoatSharp;
 using SysBot.Base;
 using SysBot.Pokemon.Helpers;
@@ -313,6 +313,12 @@ public class StoatTradeNotifier<T> : IPokeTradeNotifier<T>, IDisposable where T 
         {
             if (routine != null) OnFinish?.Invoke(routine);
             StopPeriodicUpdates();
+
+            if (Hub.Config.Stoat.EnableMedals)
+            {
+                var medalStorage = new MedalStorage(TradeQueueInfo<T>.GetGame());
+                medalStorage.AddTrade(Info.ID, Info.TrainerName);
+            }
         }
 
         if (TotalBatchTrades > 1)

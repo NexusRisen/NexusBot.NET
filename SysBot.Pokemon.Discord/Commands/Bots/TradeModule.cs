@@ -36,14 +36,8 @@ public class TradeModule<T> : ModuleBase<SocketCommandContext> where T : PKM, ne
         var tradeCodeStorage = new TradeCodeStorage(TradeQueueInfo<T>.GetGame());
         int totalTrades = new MedalStorage(TradeQueueInfo<T>.GetGame()).GetTradeCount(Context.User.Id);
 
-        if (totalTrades == 0)
-        {
-            await ReplyAsync($"{Context.User.Username}, you haven't made any trades yet.\nStart trading to earn your first medal!");
-            return;
-        }
-
         int currentMilestone = MedalHelpers.GetCurrentMilestone(totalTrades);
-        var embed = MedalHelpers.CreateMedalsEmbed(Context.User, currentMilestone, totalTrades);
+        var embed = MedalDiscordHelpers.CreateMedalsEmbed(Context.User, currentMilestone, totalTrades);
         await Context.Channel.SendMessageAsync(embed: embed).ConfigureAwait(false);
     }
 
